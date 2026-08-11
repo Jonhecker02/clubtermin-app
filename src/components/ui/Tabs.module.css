@@ -1,0 +1,57 @@
+.track {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--tp-pink-tint);
+  border-radius: var(--radius-pill);
+  padding: 4px;
+  width: 100%;
+}
+
+.trackOnDark {
+  background: rgba(241, 140, 190, 0.18);
+}
+
+.item {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-sans);
+  font-weight: var(--fw-bold);
+  color: var(--color-ink-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+
+.itemOnDark {
+  color: rgba(248, 182, 213, 0.85);
+}
+
+.itemActive {
+  background: var(--tp-pink);
+  color: var(--tp-navy);
+}
+
+.md {
+  height: 36px;
+  font-size: 13.5px;
+  padding: 0 12px;
+}
+
+.sm {
+  height: 28px;
+  font-size: 12px;
+  padding: 0 10px;
+}
+
+.track.md {
+  height: 44px;
+}
+.track.sm {
+  height: 36px;
+}

@@ -1,0 +1,43 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-condensed);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-label);
+  white-space: nowrap;
+}
+
+.sm {
+  height: 22px;
+  padding: 0 10px;
+  font-size: 10.5px;
+}
+.md {
+  height: 26px;
+  padding: 0 12px;
+  font-size: 12px;
+}
+
+.navy {
+  background: var(--tp-navy);
+  color: var(--tp-cream);
+}
+.pink {
+  background: var(--tp-pink);
+  color: var(--tp-navy);
+}
+.outline {
+  background: transparent;
+  color: var(--color-ink);
+  box-shadow: inset 0 0 0 1.5px var(--color-border-strong);
+}
+.soft {
+  background: var(--tp-pink-tint);
+  color: var(--tp-pink-deep);
+}
+.amber {
+  background: rgba(240, 169, 59, 0.18);
+  color: #8a5a00;
+}

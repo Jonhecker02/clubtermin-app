@@ -1,0 +1,85 @@
+/* ============================================================
+   The Padellers — Color tokens
+   Brand: navy + pink. Two equal "moods":
+   • Pink mood  → pink field, navy ink   (bright, playful)
+   • Navy mood  → navy field, pink ink    (premium, evening)
+   ============================================================ */
+:root {
+  /* ---- Brand navy (primary dark) ---- */
+  --tp-navy-deep:   #0C1730;  /* deepest — footers, gradient base */
+  --tp-navy:        #14223F;  /* PRIMARY navy — backgrounds, ink */
+  --tp-navy-700:    #1E2E54;  /* raised surface / row card on navy */
+  --tp-navy-600:    #2A3A66;  /* hairline borders on navy */
+
+  /* ---- Brand pink ---- */
+  --tp-pink:        #F18CBE;  /* PRIMARY pink — fields, accents */
+  --tp-pink-bg:     #F28EC4;  /* pink poster / hero field */
+  --tp-pink-soft:   #F8B6D5;  /* light pink — tints, hovers */
+  --tp-pink-tint:   #FCE3EF;  /* faint pink wash — surfaces on white */
+  --tp-pink-deep:   #D96AA0;  /* pressed / darker pink */
+
+  /* ---- Neutrals ---- */
+  --tp-white:       #FFFFFF;
+  --tp-cream:       #FDFCFB;  /* warm white — cards, paper */
+  --tp-grey-100:    #EEF0F5;
+  --tp-grey-300:    #C9D0E0;  /* muted text ON navy */
+  --tp-grey-500:    #7E8AA8;  /* muted hairlines on navy */
+  --tp-ink-60:      rgba(20,34,63,0.62); /* muted text on light */
+  --tp-ink-40:      rgba(20,34,63,0.40);
+
+  /* ---- Semantic status (kept on-brand, used sparingly) ---- */
+  --tp-success:     #2FB37C;
+  --tp-warning:     #F0A93B;
+  --tp-danger:      #E5564B;
+
+  /* ============================================================
+     SEMANTIC ALIASES — default (light / pink-on-white) context
+     ============================================================ */
+  --color-bg:           var(--tp-cream);
+  --color-surface:      var(--tp-white);
+  --color-surface-alt:  var(--tp-pink-tint);
+  --color-ink:          var(--tp-navy);
+  --color-ink-muted:    var(--tp-ink-60);
+  --color-accent:       var(--tp-pink);
+  --color-accent-ink:   var(--tp-navy);   /* ink that sits on a pink fill */
+  --color-on-accent:    var(--tp-navy);
+  --color-border:       rgba(20,34,63,0.12);
+  --color-border-strong:rgba(20,34,63,0.22);
+  --color-focus:        var(--tp-navy);
+}
+
+/* ------------------------------------------------------------
+   MOOD: navy field (navy background, pink ink).
+   Apply [data-mood="navy"] to any container to flip the
+   semantic aliases for everything inside it.
+   ------------------------------------------------------------ */
+[data-mood="navy"] {
+  --color-bg:           var(--tp-navy);
+  --color-surface:      var(--tp-navy-700);
+  --color-surface-alt:  var(--tp-navy-600);
+  --color-ink:          var(--tp-cream);
+  --color-ink-muted:    var(--tp-grey-300);
+  --color-accent:       var(--tp-pink);
+  --color-accent-ink:   var(--tp-navy);
+  --color-on-accent:    var(--tp-navy);
+  --color-border:       rgba(255,255,255,0.12);
+  --color-border-strong:rgba(255,255,255,0.24);
+  --color-focus:        var(--tp-pink);
+}
+
+/* ------------------------------------------------------------
+   MOOD: pink field (pink background, navy ink) — the bright poster look.
+   ------------------------------------------------------------ */
+[data-mood="pink"] {
+  --color-bg:           var(--tp-pink-bg);
+  --color-surface:      rgba(255,255,255,0.30);
+  --color-surface-alt:  rgba(255,255,255,0.55);
+  --color-ink:          var(--tp-navy);
+  --color-ink-muted:    rgba(20,34,63,0.66);
+  --color-accent:       var(--tp-navy);
+  --color-accent-ink:   var(--tp-pink-soft);
+  --color-on-accent:    var(--tp-cream);
+  --color-border:       rgba(20,34,63,0.18);
+  --color-border-strong:rgba(20,34,63,0.30);
+  --color-focus:        var(--tp-navy);
+}

@@ -1,0 +1,80 @@
+/* ============================================================
+   The Padellers — Typography tokens
+   Three voices:
+   • Display slab  (Bevan)            → logo wordmark + big hero "THE PADELLERS"
+   • Display cond. (Saira Condensed)  → sporty section headers, event names, big labels
+   • Body grotesque(Hanken Grotesk)   → body copy, UI, prices, captions
+   Display headers are ALL CAPS and frequently set OBLIQUE (skewed) — the
+   sporty italic look from the posters. Use the .tp-oblique helper or
+   `font-style: italic` on Saira (synthetic) / Bevan (true italic).
+   ============================================================ */
+:root {
+  /* ---- families ---- */
+  --font-display:   "Bevan", "Rockwell", Georgia, serif;        /* slab — wordmark / hero */
+  --font-condensed: "Saira Condensed", "Oswald", sans-serif;    /* sporty condensed display */
+  --font-sans:      "Hanken Grotesk", "Helvetica Neue", Arial, sans-serif; /* body & UI */
+
+  /* ---- weights ---- */
+  --fw-regular: 400; /* @kind other */
+  --fw-medium:  500; /* @kind other */
+  --fw-semibold:600; /* @kind other */
+  --fw-bold:    700; /* @kind other */
+  --fw-black:   800; /* @kind other */
+  --fw-ultra:   900; /* @kind other */
+
+  /* ---- type scale (clamped, fluid where it earns it) ---- */
+  --text-hero:    clamp(2.75rem, 6vw, 5rem);    /* 44 → 80px  display slab */
+  --text-display: clamp(2rem, 4.5vw, 3.25rem);  /* 32 → 52px  condensed display */
+  --text-h1:      2.25rem;   /* 36 */
+  --text-h2:      1.75rem;   /* 28 */
+  --text-h3:      1.375rem;  /* 22 */
+  --text-lg:      1.125rem;  /* 18 */
+  --text-base:    1rem;      /* 16 */
+  --text-sm:      0.875rem;  /* 14 */
+  --text-xs:      0.75rem;   /* 12 */
+  --text-xxs:     0.6875rem; /* 11 — overlines / chips */
+
+  /* ---- line heights ---- */
+  --lh-tight:  1.02; /* @kind other */
+  --lh-snug:   1.18; /* @kind other */
+  --lh-normal: 1.5; /* @kind other */
+
+  /* ---- letter spacing ---- */
+  --ls-display: -0.01em; /* @kind other */
+  --ls-tight:   -0.005em; /* @kind other */
+  --ls-normal:  0; /* @kind other */
+  --ls-label:   0.04em; /* @kind other */
+  --ls-caps:    0.08em; /* @kind other */
+}
+
+/* ---- ergonomic helpers (used by cards & docs; components inline their own) ---- */
+.tp-hero {
+  font-family: var(--font-display);
+  font-weight: var(--fw-regular);
+  font-size: var(--text-hero);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--ls-display);
+  text-transform: uppercase;
+}
+.tp-display {
+  font-family: var(--font-condensed);
+  font-weight: var(--fw-ultra);
+  font-size: var(--text-display);
+  line-height: var(--lh-tight);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-tight);
+}
+.tp-eyebrow {
+  font-family: var(--font-condensed);
+  font-weight: var(--fw-bold);
+  font-size: var(--text-sm);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-label);
+}
+.tp-oblique { font-style: italic; }   /* the sporty slanted display look */
+.tp-body {
+  font-family: var(--font-sans);
+  font-weight: var(--fw-regular);
+  font-size: var(--text-base);
+  line-height: var(--lh-normal);
+}

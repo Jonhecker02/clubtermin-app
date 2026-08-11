@@ -1,0 +1,8 @@
+/* The Padellers — Webfonts
+   NOTE: The exact licensed brand fonts were not provided. These are the
+   nearest Google Fonts matches and are flagged for replacement:
+   - Bevan          → heavy collegiate slab of the logo wordmark & "THE PADELLERS" hero headlines
+   - Saira Condensed→ sporty heavy-condensed display used for section headers & big labels
+   - Hanken Grotesk → clean neutral grotesque used for body, UI, prices, captions
+*/
+@import url('https://fonts.googleapis.com/css2?family=Bevan&family=Saira+Condensed:wght@400;500;600;700;800;900&family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap');

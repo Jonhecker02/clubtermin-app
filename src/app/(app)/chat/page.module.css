@@ -1,0 +1,174 @@
+.body {
+  padding: 16px 16px 12px;
+}
+
+.groupTabs {
+  margin-bottom: 14px;
+}
+
+.messages {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: calc(100dvh - 320px);
+}
+
+.empty {
+  text-align: center;
+  padding: 32px 12px;
+  color: var(--color-ink-muted);
+  font-size: 14px;
+  margin: auto;
+}
+
+.row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  max-width: 82%;
+}
+
+.rowMine {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-pill);
+  background: var(--tp-pink-tint);
+  color: var(--tp-pink-deep);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: var(--fw-black);
+  font-size: 10.5px;
+  flex-shrink: 0;
+}
+
+.bubbleCol {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.rowMine .bubbleCol {
+  align-items: flex-end;
+}
+
+.meta {
+  font-size: 11px;
+  color: var(--color-ink-muted);
+  padding: 0 4px;
+}
+
+.bubble {
+  background: var(--color-surface);
+  color: var(--color-ink);
+  border-radius: var(--radius-lg);
+  padding: 10px 14px;
+  font-size: 14px;
+  line-height: 1.4;
+  box-shadow: var(--shadow-xs);
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.bubbleTrainer {
+  background: var(--tp-pink-tint);
+  color: var(--tp-pink-deep);
+}
+
+.bubbleCaptain {
+  background: rgba(240, 169, 59, 0.18);
+  color: #8a5a00;
+}
+
+.deleteBtn {
+  align-self: center;
+}
+
+.inputBar {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+  background: var(--color-bg);
+  border-top: 1px solid var(--color-border);
+}
+
+.inputField {
+  flex: 1;
+}
+
+.composeCard {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.composeActions {
+  display: flex;
+  gap: 8px;
+}
+
+.announcementList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.announcementCard {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.announcementHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.announcementAuthor {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.announcementName {
+  font-size: 14px;
+  font-weight: var(--fw-bold);
+  color: var(--color-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.announcementContent {
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--color-ink);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.announcementTime {
+  font-size: 11.5px;
+  color: var(--color-ink-muted);
+}

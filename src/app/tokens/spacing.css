@@ -1,0 +1,49 @@
+/* ============================================================
+   The Padellers — Spacing, radius, shadow, motion, layout
+   8px base grid. Cards are soft, generously rounded, low-contrast
+   shadows (the airy poster look). Pink accents never use shadow color.
+   ============================================================ */
+:root {
+  /* ---- spacing (8px base) ---- */
+  --space-0:  0;
+  --space-1:  0.25rem;  /*  4 */
+  --space-2:  0.5rem;   /*  8 */
+  --space-3:  0.75rem;  /* 12 */
+  --space-4:  1rem;     /* 16 */
+  --space-5:  1.5rem;   /* 24 */
+  --space-6:  2rem;     /* 32 */
+  --space-7:  3rem;     /* 48 */
+  --space-8:  4rem;     /* 64 */
+  --space-9:  6rem;     /* 96 */
+
+  /* ---- radius (soft, friendly — posters use big radii) ---- */
+  --radius-xs:   6px;
+  --radius-sm:   10px;
+  --radius-md:   16px;   /* default control / chip */
+  --radius-lg:   22px;   /* cards / row items */
+  --radius-xl:   32px;   /* feature cards / panels */
+  --radius-pill: 999px;  /* buttons, tags, avatars */
+
+  /* ---- borders ---- */
+  --border-hair: 1px;
+  --border-accent: 4px;  /* the left accent bar on event rows */
+
+  /* ---- shadows (cool navy-tinted, soft, never harsh) ---- */
+  --shadow-xs: 0 1px 2px rgba(12,23,48,0.06);
+  --shadow-sm: 0 2px 8px rgba(12,23,48,0.08);
+  --shadow-md: 0 8px 24px rgba(12,23,48,0.10);
+  --shadow-lg: 0 18px 48px rgba(12,23,48,0.14);
+  --shadow-pink: 0 10px 28px rgba(217,106,160,0.30); /* glow under pink CTAs */
+
+  /* ---- motion ---- */
+  --ease-out:    cubic-bezier(0.22, 0.61, 0.36, 1); /* @kind other */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /* @kind other */
+  --dur-fast:    120ms; /* @kind other */
+  --dur-base:    200ms; /* @kind other */
+  --dur-slow:    360ms; /* @kind other */
+
+  /* ---- layout ---- */
+  --container:    1200px; /* @kind spacing */
+  --container-narrow: 820px; /* @kind spacing */
+  --gutter:       clamp(1rem, 4vw, 2.5rem); /* @kind spacing */
+}

@@ -1,0 +1,35 @@
+.header {
+  background: var(--tp-navy);
+  padding: 20px 20px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.title {
+  font-family: var(--font-condensed);
+  font-weight: var(--fw-black);
+  font-size: 22px;
+  text-transform: uppercase;
+  color: var(--tp-cream);
+  letter-spacing: 0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.withBack {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.withBack .title {
+  font-size: 16px;
+}

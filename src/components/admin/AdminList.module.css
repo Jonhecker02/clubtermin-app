@@ -1,0 +1,145 @@
+.countRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.count {
+  font-size: 13.5px;
+  color: var(--color-ink-muted);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.empty {
+  text-align: center;
+  padding: 24px 12px;
+  color: var(--color-ink-muted);
+  font-size: 14px;
+}
+
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--tp-pink-tint);
+  color: var(--tp-pink-deep);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+.noticeText {
+  flex: 1;
+}
+
+.noticeClose {
+  cursor: pointer;
+  font-weight: var(--fw-black);
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.backRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.backTitle {
+  font-family: var(--font-condensed);
+  font-weight: var(--fw-black);
+  font-size: 17px;
+  text-transform: uppercase;
+  color: var(--color-ink);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 100%;
+  touch-action: pan-y;
+}
+
+/* Column by default: native date/time/number inputs (Startzeit/Endzeit,
+   Courts/Max. TN) have a browser-enforced minimum render width that ignores
+   flex-shrink, so a side-by-side row can overflow narrow phones no matter
+   what CSS is applied to the flex items. Only pair them up once there's
+   guaranteed room. */
+.fieldRow {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fieldRow > * {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (min-width: 420px) {
+  .fieldRow {
+    flex-direction: row;
+  }
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fieldGroupLabel {
+  font-size: 13px;
+  font-weight: var(--fw-semibold);
+  color: var(--color-ink);
+}
+
+.checkboxList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 4px;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13.5px;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.checkboxLabel input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--tp-pink);
+}
+
+.notifyBox {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+}
+
+.error {
+  color: var(--tp-danger);
+  font-size: 13px;
+  font-weight: var(--fw-semibold);
+}

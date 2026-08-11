@@ -1,0 +1,30 @@
+.nav {
+  background: var(--tp-navy);
+  display: flex;
+  padding: 10px 20px calc(18px + env(safe-area-inset-bottom));
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.item {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 4px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: var(--tp-grey-300);
+}
+
+.itemActive {
+  color: var(--tp-pink);
+}
+
+.label {
+  font-size: 11px;
+  font-weight: var(--fw-bold);
+}

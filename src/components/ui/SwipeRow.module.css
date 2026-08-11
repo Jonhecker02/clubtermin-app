@@ -1,0 +1,85 @@
+.wrap {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  /* Own stacking context per row, defense in depth against paint order
+     issues bleeding one row's content into a sibling's. */
+  isolation: isolate;
+}
+
+.track {
+  display: flex;
+  align-items: stretch;
+  transition: transform var(--dur-fast, 0.2s) var(--ease-out, ease);
+  will-change: transform;
+}
+
+.content {
+  flex: 0 0 100%;
+  min-width: 0;
+}
+
+.actions {
+  flex: 0 0 auto;
+  display: flex;
+}
+
+.actionEdit,
+.actionDelete {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 10.5px;
+  font-weight: var(--fw-bold);
+  color: #fff;
+}
+
+.actionEdit {
+  background: var(--tp-navy);
+}
+
+.actionDelete {
+  background: var(--tp-danger);
+}
+
+.confirm {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--tp-danger);
+  padding: 0 10px;
+}
+
+.confirmText {
+  font-size: 12px;
+  font-weight: var(--fw-bold);
+  color: #fff;
+}
+
+.confirmYes,
+.confirmNo {
+  border: none;
+  border-radius: var(--radius-pill);
+  padding: 5px 10px;
+  font-size: 11.5px;
+  font-weight: var(--fw-bold);
+  cursor: pointer;
+}
+
+.confirmYes {
+  background: #fff;
+  color: var(--tp-danger);
+}
+
+.confirmNo {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}

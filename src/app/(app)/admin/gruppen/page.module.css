@@ -1,0 +1,144 @@
+.groupCard {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.headRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.nameCol {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.groupName {
+  font-family: var(--font-condensed);
+  font-weight: var(--fw-black);
+  font-size: 16px;
+  color: var(--color-ink);
+}
+
+.shortCode {
+  color: var(--tp-pink-deep);
+}
+
+.editFieldRow {
+  display: flex;
+  gap: 8px;
+}
+
+.editFieldRow > *:first-child {
+  flex: 1;
+}
+
+.editFieldRow > *:last-child {
+  width: 88px;
+  flex: none;
+}
+
+.groupCode {
+  font-size: 12.5px;
+  color: var(--color-ink-muted);
+  font-family: ui-monospace, monospace;
+}
+
+.editRow {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.editActions {
+  display: flex;
+  gap: 8px;
+}
+
+.divider {
+  height: 1px;
+  background: var(--color-border);
+}
+
+.memberCount {
+  font-size: 12px;
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-ink-muted);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--tp-pink-tint);
+  color: var(--tp-pink-deep);
+  font-size: 12px;
+  font-weight: var(--fw-semibold);
+  padding: 4px 6px 4px 10px;
+  border-radius: var(--radius-pill);
+}
+
+.chipRemove {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgba(217, 106, 160, 0.25);
+  border: none;
+  color: var(--tp-pink-deep);
+}
+
+.chipConfirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--tp-danger);
+  color: #fff;
+  font-size: 12px;
+  font-weight: var(--fw-bold);
+  padding: 4px 6px 4px 10px;
+  border-radius: var(--radius-pill);
+}
+
+.chipConfirmBtn {
+  cursor: pointer;
+  text-decoration: underline;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+}
+
+.chipCancelBtn {
+  cursor: pointer;
+  opacity: 0.85;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+}
+
+.noMembers {
+  font-size: 12.5px;
+  color: var(--color-ink-muted);
+}

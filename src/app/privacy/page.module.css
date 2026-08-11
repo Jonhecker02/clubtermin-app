@@ -1,0 +1,79 @@
+.page {
+  min-height: 100dvh;
+  background: var(--tp-navy);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 20px calc(40px + env(safe-area-inset-bottom));
+}
+
+.wordmark {
+  font-family: var(--font-display, var(--font-sans));
+  font-weight: 900;
+  font-size: 20px;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.tagline {
+  font-size: 12.5px;
+  color: var(--tp-grey-300);
+  margin-bottom: 28px;
+}
+
+.card {
+  width: 100%;
+  max-width: 480px;
+  background: #fff;
+  border-radius: var(--radius-lg);
+  padding: 24px 22px;
+  box-sizing: border-box;
+}
+
+.title {
+  font-size: 19px;
+  font-weight: 900;
+  color: var(--tp-navy);
+  margin: 0 0 4px;
+}
+
+.updated {
+  font-size: 12px;
+  color: var(--tp-grey-500);
+  margin: 0 0 22px;
+}
+
+.section {
+  margin-bottom: 20px;
+}
+
+.section:last-child {
+  margin-bottom: 0;
+}
+
+.section h2 {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--tp-navy);
+  margin: 0 0 8px;
+}
+
+.section p,
+.section li {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--tp-navy-700);
+}
+
+.section ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.section p {
+  margin: 0 0 8px;
+}
+
+.section p:last-child {
+  margin-bottom: 0;
+}

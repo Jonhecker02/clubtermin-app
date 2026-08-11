@@ -1,0 +1,7 @@
+.body {
+  padding: 16px 16px 28px;
+  /* Belt-and-suspenders with the html/body rule — touch-action isn't a
+     normal inherited CSS property, and form controls in particular can get
+     their own default touch handling, so this needs restating here too. */
+  touch-action: pan-y;
+}

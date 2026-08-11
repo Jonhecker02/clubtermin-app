@@ -1,0 +1,128 @@
+.card {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  padding: 22px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.nameCol {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.name {
+  font-family: var(--font-condensed);
+  font-weight: var(--fw-black);
+  font-size: 20px;
+  color: var(--color-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.editRow {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.editActions {
+  display: flex;
+  gap: 8px;
+}
+
+.email {
+  font-size: 13.5px;
+  color: var(--color-ink-muted);
+}
+
+.groupBadge {
+  margin-top: 8px;
+}
+
+.sectionLabel {
+  font-family: var(--font-condensed);
+  font-weight: var(--fw-black);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-ink-muted);
+  margin-bottom: 10px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.empty {
+  text-align: center;
+  padding: 20px 12px;
+  color: var(--color-ink-muted);
+  font-size: 14px;
+}
+
+.pastToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 8px;
+  margin-bottom: 10px;
+  font-size: 12.5px;
+  font-weight: var(--fw-bold);
+  color: var(--color-ink-muted);
+}
+
+.pastList {
+  opacity: 0.55;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.icalBox {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.icalButtonRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icalButtonRow > button:first-child {
+  flex: 1;
+}
+
+.icalHint {
+  font-size: 12px;
+  color: var(--color-ink-muted);
+  line-height: 1.5;
+  padding: 0 4px;
+}
