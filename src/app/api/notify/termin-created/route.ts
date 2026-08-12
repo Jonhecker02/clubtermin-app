@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import webpush from "web-push";
 import { createClient } from "@/lib/supabase/server";
+import { isApnsConfigured, sendApnsNotification, shouldPruneApnsToken } from "@/lib/apns";
 import { fullDateLabel, hhmm } from "@/lib/domain";
 
 // Triggered client-side right after an admin creates a termin with "notify"
@@ -33,12 +34,17 @@ export async function POST(request: Request) {
       .single();
     shortCode = group?.short_code ?? null;
   }
-  const terminLabel = shortCode ? `${shortCode} · ${termin.title}` : termin.title;
 
   const appUrl = new URL(request.url).origin;
   const terminUrl = `${appUrl}/termine/${termin.id}`;
   const dateLabel = fullDateLabel(termin.date);
   const timeLabel = hhmm(termin.start_time);
+
+  const payload = {
+    title: shortCode ? `🗓️ Neuer Termin für Gruppe ${shortCode}` : "🗓️ Neuer Termin",
+    body: `${termin.title} · ${dateLabel}, ${timeLabel} Uhr · ${termin.location}`,
+    url: terminUrl,
+  };
 
   let pushSent = 0;
   const vapidPublic = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
@@ -53,17 +59,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: subscriptionsError.message }, { status: 403 });
     }
 
-    const payload = JSON.stringify({
-      title: `Neuer Termin: ${terminLabel}`,
-      body: `${dateLabel}, ${timeLabel} Uhr · ${termin.location}`,
-      url: terminUrl,
-    });
-
     for (const sub of subscriptions ?? []) {
       try {
         await webpush.sendNotification(
           { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
-          payload,
+          JSON.stringify(payload),
         );
         pushSent += 1;
       } catch (err) {
@@ -75,5 +75,23 @@ export async function POST(request: Request) {
     }
   }
 
-  return NextResponse.json({ pushSent });
+  let apnsSent = 0;
+  if (isApnsConfigured()) {
+    const { data: tokens, error: tokensError } = await supabase.rpc("get_termin_apns_tokens", {
+      p_termin_id: termin_id,
+    });
+    if (tokensError) {
+      return NextResponse.json({ error: tokensError.message }, { status: 403 });
+    }
+    for (const { device_token } of tokens ?? []) {
+      const result = await sendApnsNotification(device_token, payload);
+      if (result.ok) {
+        apnsSent += 1;
+      } else if (shouldPruneApnsToken(result)) {
+        await supabase.rpc("admin_delete_apns_token", { p_device_token: device_token });
+      }
+    }
+  }
+
+  return NextResponse.json({ pushSent, apnsSent });
 }

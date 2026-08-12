@@ -86,6 +86,19 @@ export type PushSubscriptionRow = {
 
 type PushSubscriptionInsert = Pick<PushSubscriptionRow, "user_id" | "endpoint" | "p256dh" | "auth">;
 
+export type ApnsTokenRow = {
+  id: string;
+  user_id: string;
+  device_token: string;
+  created_at: string;
+};
+
+export type ApnsTokenTarget = { device_token: string };
+
+export type ConfirmedApnsTarget = { user_id: string; device_token: string };
+
+export type ApnsTokenForUser = { user_id: string; device_token: string };
+
 export type NotificationRecipient = {
   user_id: string;
   name: string;
@@ -217,6 +230,12 @@ export interface Database {
         Update: never;
         Relationships: [];
       };
+      apns_tokens: {
+        Row: ApnsTokenRow;
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -245,6 +264,12 @@ export interface Database {
       claim_due_training_reminders: { Args: Record<string, never>; Returns: DueTrainingReminder[] };
       get_confirmed_push_subscriptions: { Args: { p_termin_id: string }; Returns: ConfirmedPushTarget[] };
       claim_opened_registrations: { Args: Record<string, never>; Returns: OpenedRegistrationPush[] };
+      register_apns_token: { Args: { p_device_token: string }; Returns: void };
+      get_termin_apns_tokens: { Args: { p_termin_id: string }; Returns: ApnsTokenTarget[] };
+      get_announcement_apns_tokens: { Args: { p_announcement_id: string }; Returns: ApnsTokenTarget[] };
+      admin_delete_apns_token: { Args: { p_device_token: string }; Returns: void };
+      get_confirmed_apns_tokens: { Args: { p_termin_id: string }; Returns: ConfirmedApnsTarget[] };
+      get_apns_tokens_for_users: { Args: { p_user_ids: string[] }; Returns: ApnsTokenForUser[] };
     };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;

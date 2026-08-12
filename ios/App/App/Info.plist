@@ -70,5 +70,9 @@
 	     encryption — skips the export-compliance question on every upload. -->
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 </dict>
 </plist>

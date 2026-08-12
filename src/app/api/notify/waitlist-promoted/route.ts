@@ -2,7 +2,16 @@ import { NextResponse } from "next/server";
 import webpush from "web-push";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/serviceRole";
-import { fullDateLabel, hhmm } from "@/lib/domain";
+import { isApnsConfigured, sendApnsNotification, shouldPruneApnsToken, type ApnsPayload } from "@/lib/apns";
+import type { WaitlistPromotionPush } from "@/types/database";
+
+function buildPayload(promo: WaitlistPromotionPush): ApnsPayload {
+  return {
+    title: "⚡️ Du bist nachgerückt!",
+    body: "Schaue jetzt rein und trage dir den Termin ein!",
+    url: `/termine/${promo.termin_id}`,
+  };
+}
 
 // Triggered client-side (fire-and-forget) right after cancel_registration,
 // admin_remove_participant, or remove_group_member — any of which can free up
@@ -34,21 +43,11 @@ export async function POST() {
     for (const promo of promotions ?? []) {
       if (!promo.endpoint || !promo.p256dh || !promo.auth) continue;
 
-      let shortCode: string | null = null;
-      if (promo.register_groups.length === 1 && promo.register_groups[0] !== "all") {
-        const { data: group } = await service.from("groups").select("short_code").eq("id", promo.register_groups[0]).single();
-        shortCode = group?.short_code ?? null;
-      }
-      const label = shortCode ? `${shortCode} · ${promo.title}` : promo.title;
-
-      const payload = JSON.stringify({
-        title: "Du bist nachgerückt! 🎉",
-        body: `Ein Platz ist frei geworden — du bist jetzt für ${label} angemeldet (${fullDateLabel(promo.date)}, ${hhmm(promo.start_time)} Uhr).`,
-        url: `/termine/${promo.termin_id}`,
-      });
-
       try {
-        await webpush.sendNotification({ endpoint: promo.endpoint, keys: { p256dh: promo.p256dh, auth: promo.auth } }, payload);
+        await webpush.sendNotification(
+          { endpoint: promo.endpoint, keys: { p256dh: promo.p256dh, auth: promo.auth } },
+          JSON.stringify(buildPayload(promo)),
+        );
         pushSent += 1;
       } catch (err) {
         const statusCode = (err as { statusCode?: number }).statusCode;
@@ -59,5 +58,22 @@ export async function POST() {
     }
   }
 
-  return NextResponse.json({ promotions: promotions?.length ?? 0, pushSent });
+  let apnsSent = 0;
+  if (isApnsConfigured()) {
+    const userIds = [...new Set((promotions ?? []).map((p) => p.user_id))];
+    const byUser = new Map((promotions ?? []).map((p) => [p.user_id, p]));
+    const { data: apnsTargets } = await service.rpc("get_apns_tokens_for_users", { p_user_ids: userIds });
+    for (const { user_id, device_token } of apnsTargets ?? []) {
+      const promo = byUser.get(user_id);
+      if (!promo) continue;
+      const result = await sendApnsNotification(device_token, buildPayload(promo));
+      if (result.ok) {
+        apnsSent += 1;
+      } else if (shouldPruneApnsToken(result)) {
+        await service.from("apns_tokens").delete().eq("device_token", device_token);
+      }
+    }
+  }
+
+  return NextResponse.json({ promotions: promotions?.length ?? 0, pushSent, apnsSent });
 }
