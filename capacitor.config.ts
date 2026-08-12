@@ -1,12 +1,13 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
-// Bundle-ID ist produktneutral (Produkt: "ClubTermin"), appName bleibt der
-// Club-Name dieser konkreten Instanz — der App-Store-Eintrag zeigt Nutzern
-// weiterhin "The Padellers", nur die technische ID hängt nicht mehr an einem
-// bestimmten Verein.
+// Sowohl die Bundle-ID als auch der sichtbare App-Name sind produktneutral
+// ("ClubTermine") — das Icon/App-Label auf dem Homescreen hängt nicht mehr
+// an einem bestimmten Verein. Die eigentliche App-Oberfläche (Wordmark,
+// Login-Screen etc.) bleibt weiterhin "The Padellers"-gebrandet, da dieser
+// Deploy konkret für diesen Verein läuft.
 const config: CapacitorConfig = {
   appId: "com.clubtermin.app",
-  appName: "The Padellers",
+  appName: "ClubTermine",
   webDir: "public",
   server: {
     url: "https://the-padellers-app.vercel.app",
