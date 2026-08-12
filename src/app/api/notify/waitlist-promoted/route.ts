@@ -38,7 +38,7 @@ export async function POST() {
   const vapidPublic = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
   const vapidPrivate = process.env.VAPID_PRIVATE_KEY;
   if (vapidPublic && vapidPrivate) {
-    webpush.setVapidDetails("mailto:notifications@the-padellers-app.vercel.app", vapidPublic, vapidPrivate);
+    webpush.setVapidDetails("mailto:notifications@clubtermine-app.vercel.app", vapidPublic, vapidPrivate);
 
     for (const promo of promotions ?? []) {
       if (!promo.endpoint || !promo.p256dh || !promo.auth) continue;

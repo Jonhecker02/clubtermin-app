@@ -50,7 +50,7 @@ export async function POST(request: Request) {
   const vapidPublic = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
   const vapidPrivate = process.env.VAPID_PRIVATE_KEY;
   if (vapidPublic && vapidPrivate) {
-    webpush.setVapidDetails("mailto:notifications@the-padellers-app.vercel.app", vapidPublic, vapidPrivate);
+    webpush.setVapidDetails("mailto:notifications@clubtermine-app.vercel.app", vapidPublic, vapidPrivate);
 
     const { data: subscriptions, error: subscriptionsError } = await supabase.rpc("get_termin_push_subscriptions", {
       p_termin_id: termin_id,
