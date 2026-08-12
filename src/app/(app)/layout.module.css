@@ -10,4 +10,9 @@
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  /* -webkit-overflow-scrolling: touch enables iOS's elastic/rubber-band
+     overscroll on this container — without containing it, dragging down
+     from the very top (e.g. on shorter pages like the forms) reveals empty
+     space above the content, reading as an accidental pull-to-refresh. */
+  overscroll-behavior-y: contain;
 }
