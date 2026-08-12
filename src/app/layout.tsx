@@ -14,6 +14,9 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   themeColor: "#14223F",
+  // Required for env(safe-area-inset-*) to resolve to non-zero values in
+  // WebKit — without it every safe-area CSS value below stays 0.
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

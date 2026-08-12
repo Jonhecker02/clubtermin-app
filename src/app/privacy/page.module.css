@@ -4,7 +4,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 32px 20px calc(40px + env(safe-area-inset-bottom));
+  padding: calc(32px + env(safe-area-inset-top)) 20px calc(40px + env(safe-area-inset-bottom));
 }
 
 .wordmark {

@@ -11,7 +11,11 @@
   width: 100%;
   border: none;
   font-family: inherit;
-  transition: opacity var(--dur-fast, 0.2s) var(--ease-out, ease);
+  transition: opacity var(--dur-fast, 0.2s) var(--ease-out, ease), transform var(--dur-fast, 0.2s) var(--ease-out, ease);
+}
+
+.row:active {
+  transform: scale(0.98);
 }
 
 /* Event: soft transparent pink fill, no border. */

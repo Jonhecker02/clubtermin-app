@@ -13,7 +13,12 @@ const config: CapacitorConfig = {
     cleartext: false,
   },
   ios: {
-    contentInset: "always",
+    // "never": WKWebView draws full-bleed (no native safe-area inset), so
+    // page backgrounds reach the true screen edge. Content-level clearance
+    // (status bar/notch/home indicator) is handled by CSS env(safe-area-inset-*)
+    // instead — see AppHeader/IntroShell/BottomNav, plus viewport-fit=cover
+    // in layout.tsx (required for env() to resolve to non-zero in WebKit).
+    contentInset: "never",
   },
 };
 

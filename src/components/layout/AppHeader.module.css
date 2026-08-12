@@ -1,6 +1,6 @@
 .header {
   background: var(--tp-navy);
-  padding: 20px 20px 14px;
+  padding: calc(20px + env(safe-area-inset-top)) 20px 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;

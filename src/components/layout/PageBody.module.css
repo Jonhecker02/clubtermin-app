@@ -1,7 +1,9 @@
 .body {
   padding: 16px 16px 28px;
-  /* Belt-and-suspenders with the html/body rule — touch-action isn't a
-     normal inherited CSS property, and form controls in particular can get
-     their own default touch handling, so this needs restating here too. */
+  /* Belt-and-suspenders with the html/body rule — overflow-x/touch-action
+     aren't reliably inherited by nested scroll containers (the parent
+     .content in (app)/layout.module.css owns the actual scroll context),
+     so this needs restating here too. */
+  overflow-x: hidden;
   touch-action: pan-y;
 }
