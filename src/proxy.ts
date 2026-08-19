@@ -6,7 +6,7 @@ const PUBLIC_PATHS = ["/login", "/privacy"];
 // /api/cron/ has no browser session at all (called by pg_net from Postgres) —
 // it authenticates itself via the CRON_SECRET header instead, checked inside
 // the route handler.
-const PUBLIC_PREFIXES = ["/auth/", "/api/ical/", "/api/cron/"];
+const PUBLIC_PREFIXES = ["/auth/", "/api/ical/", "/api/cron/", "/api/debug/", "/api/auth/"];
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });

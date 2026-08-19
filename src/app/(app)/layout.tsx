@@ -5,7 +5,7 @@ import styles from "./layout.module.css";
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${styles.wide}`}>
       <RealtimeProvider />
       <div className={styles.shell}>
         <div className={styles.content}>{children}</div>

@@ -9,6 +9,11 @@ import { Tabs } from "@/components/ui/Tabs";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 
+// Self-registration is off for now (accounts are created directly by the
+// owner instead) but the code stays in place — flip this back to re-enable
+// the "Registrieren" tab and its signUp flow without rebuilding it.
+const REGISTRATION_ENABLED = false;
+
 const TABS = [
   { id: "login", label: "Login" },
   { id: "register", label: "Registrieren" },
@@ -50,12 +55,17 @@ function LoginPageInner() {
     setError("");
     setInfo("");
 
-    if (tab === "register" && !name.trim()) {
+    if (tab === "register") {
+      if (!name.trim()) {
+        setError("Bitte gib deinen Namen ein.");
+        return;
+      }
+      if (!email.trim() || !email.includes("@")) {
+        setError("Bitte gib eine gültige E-Mail ein.");
+        return;
+      }
+    } else if (!email.trim()) {
       setError("Bitte gib deinen Namen ein.");
-      return;
-    }
-    if (!email.trim() || !email.includes("@")) {
-      setError("Bitte gib eine gültige E-Mail ein.");
       return;
     }
     if (password.length < 6) {
@@ -83,12 +93,13 @@ function LoginPageInner() {
         router.push("/teamcode");
         router.refresh();
       } else {
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email: email.trim(),
-          password,
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: email.trim(), password }),
         });
-        if (signInError) {
-          setError(translateAuthError(signInError));
+        if (!res.ok) {
+          setError("Name oder Passwort ist falsch.");
           return;
         }
         router.push("/");
@@ -117,16 +128,18 @@ function LoginPageInner() {
         />
       ) : (
         <>
-          <Tabs
-            items={TABS}
-            value={tab}
-            onChange={(id) => {
-              setTab(id as "login" | "register");
-              setError("");
-              setInfo("");
-            }}
-            style={{ marginBottom: 24 }}
-          />
+          {REGISTRATION_ENABLED && (
+            <Tabs
+              items={TABS}
+              value={tab}
+              onChange={(id) => {
+                setTab(id as "login" | "register");
+                setError("");
+                setInfo("");
+              }}
+              style={{ marginBottom: 24 }}
+            />
+          )}
 
           <form className={styles.card} onSubmit={handleSubmit}>
             {tab === "register" && (
@@ -137,13 +150,22 @@ function LoginPageInner() {
                 onChange={(e) => setName(e.target.value)}
               />
             )}
-            <Input
-              label="E-Mail"
-              type="email"
-              placeholder="du@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+            {tab === "register" ? (
+              <Input
+                label="E-Mail"
+                type="email"
+                placeholder="du@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            ) : (
+              <Input
+                label="Name"
+                placeholder="Vorname Nachname"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            )}
             <Input
               label="Passwort"
               type="password"
@@ -160,9 +182,11 @@ function LoginPageInner() {
             </Button>
           </form>
 
-          <div className={styles.footnote}>
-            Nach dem {tab === "register" ? "Registrieren" : "Login"} brauchst du noch den Teamcode deines Teams.
-          </div>
+          {REGISTRATION_ENABLED && (
+            <div className={styles.footnote}>
+              Nach dem {tab === "register" ? "Registrieren" : "Login"} brauchst du noch den Teamcode deines Teams.
+            </div>
+          )}
         </>
       )}
     </IntroShell>
@@ -180,7 +204,7 @@ export default function LoginPage() {
 function translateAuthError(err: unknown): string {
   const message = err instanceof Error ? err.message : typeof err === "string" ? err : "";
   if (!message) return "Etwas ist schiefgelaufen. Bitte versuche es erneut.";
-  if (message.includes("Invalid login credentials")) return "E-Mail oder Passwort ist falsch.";
+  if (message.includes("Invalid login credentials")) return "Name oder Passwort ist falsch.";
   if (message.includes("User already registered")) return "Für diese E-Mail existiert bereits ein Konto.";
   if (message.includes("Password should be")) return "Das Passwort muss mindestens 6 Zeichen haben.";
   return message;

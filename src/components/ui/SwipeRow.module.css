@@ -83,3 +83,23 @@
   background: rgba(255, 255, 255, 0.25);
   color: #fff;
 }
+
+/* Desktop web only — SwipeRow's reveal gesture is touch-only
+   (onTouchStart/onTouchEnd), so a mouse can never trigger it. Instead of
+   requiring a swipe, keep Bearbeiten/Löschen permanently visible beside the
+   row: content stops claiming a fixed 100% of the track (which is what
+   pushes .actions outside the clipped .wrap), and the JS-driven transform
+   is neutralized so the track never needs to shift at all. */
+@media (min-width: 768px) {
+  .wrap {
+    overflow: visible;
+  }
+
+  .track {
+    transform: none !important;
+  }
+
+  .content {
+    flex: 1 1 auto;
+  }
+}

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { PageBody } from "@/components/layout/PageBody";
 import { IconButton } from "@/components/ui/IconButton";
@@ -15,6 +15,7 @@ import { useProfiles } from "@/lib/queries/useProfiles";
 import { useGroups } from "@/lib/queries/useGroups";
 import { queryKeys } from "@/lib/queries/keys";
 import { createClient } from "@/lib/supabase/client";
+import { groupLabel } from "@/lib/domain";
 import type { UserRole, UserStatus } from "@/types/database";
 import adminStyles from "@/components/admin/AdminList.module.css";
 import styles from "./page.module.css";
@@ -47,7 +48,55 @@ export default function AdminAccountsPage() {
   const [deleteError, setDeleteError] = useState("");
   const [deleting, setDeleting] = useState(false);
 
+  const [showCreate, setShowCreate] = useState(false);
+  const [createName, setCreateName] = useState("");
+  const [createGroupId, setCreateGroupId] = useState("");
+  const [createRole, setCreateRole] = useState<UserRole>("member");
+  const [createError, setCreateError] = useState("");
+  const [createLoading, setCreateLoading] = useState(false);
+  const [createdCredentials, setCreatedCredentials] = useState<{ name: string; password: string } | null>(null);
+  const [copied, setCopied] = useState(false);
+
   const sorted = [...profiles].sort((a, b) => a.name.localeCompare(b.name));
+
+  function resetCreateForm() {
+    setShowCreate(false);
+    setCreateName("");
+    setCreateGroupId("");
+    setCreateRole("member");
+    setCreateError("");
+    setCreatedCredentials(null);
+    setCopied(false);
+  }
+
+  async function createUser() {
+    if (!createName.trim()) {
+      setCreateError("Bitte gib einen Namen ein.");
+      return;
+    }
+    if (!createGroupId) {
+      setCreateError("Bitte wähle eine Gruppe.");
+      return;
+    }
+    setCreateLoading(true);
+    setCreateError("");
+    const res = await fetch("/api/admin/create-user", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: createName.trim(), group_id: createGroupId, role: createRole }),
+    });
+    const data = await res.json();
+    setCreateLoading(false);
+    if (!res.ok) {
+      if (data.error === "name_taken") setCreateError("Dieser Name ist schon vergeben — bitte eindeutig machen.");
+      else if (data.error === "group_missing_short_code")
+        setCreateError("Diese Gruppe hat noch kein Kürzel — erst in Admin → Gruppen ein Kürzel vergeben.");
+      else setCreateError("Anlegen fehlgeschlagen.");
+      return;
+    }
+    setCreatedCredentials({ name: data.name, password: data.password });
+    await queryClient.invalidateQueries({ queryKey: queryKeys.profiles });
+  }
 
   function startEdit(id: string, name: string, groupId: string | null) {
     setEditingId(id);
@@ -103,7 +152,69 @@ export default function AdminAccountsPage() {
 
         <div className={adminStyles.countRow}>
           <span className={adminStyles.count}>{sorted.length} Accounts</span>
+          {profile?.role === "owner" && (
+            <IconButton
+              variant="accent"
+              label="Nutzer anlegen"
+              onClick={() => (showCreate ? resetCreateForm() : setShowCreate(true))}
+            >
+              <Plus size={20} strokeWidth={2.5} />
+            </IconButton>
+          )}
         </div>
+
+        {showCreate && (
+          <div className={styles.card} style={{ marginBottom: 14 }}>
+            {createdCredentials ? (
+              <>
+                <div className={styles.name}>Zugangsdaten für {createdCredentials.name}</div>
+                <div className={styles.hint}>Gib diese Daten direkt weiter (z. B. persönlich oder per Chat) — es wird keine E-Mail verschickt.</div>
+                <div className={styles.passwordBox}>
+                  <span className={styles.passwordValue}>{createdCredentials.password}</span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      navigator.clipboard.writeText(createdCredentials.password);
+                      setCopied(true);
+                    }}
+                  >
+                    {copied ? "Kopiert!" : "Kopieren"}
+                  </Button>
+                </div>
+                <Button variant="accent" size="sm" full onClick={resetCreateForm}>
+                  Fertig
+                </Button>
+              </>
+            ) : (
+              <div className={styles.editRow}>
+                <Input label="Name" placeholder="Vorname Nachname" value={createName} onChange={(e) => setCreateName(e.target.value)} />
+                <Select label="Gruppe" value={createGroupId} onChange={(e) => setCreateGroupId(e.target.value)}>
+                  <option value="">— Gruppe wählen —</option>
+                  {groups.map((g) => (
+                    <option key={g.id} value={g.id}>
+                      {groupLabel(g)}
+                    </option>
+                  ))}
+                </Select>
+                <Select label="Rolle" value={createRole} onChange={(e) => setCreateRole(e.target.value as UserRole)}>
+                  <option value="member">Spieler</option>
+                  <option value="captain">Kapitän</option>
+                  <option value="trainer">Trainer</option>
+                </Select>
+                {createError && <div className={styles.error}>{createError}</div>}
+                <div className={styles.editActions}>
+                  <Button variant="accent" size="sm" full onClick={createUser} disabled={createLoading}>
+                    Anlegen
+                  </Button>
+                  <Button variant="outline" size="sm" full onClick={resetCreateForm}>
+                    Abbrechen
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className={adminStyles.list}>
           {sorted.map((p) => {

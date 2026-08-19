@@ -29,12 +29,19 @@ import {
   weekdayLabel,
   withShortCode,
 } from "@/lib/domain";
+import type { Termin } from "@/types/database";
 import styles from "@/components/admin/AdminList.module.css";
 
 const TIME_ITEMS = [
   { id: "kommend", label: "Kommend" },
   { id: "vergangen", label: "Vergangen" },
 ];
+
+// Stable reference for the loading state — an inline `= []` default creates
+// a brand-new array every render, which the prevTermine reference-check
+// below would treat as "data changed" on every single render (infinite
+// render loop) for as long as the query is still loading.
+const EMPTY_TERMINE: Termin[] = [];
 
 function CreatedNotice() {
   const router = useRouter();
@@ -66,7 +73,7 @@ export default function AdminTerminePage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { data: profile } = useProfile();
-  const { data: termine = [] } = useTermine();
+  const { data: termine = EMPTY_TERMINE } = useTermine();
   const { data: groups = [] } = useGroups();
   const { data: counts = {} } = useRegistrationCounts();
   const [timeFilter, setTimeFilter] = useState<"kommend" | "vergangen">("kommend");

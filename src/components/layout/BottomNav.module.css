@@ -6,6 +6,19 @@
   flex-shrink: 0;
 }
 
+/* Desktop web only (native app is always phone-width) — becomes a left
+   sidebar instead of a bottom bar. */
+@media (min-width: 768px) {
+  .nav {
+    order: 1;
+    flex-direction: column;
+    justify-content: flex-start;
+    width: 96px;
+    padding: calc(24px + env(safe-area-inset-top)) 12px 24px calc(12px + env(safe-area-inset-left));
+    gap: 8px;
+  }
+}
+
 .item {
   flex: 1;
   min-width: 0;

@@ -16,3 +16,22 @@
      space above the content, reading as an accidental pull-to-refresh. */
   overscroll-behavior-y: contain;
 }
+
+/* Desktop web only — the native app is always phone-width, so this never
+   applies inside the Capacitor WKWebView. :global(.app-shell) combined with
+   the local class raises specificity above globals.css's own .app-shell
+   rule, so the override wins regardless of stylesheet injection order. */
+@media (min-width: 768px) {
+  .wide:global(.app-shell) {
+    max-width: var(--container);
+    box-shadow: none;
+  }
+
+  .shell {
+    flex-direction: row;
+  }
+
+  .content {
+    order: 2;
+  }
+}
