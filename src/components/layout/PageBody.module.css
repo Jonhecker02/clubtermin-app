@@ -7,3 +7,17 @@
   overflow-x: hidden;
   touch-action: pan-y;
 }
+
+/* Desktop web only — the shell/sidebar genuinely fill the browser width
+   (see (app)/layout.module.css), but individual controls (Tabs, buttons)
+   have no natural max size and stretch into oversized, broken-looking
+   pills if the content column itself is unbounded. Cap and center the
+   actual page content instead, same as most desktop apps (Notion, Gmail,
+   ...) — the header bar above still spans edge to edge, only this does not. */
+@media (min-width: 768px) {
+  .body {
+    max-width: var(--container);
+    margin: 0 auto;
+    padding: 24px 32px 32px;
+  }
+}

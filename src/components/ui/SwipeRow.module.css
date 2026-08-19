@@ -84,22 +84,25 @@
   color: #fff;
 }
 
-/* Desktop web only — SwipeRow's reveal gesture is touch-only
-   (onTouchStart/onTouchEnd), so a mouse can never trigger it. Instead of
-   requiring a swipe, keep Bearbeiten/Löschen permanently visible beside the
-   row: content stops claiming a fixed 100% of the track (which is what
-   pushes .actions outside the clipped .wrap), and the JS-driven transform
-   is neutralized so the track never needs to shift at all. */
-@media (min-width: 768px) {
-  .wrap {
+/* Desktop web with a real mouse (hover: hover excludes touch-primary
+   tablets, which keep using the swipe gesture normally) — SwipeRow's reveal
+   is touch-only (onTouchStart/onTouchEnd), so a mouse could never trigger
+   it. Rather than keeping Bearbeiten/Löschen permanently visible on every
+   row (cluttered, eats into every card's width all the time), reveal them
+   on hover instead — the standard desktop pattern for row actions. Content
+   stops claiming a fixed 100% of the track only while hovered (that's what
+   pushes .actions outside the clipped .wrap the rest of the time), and the
+   JS-driven transform is neutralized only for the hovered row. */
+@media (min-width: 768px) and (hover: hover) {
+  .wrap:hover {
     overflow: visible;
   }
 
-  .track {
+  .wrap:hover .track {
     transform: none !important;
   }
 
-  .content {
+  .wrap:hover .content {
     flex: 1 1 auto;
   }
 }

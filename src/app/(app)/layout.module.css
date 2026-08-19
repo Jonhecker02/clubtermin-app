@@ -23,7 +23,7 @@
    rule, so the override wins regardless of stylesheet injection order. */
 @media (min-width: 768px) {
   .wide:global(.app-shell) {
-    max-width: var(--container);
+    max-width: 100%;
     box-shadow: none;
   }
 
