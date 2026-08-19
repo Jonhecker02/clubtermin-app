@@ -36,15 +36,25 @@ export function isUpcoming(t: { date: string; start_time: string }): boolean {
   return terminDateTime(t.date, t.start_time).getTime() >= Date.now();
 }
 
-type RegistrationWindow = { registration_opens_date: string | null; registration_opens_time: string | null };
+type RegistrationWindow = {
+  registration_opens_date: string | null;
+  registration_opens_time: string | null;
+  registration_opens_hidden: boolean;
+};
 
 export function isRegistrationOpen(t: RegistrationWindow): boolean {
   if (!t.registration_opens_date) return true;
   return terminDateTime(t.registration_opens_date, t.registration_opens_time ?? "00:00").getTime() <= Date.now();
 }
 
-export function registrationOpensLabel(t: RegistrationWindow): string | null {
+// forAdmin bypasses the "hide from members" flag — admins always see the
+// real opening time in their own views. Hidden (for a member) means no
+// notice line at all, not a generic placeholder: the row is already dimmed
+// and the register button already reads "noch nicht offen", so nothing
+// else needs to hint at the concealed date/time.
+export function registrationOpensLabel(t: RegistrationWindow, opts?: { forAdmin?: boolean }): string | null {
   if (isRegistrationOpen(t)) return null;
+  if (t.registration_opens_hidden && !opts?.forAdmin) return null;
   const time = t.registration_opens_time ? hhmm(t.registration_opens_time) : null;
   return `Anmeldung ab ${dateLabel(t.registration_opens_date!)}${time ? ` ${time} Uhr` : ""}`;
 }

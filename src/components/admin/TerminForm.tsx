@@ -43,6 +43,7 @@ export interface TerminFormValues {
   reminder_enabled: boolean;
   registration_opens_date: string | null;
   registration_opens_time: string | null;
+  registration_opens_hidden: boolean;
 }
 
 interface TerminFormProps {
@@ -85,6 +86,7 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
   const [regOpensAt, setRegOpensAt] = useState(
     initial?.registration_opens_date ? `${initial.registration_opens_date}T${hhmm(initial.registration_opens_time ?? "00:00")}` : "",
   );
+  const [regOpensHidden, setRegOpensHidden] = useState(initial?.registration_opens_hidden ?? false);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -146,6 +148,7 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
       reminder_enabled: reminderEnabled,
       registration_opens_date: regOpensDate,
       registration_opens_time: regOpensTime,
+      registration_opens_hidden: regOpenMode === "geplant" ? regOpensHidden : false,
     });
     setSaving(false);
     if (result) setError(result);
@@ -224,13 +227,19 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
         <span className={styles.fieldGroupLabel}>Anmeldung</span>
         <Tabs items={REG_OPEN_ITEMS} value={regOpenMode} onChange={(id) => setRegOpenMode(id as typeof regOpenMode)} size="sm" />
         {regOpenMode === "geplant" && (
-          <Input
-            label="Anmeldung ab"
-            type="datetime-local"
-            value={regOpensAt}
-            onChange={(e) => setRegOpensAt(e.target.value)}
-            helper="Mitglieder können sich erst ab diesem Zeitpunkt anmelden und werden benachrichtigt, sobald es soweit ist."
-          />
+          <>
+            <Input
+              label="Anmeldung ab"
+              type="datetime-local"
+              value={regOpensAt}
+              onChange={(e) => setRegOpensAt(e.target.value)}
+              helper="Mitglieder können sich erst ab diesem Zeitpunkt anmelden und werden benachrichtigt, sobald es soweit ist."
+            />
+            <label className={styles.checkboxLabel}>
+              <input type="checkbox" checked={regOpensHidden} onChange={(e) => setRegOpensHidden(e.target.checked)} />
+              Öffnungszeitpunkt vor Mitgliedern verbergen
+            </label>
+          </>
         )}
       </div>
 

@@ -43,6 +43,7 @@ export type Termin = {
   reminder_enabled: boolean;
   registration_opens_date: string | null;
   registration_opens_time: string | null;
+  registration_opens_hidden: boolean;
   created_by: string | null;
   created_at: string;
 };
@@ -180,6 +181,7 @@ type TerminInsert = Pick<
   | "reminder_enabled"
   | "registration_opens_date"
   | "registration_opens_time"
+  | "registration_opens_hidden"
 >;
 
 export interface Database {

@@ -154,7 +154,7 @@ export default function AdminTerminePage() {
                   time={hhmm(t.start_time)}
                   meta={`${counts[t.id] ?? 0}/${t.max_tn}${price ? ` · ${price}` : ""}`}
                   type={t.type}
-                  notice={registrationOpensLabel(t)}
+                  notice={registrationOpensLabel(t, { forAdmin: true })}
                   dimmed={!isRegistrationOpen(t)}
                   onClick={() => router.push(`/admin/termine/${t.id}`)}
                 />
