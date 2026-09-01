@@ -92,7 +92,12 @@ export default function ProfilPage() {
           weekday: weekdayLabel(t.date),
           dateLabel: dateLabel(t.date),
           title: t.title,
-          subtitle: r.status === "warteliste" ? `Warteliste · Platz ${waitlistPosition(myRegs, r)}` : "Angemeldet",
+          subtitle:
+            r.status === "warteliste"
+              ? `Warteliste · Platz ${waitlistPosition(myRegs, r)}`
+              : r.status === "ausstehend"
+                ? "Zuteilung folgt"
+                : "Angemeldet",
           time: hhmm(t.start_time),
           sortKey: terminDateTime(t.date, t.start_time).getTime(),
           upcoming: isUpcoming(t),

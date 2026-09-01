@@ -16,7 +16,7 @@ export function useProfile() {
       if (!user) throw new Error("not_authenticated");
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, name, email, role, group_id, status, created_at")
+        .select("id, name, email, role, group_id, status, rotation_excluded, created_at")
         .eq("id", user.id)
         .single();
       if (error) throw error;

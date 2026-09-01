@@ -1,7 +1,7 @@
 export type UserRole = "owner" | "trainer" | "captain" | "member";
 export type UserStatus = "pending" | "approved" | "rejected";
 export type TerminType = "training" | "event" | "spieltag";
-export type RegistrationStatus = "angemeldet" | "warteliste";
+export type RegistrationStatus = "angemeldet" | "warteliste" | "ausstehend";
 
 // Plain `type` aliases (not `interface`) so these structurally satisfy the
 // Record<string, unknown>-based Row/Insert/Update constraints supabase-js's
@@ -13,6 +13,7 @@ export type Profile = {
   role: UserRole;
   group_id: string | null;
   status: UserStatus | null;
+  rotation_excluded: boolean;
   created_at: string;
 };
 
@@ -21,6 +22,7 @@ export type Group = {
   name: string;
   code: string;
   short_code: string | null;
+  fair_rotation_enabled: boolean;
   created_at: string;
 };
 
@@ -44,6 +46,8 @@ export type Termin = {
   registration_opens_date: string | null;
   registration_opens_time: string | null;
   registration_opens_hidden: boolean;
+  registration_closes_date: string | null;
+  registration_closes_time: string | null;
   created_by: string | null;
   created_at: string;
 };
@@ -54,6 +58,30 @@ export type Registration = {
   user_id: string;
   status: RegistrationStatus;
   created_at: string;
+};
+
+export type RegistrationAllocation = {
+  id: string;
+  termin_id: string;
+  user_id: string;
+  quote: number | null;
+  included: boolean;
+  excluded_from_rotation: boolean;
+  decided_at: string;
+};
+
+export type AllocationDecision = {
+  user_id: string;
+  termin_id: string;
+  title: string;
+  date: string;
+  start_time: string;
+  location: string;
+  register_groups: string[];
+  final_status: RegistrationStatus;
+  endpoint: string | null;
+  p256dh: string | null;
+  auth: string | null;
 };
 
 export type Message = {
@@ -182,6 +210,8 @@ type TerminInsert = Pick<
   | "registration_opens_date"
   | "registration_opens_time"
   | "registration_opens_hidden"
+  | "registration_closes_date"
+  | "registration_closes_time"
 >;
 
 export interface Database {
@@ -238,6 +268,12 @@ export interface Database {
         Update: never;
         Relationships: [];
       };
+      registration_allocations: {
+        Row: RegistrationAllocation;
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -272,6 +308,9 @@ export interface Database {
       admin_delete_apns_token: { Args: { p_device_token: string }; Returns: void };
       get_confirmed_apns_tokens: { Args: { p_termin_id: string }; Returns: ConfirmedApnsTarget[] };
       get_apns_tokens_for_users: { Args: { p_user_ids: string[] }; Returns: ApnsTokenForUser[] };
+      claim_due_allocations: { Args: Record<string, never>; Returns: AllocationDecision[] };
+      set_group_rotation: { Args: { p_group_id: string; p_enabled: boolean }; Returns: void };
+      admin_set_rotation_excluded: { Args: { p_user_id: string; p_excluded: boolean }; Returns: void };
     };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;

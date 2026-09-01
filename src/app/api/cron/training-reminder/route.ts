@@ -153,6 +153,65 @@ export async function POST(request: Request) {
     }
   }
 
+  const { data: allocations, error: allocationsError } = await supabase.rpc("claim_due_allocations");
+  if (allocationsError) {
+    return NextResponse.json({ error: allocationsError.message }, { status: 500 });
+  }
+
+  let allocationPushSent = 0;
+  let allocationApnsSent = 0;
+
+  if (vapidPublic && vapidPrivate) {
+    for (const row of allocations ?? []) {
+      if (!row.endpoint || !row.p256dh || !row.auth) continue;
+
+      const label = await labelFor(row);
+      const confirmed = row.final_status === "angemeldet";
+      const payload = JSON.stringify({
+        title: confirmed ? "Deine Anmeldung wurde final zugeteilt! 🎉" : "Zuteilung abgeschlossen",
+        body: confirmed
+          ? `${label} — du bist dabei (${hhmm(row.start_time)} Uhr).`
+          : `${label} — du stehst aktuell auf der Warteliste (${hhmm(row.start_time)} Uhr).`,
+        url: `/termine/${row.termin_id}`,
+      });
+
+      try {
+        await webpush.sendNotification({ endpoint: row.endpoint, keys: { p256dh: row.p256dh, auth: row.auth } }, payload);
+        allocationPushSent += 1;
+      } catch (err) {
+        const statusCode = (err as { statusCode?: number }).statusCode;
+        if (statusCode === 404 || statusCode === 410) {
+          await supabase.from("push_subscriptions").delete().eq("endpoint", row.endpoint);
+        }
+      }
+    }
+  }
+
+  if (apnsConfigured) {
+    const rowByUser = new Map((allocations ?? []).map((r) => [r.user_id, r]));
+    const userIds = [...rowByUser.keys()];
+    const { data: apnsTargets } = await supabase.rpc("get_apns_tokens_for_users", { p_user_ids: userIds });
+    for (const { user_id, device_token } of apnsTargets ?? []) {
+      const row = rowByUser.get(user_id);
+      if (!row) continue;
+      const label = await labelFor(row);
+      const confirmed = row.final_status === "angemeldet";
+      const payload: ApnsPayload = {
+        title: confirmed ? "Deine Anmeldung wurde final zugeteilt! 🎉" : "Zuteilung abgeschlossen",
+        body: confirmed
+          ? `${label} — du bist dabei (${hhmm(row.start_time)} Uhr).`
+          : `${label} — du stehst aktuell auf der Warteliste (${hhmm(row.start_time)} Uhr).`,
+        url: `/termine/${row.termin_id}`,
+      };
+      const result = await sendApnsNotification(device_token, payload);
+      if (result.ok) {
+        allocationApnsSent += 1;
+      } else if (shouldPruneApnsToken(result)) {
+        await supabase.from("apns_tokens").delete().eq("device_token", device_token);
+      }
+    }
+  }
+
   return NextResponse.json({
     processed: dueTermine?.length ?? 0,
     pushSent,
@@ -160,5 +219,8 @@ export async function POST(request: Request) {
     registrationOpenedProcessed: new Set((opened ?? []).map((r) => r.termin_id)).size,
     registrationPushSent,
     registrationApnsSent,
+    allocationsProcessed: new Set((allocations ?? []).map((r) => r.termin_id)).size,
+    allocationPushSent,
+    allocationApnsSent,
   });
 }

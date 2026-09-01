@@ -43,6 +43,7 @@ export default function AdminAccountsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editGroupId, setEditGroupId] = useState("");
+  const [editRotationExcluded, setEditRotationExcluded] = useState(false);
   const [editError, setEditError] = useState("");
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState("");
@@ -98,10 +99,11 @@ export default function AdminAccountsPage() {
     await queryClient.invalidateQueries({ queryKey: queryKeys.profiles });
   }
 
-  function startEdit(id: string, name: string, groupId: string | null) {
+  function startEdit(id: string, name: string, groupId: string | null, rotationExcluded: boolean) {
     setEditingId(id);
     setEditName(name);
     setEditGroupId(groupId ?? "");
+    setEditRotationExcluded(rotationExcluded);
     setEditError("");
   }
 
@@ -120,6 +122,7 @@ export default function AdminAccountsPage() {
       setEditError("Speichern fehlgeschlagen.");
       return;
     }
+    await supabase.rpc("admin_set_rotation_excluded", { p_user_id: editingId!, p_excluded: editRotationExcluded });
     setEditingId(null);
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: queryKeys.profiles }),
@@ -247,7 +250,12 @@ export default function AdminAccountsPage() {
                       </Badge>
                     </div>
                     <div className={styles.actions}>
-                      <IconButton variant="soft" size="sm" label="Bearbeiten" onClick={() => startEdit(p.id, p.name, p.group_id)}>
+                      <IconButton
+                        variant="soft"
+                        size="sm"
+                        label="Bearbeiten"
+                        onClick={() => startEdit(p.id, p.name, p.group_id, p.rotation_excluded)}
+                      >
                         <Pencil size={15} strokeWidth={2} />
                       </IconButton>
                       {!isOwnerAccount &&
@@ -296,6 +304,14 @@ export default function AdminAccountsPage() {
                         </option>
                       ))}
                     </Select>
+                    <label className={adminStyles.checkboxLabel}>
+                      <input
+                        type="checkbox"
+                        checked={editRotationExcluded}
+                        onChange={(e) => setEditRotationExcluded(e.target.checked)}
+                      />
+                      Von fairer Rotation ausgeschlossen (bekommt Platz garantiert)
+                    </label>
                     <div className={styles.editActions}>
                       <Button variant="accent" size="sm" full onClick={saveEdit}>
                         Speichern

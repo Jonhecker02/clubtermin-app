@@ -16,6 +16,7 @@ import { useTermine } from "@/lib/queries/useTermine";
 import { useGroups } from "@/lib/queries/useGroups";
 import { useProfiles } from "@/lib/queries/useProfiles";
 import { useRegistrationsForTermin } from "@/lib/queries/useRegistrations";
+import { useAllocationsForTermin } from "@/lib/queries/useAllocations";
 import { queryKeys } from "@/lib/queries/keys";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -28,6 +29,8 @@ import {
   weekdayLabel,
   dateLabel,
   groupShortCode,
+  registrationClosesAt,
+  splitRegistrations,
   withShortCode,
 } from "@/lib/domain";
 import adminStyles from "@/components/admin/AdminList.module.css";
@@ -43,10 +46,13 @@ export default function AdminParticipantsPage() {
   const { data: groups = [] } = useGroups();
   const { data: profiles = [] } = useProfiles();
   const { data: registrations = [] } = useRegistrationsForTermin(terminId);
+  const { data: allocations = [] } = useAllocationsForTermin(terminId);
 
   const termin = termine.find((t) => t.id === terminId);
-  const participants = useMemo(() => registrations.filter((r) => r.status === "angemeldet"), [registrations]);
-  const waitlist = useMemo(() => registrations.filter((r) => r.status === "warteliste"), [registrations]);
+  const { confirmed: participants, waitlist, pending: pendingRegistrations } = useMemo(
+    () => splitRegistrations(registrations),
+    [registrations],
+  );
 
   const [pickerOpen, setPickerOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -246,6 +252,23 @@ export default function AdminParticipantsPage() {
           {participants.length === 0 && <div className={styles.empty}>Noch keine Anmeldungen.</div>}
         </div>
 
+        {pendingRegistrations.length > 0 && (
+          <>
+            <div className={styles.sectionLabelPink}>Ausstehend, wartet auf Zuteilung ({pendingRegistrations.length})</div>
+            <div className={styles.list}>
+              {pendingRegistrations.map((p) => (
+                <div key={p.id} className={styles.row}>
+                  <div className={styles.avatar}>{initials(p.name)}</div>
+                  <div className={styles.rowMain}>
+                    <div className={styles.rowName}>{p.name}</div>
+                    <div className={styles.rowEmail}>{p.email}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
         {waitlist.length > 0 && (
           <>
             <div className={styles.sectionLabelPink}>Warteliste ({waitlist.length})</div>
@@ -262,6 +285,42 @@ export default function AdminParticipantsPage() {
                 </div>
               ))}
             </div>
+          </>
+        )}
+
+        {termin.registration_closes_date && (
+          <>
+            <div className={styles.sectionLabel} style={{ marginTop: 24 }}>
+              Zuteilung erklären
+            </div>
+            {allocations.length === 0 ? (
+              <div className={styles.empty}>
+                {(() => {
+                  const closesAt = registrationClosesAt(termin);
+                  return closesAt ? `Zuteilung erfolgt am ${fullDateLabel(termin.registration_closes_date)}, ${hhmm(termin.registration_closes_time ?? "00:00")} Uhr.` : "Noch keine Zuteilung.";
+                })()}
+              </div>
+            ) : (
+              <div className={styles.list}>
+                {allocations.map((a) => (
+                  <div key={a.id} className={styles.row}>
+                    <div className={styles.rowMain}>
+                      <div className={styles.rowName}>{a.name}</div>
+                      <div className={styles.rowEmail}>
+                        {a.excluded_from_rotation
+                          ? "Von Rotation ausgeschlossen — Platz garantiert"
+                          : a.quote != null
+                            ? `Quote: ${(a.quote * 100).toFixed(0)}%`
+                            : "Keine Historie"}
+                      </div>
+                    </div>
+                    <Badge tone={a.included ? "soft" : "outline"} size="sm">
+                      {a.included ? "Bestätigt" : "Warteliste"}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            )}
           </>
         )}
       </PageBody>

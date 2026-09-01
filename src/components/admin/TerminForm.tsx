@@ -44,6 +44,8 @@ export interface TerminFormValues {
   registration_opens_date: string | null;
   registration_opens_time: string | null;
   registration_opens_hidden: boolean;
+  registration_closes_date: string | null;
+  registration_closes_time: string | null;
 }
 
 interface TerminFormProps {
@@ -87,8 +89,20 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
     initial?.registration_opens_date ? `${initial.registration_opens_date}T${hhmm(initial.registration_opens_time ?? "00:00")}` : "",
   );
   const [regOpensHidden, setRegOpensHidden] = useState(initial?.registration_opens_hidden ?? false);
+  const [regClosesAt, setRegClosesAt] = useState(
+    initial?.registration_closes_date
+      ? `${initial.registration_closes_date}T${hhmm(initial.registration_closes_time ?? "00:00")}`
+      : "",
+  );
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+
+  // Fair rotation only ever applies to a termin tied to exactly one specific
+  // team — with "alle Gruppen" or several groups selected there's no single
+  // team history to rank by, so the deadline field simply doesn't apply.
+  const rotationGroup =
+    regMode === "ausgewaehlt" && regGroups.length === 1 ? groups.find((g) => g.id === regGroups[0]) : undefined;
+  const rotationActive = rotationGroup?.fair_rotation_enabled ?? false;
 
   function toggle(list: string[], id: string, set: (v: string[]) => void) {
     set(list.includes(id) ? list.filter((g) => g !== id) : [...list, id]);
@@ -125,8 +139,13 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
       setError("Bitte wähle Datum und Uhrzeit für die Anmeldeöffnung.");
       return;
     }
+    if (rotationActive && !regClosesAt) {
+      setError("Bitte wähle einen Anmeldeschluss für die faire Rotation.");
+      return;
+    }
 
     const [regOpensDate, regOpensTime] = regOpenMode === "geplant" ? regOpensAt.split("T") : [null, null];
+    const [regClosesDate, regClosesTime] = rotationActive && regClosesAt ? regClosesAt.split("T") : [null, null];
 
     setSaving(true);
     setError("");
@@ -149,6 +168,8 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
       registration_opens_date: regOpensDate,
       registration_opens_time: regOpensTime,
       registration_opens_hidden: regOpenMode === "geplant" ? regOpensHidden : false,
+      registration_closes_date: regClosesDate,
+      registration_closes_time: regClosesTime,
     });
     setSaving(false);
     if (result) setError(result);
@@ -222,6 +243,19 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
           </div>
         )}
       </div>
+
+      {rotationActive && (
+        <div className={styles.fieldGroup}>
+          <span className={styles.fieldGroupLabel}>Anmeldeschluss (faire Rotation)</span>
+          <Input
+            label="Anmeldeschluss"
+            type="datetime-local"
+            value={regClosesAt}
+            onChange={(e) => setRegClosesAt(e.target.value)}
+            helper={`${groupLabel(rotationGroup!)} hat faire Rotation aktiviert. Bis zu diesem Zeitpunkt sind Anmeldungen ausstehend, danach verteilt die Rotation die Plätze auf einen Schlag.`}
+          />
+        </div>
+      )}
 
       <div className={styles.fieldGroup}>
         <span className={styles.fieldGroupLabel}>Anmeldung</span>

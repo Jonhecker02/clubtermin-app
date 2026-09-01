@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Calendar, Clock, Euro, MapPin, Users } from "lucide-react";
@@ -17,6 +17,7 @@ import { createClient } from "@/lib/supabase/client";
 import {
   CANCEL_CUTOFF_HOURS,
   badgeInfo,
+  formatCountdown,
   formatPrice,
   fullDateLabel,
   groupShortCode,
@@ -25,7 +26,10 @@ import {
   hoursUntil,
   initials,
   isRegistrationOpen,
+  msUntil,
+  registrationClosesAt,
   registrationOpensLabel,
+  splitRegistrations,
   withShortCode,
 } from "@/lib/domain";
 import { RealtimeProvider } from "@/lib/realtime/RealtimeProvider";
@@ -44,11 +48,21 @@ export default function TerminDetailPage() {
 
   const [pending, setPending] = useState(false);
   const [actionError, setActionError] = useState("");
+  // Ticks the countdown below without re-fetching anything — cheap, purely
+  // for re-rendering formatCountdown() with a fresh "now".
+  const [, setTick] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => setTick((n) => n + 1), 30_000);
+    return () => clearInterval(interval);
+  }, []);
 
   const termin = termine.find((t) => t.id === terminId);
 
-  const participants = useMemo(() => registrations.filter((r) => r.status === "angemeldet"), [registrations]);
-  const waitlist = useMemo(() => registrations.filter((r) => r.status === "warteliste"), [registrations]);
+  const { confirmed: participants, waitlist, pending: pendingRegistrations } = useMemo(
+    () => splitRegistrations(registrations),
+    [registrations],
+  );
 
   async function invalidateAll() {
     await Promise.all([
@@ -114,6 +128,8 @@ export default function TerminDetailPage() {
   const inParticipants = !!userId && participants.some((p) => p.user_id === userId);
   const wlIdx = userId ? waitlist.findIndex((p) => p.user_id === userId) : -1;
   const inWaitlist = wlIdx >= 0;
+  const inPending = !!userId && pendingRegistrations.some((p) => p.user_id === userId);
+  const closesAt = registrationClosesAt(termin);
   const hoursLeft = hoursUntil(termin.date, termin.start_time);
   const canCancel = hoursLeft >= CANCEL_CUTOFF_HOURS;
   const eligible =
@@ -136,6 +152,13 @@ export default function TerminDetailPage() {
   } else if (inWaitlist) {
     actionLabel = `Von Warteliste entfernen (Platz ${wlIdx + 1})`;
     actionVariant = "outline";
+    onAction = handleCancel;
+  } else if (inPending) {
+    actionLabel = "Anmeldung zurückziehen";
+    actionVariant = "outline";
+    cancelNotice = closesAt
+      ? `Danke für deine Anmeldung — die finale Zuteilung erfolgt in ${formatCountdown(msUntil(closesAt))}.`
+      : "Danke für deine Anmeldung — die finale Zuteilung folgt in Kürze.";
     onAction = handleCancel;
   } else if (!eligible) {
     actionLabel = "Anmeldung geschlossen";

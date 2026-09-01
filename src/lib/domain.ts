@@ -1,4 +1,4 @@
-import type { Group, TerminType } from "@/types/database";
+import type { Group, RegistrationStatus, TerminType } from "@/types/database";
 
 // Keep in sync with cancel_registration()'s v_cutoff_hours in supabase/migrations/0001_init.sql
 export const CANCEL_CUTOFF_HOURS = 24;
@@ -32,6 +32,10 @@ export function hoursUntil(dateISO: string, time: string): number {
   return (terminDateTime(dateISO, time).getTime() - Date.now()) / 3_600_000;
 }
 
+export function msUntil(target: Date): number {
+  return target.getTime() - Date.now();
+}
+
 export function isUpcoming(t: { date: string; start_time: string }): boolean {
   return terminDateTime(t.date, t.start_time).getTime() >= Date.now();
 }
@@ -57,6 +61,47 @@ export function registrationOpensLabel(t: RegistrationWindow, opts?: { forAdmin?
   if (t.registration_opens_hidden && !opts?.forAdmin) return null;
   const time = t.registration_opens_time ? hhmm(t.registration_opens_time) : null;
   return `Anmeldung ab ${dateLabel(t.registration_opens_date!)}${time ? ` ${time} Uhr` : ""}`;
+}
+
+type RegistrationCloses = {
+  registration_closes_date: string | null;
+  registration_closes_time: string | null;
+};
+
+// null = no deadline set (rotation inactive for this termin) — matches the
+// backend's own fallback-to-instant-behavior rule exactly.
+export function registrationClosesAt(t: RegistrationCloses): Date | null {
+  if (!t.registration_closes_date) return null;
+  return terminDateTime(t.registration_closes_date, t.registration_closes_time ?? "00:00");
+}
+
+// Splits a termin's registrations into the three buckets every list/detail
+// page needs — pulled out once here instead of each page re-implementing
+// the same three `.filter(r => r.status === ...)` calls inline.
+export function splitRegistrations<T extends { status: RegistrationStatus }>(
+  registrations: T[],
+): { confirmed: T[]; waitlist: T[]; pending: T[] } {
+  return {
+    confirmed: registrations.filter((r) => r.status === "angemeldet"),
+    waitlist: registrations.filter((r) => r.status === "warteliste"),
+    pending: registrations.filter((r) => r.status === "ausstehend"),
+  };
+}
+
+// "2 Tage 4 Std." / "3 Std. 12 Min." / "8 Min." — coarsens to the two most
+// significant units so it doesn't tick unnecessarily fast in the UI: pass a
+// pre-computed remaining-ms value (the caller owns the ticking interval,
+// this stays a pure formatter).
+export function formatCountdown(msRemaining: number): string {
+  if (msRemaining <= 0) return "0 Min.";
+  const totalMinutes = Math.floor(msRemaining / 60_000);
+  const days = Math.floor(totalMinutes / (24 * 60));
+  const hours = Math.floor((totalMinutes % (24 * 60)) / 60);
+  const minutes = totalMinutes % 60;
+
+  if (days > 0) return `${days} Tag${days === 1 ? "" : "e"} ${hours} Std.`;
+  if (hours > 0) return `${hours} Std. ${minutes} Min.`;
+  return `${minutes} Min.`;
 }
 
 export function formatPrice(price: number | null): string {

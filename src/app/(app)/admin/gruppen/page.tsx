@@ -9,6 +9,7 @@ import { PageBody } from "@/components/layout/PageBody";
 import { IconButton } from "@/components/ui/IconButton";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { Switch } from "@/components/ui/Switch";
 import { AdminTabs } from "@/components/admin/AdminTabs";
 import { useProfile } from "@/lib/queries/useProfile";
 import { useGroups } from "@/lib/queries/useGroups";
@@ -54,6 +55,12 @@ export default function AdminGruppenPage() {
       return;
     }
     setEditingId(null);
+    await queryClient.invalidateQueries({ queryKey: queryKeys.groups });
+  }
+
+  async function toggleRotation(groupId: string, enabled: boolean) {
+    const supabase = createClient();
+    await supabase.rpc("set_group_rotation", { p_group_id: groupId, p_enabled: enabled });
     await queryClient.invalidateQueries({ queryKey: queryKeys.groups });
   }
 
@@ -126,6 +133,11 @@ export default function AdminGruppenPage() {
                 )}
 
                 <div className={styles.divider} />
+                <Switch
+                  checked={g.fair_rotation_enabled}
+                  onChange={(checked) => toggleRotation(g.id, checked)}
+                  label="Faire Rotation aktiv"
+                />
                 <div className={styles.memberCount}>{members.length} Teilnehmer</div>
                 <div className={styles.chips}>
                   {members.map((m) =>

@@ -6,6 +6,7 @@ export const queryKeys = {
   registrations: (terminId: string) => ["registrations", terminId] as const,
   myRegistrations: ["registrations", "mine"] as const,
   registrationCounts: ["registrations", "counts"] as const,
+  allocations: (terminId: string) => ["allocations", terminId] as const,
   messages: (groupId: string) => ["messages", groupId] as const,
   announcements: ["announcements"] as const,
 };
