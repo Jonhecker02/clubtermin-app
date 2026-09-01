@@ -20,26 +20,24 @@ export function useRegistrationsForTermin(terminId: string | null) {
     queryFn: async (): Promise<RegistrationWithProfile[]> => {
       if (!terminId) return [];
       const supabase = createClient();
-      const { data: registrations, error } = await supabase
+      // Embeds the profile via the registrations.user_id -> profiles.id FK in
+      // a single round trip instead of a separate follow-up query — halves
+      // the network cost of every registrations fetch (profiles RLS/grants in
+      // 0001_init.sql already allow reading name/email this way).
+      const { data, error } = await supabase
         .from("registrations")
-        .select("id, user_id, status, created_at")
+        .select("id, user_id, status, created_at, profiles(name, email)")
         .eq("termin_id", terminId)
         .order("created_at", { ascending: true });
       if (error) throw error;
-      if (registrations.length === 0) return [];
 
-      const userIds = [...new Set(registrations.map((r) => r.user_id))];
-      const { data: profiles, error: profilesError } = await supabase
-        .from("profiles")
-        .select("id, name, email")
-        .in("id", userIds);
-      if (profilesError) throw profilesError;
-
-      const byId = new Map(profiles.map((p) => [p.id, p]));
-      return registrations.map((r) => ({
-        ...r,
-        name: byId.get(r.user_id)?.name ?? "—",
-        email: byId.get(r.user_id)?.email ?? "",
+      return data.map((r) => ({
+        id: r.id,
+        user_id: r.user_id,
+        status: r.status,
+        created_at: r.created_at,
+        name: r.profiles?.name ?? "—",
+        email: r.profiles?.email ?? "",
       }));
     },
     enabled: !!terminId,

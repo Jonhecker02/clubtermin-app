@@ -10,6 +10,12 @@ const PUBLIC_PREFIXES = ["/auth/", "/api/ical/", "/api/cron/", "/api/debug/", "/
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
+  const { pathname } = request.nextUrl;
+
+  // Checked before any Supabase call: these routes authenticate themselves
+  // (CRON_SECRET, ical token, etc.) or must work while signed out, so there's
+  // no reason to spend a round trip validating a session here at all.
+  if (PUBLIC_PREFIXES.some((p) => pathname.startsWith(p))) return response;
 
   const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -31,13 +37,6 @@ export async function proxy(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  const { pathname } = request.nextUrl;
-
-  // Always bypassed regardless of session state — e.g. the email-confirmation
-  // link is followed while signed out, and the route handler behind it
-  // establishes the session itself.
-  if (PUBLIC_PREFIXES.some((p) => pathname.startsWith(p))) return response;
 
   const isPublic = PUBLIC_PATHS.includes(pathname);
 

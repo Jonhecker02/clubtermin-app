@@ -73,10 +73,8 @@ export default function AdminParticipantsPage() {
     const supabase = createClient();
     await supabase.rpc("admin_remove_participant", { p_termin_id: terminId, p_user_id: userId });
     fetch("/api/notify/waitlist-promoted", { method: "POST" }).catch(() => {});
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: queryKeys.registrations(terminId) }),
-      queryClient.invalidateQueries({ queryKey: queryKeys.termine }),
-    ]);
+    // termine itself never changes here — only registrations does.
+    await queryClient.invalidateQueries({ queryKey: queryKeys.registrations(terminId) });
   }
 
   async function addParticipant(userId: string) {
@@ -89,10 +87,7 @@ export default function AdminParticipantsPage() {
     }
     setPickerOpen(false);
     setSearch("");
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: queryKeys.registrations(terminId) }),
-      queryClient.invalidateQueries({ queryKey: queryKeys.termine }),
-    ]);
+    await queryClient.invalidateQueries({ queryKey: queryKeys.registrations(terminId) });
   }
 
   async function exportPng() {

@@ -65,9 +65,11 @@ export default function TerminDetailPage() {
   );
 
   async function invalidateAll() {
+    // termine itself never changes here — register/cancel only touch
+    // registrations, so refetching the whole termine list would just be an
+    // extra round trip for no new data.
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: queryKeys.registrations(terminId) }),
-      queryClient.invalidateQueries({ queryKey: queryKeys.termine }),
       queryClient.invalidateQueries({ queryKey: queryKeys.myRegistrations }),
     ]);
   }

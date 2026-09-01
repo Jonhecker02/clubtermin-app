@@ -242,7 +242,15 @@ export interface Database {
         Row: Registration;
         Insert: Registration;
         Update: Partial<Registration>;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "registrations_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       messages: {
         Row: Message;
