@@ -343,8 +343,11 @@ begin
     -- max_tn regardless of which branch runs below — covers the edge case
     -- where rotation got toggled off mid-flight and register_for_termin
     -- started instantly confirming people again before the deadline hit.
+    -- Bare "termin_id" would be ambiguous here — this function's own
+    -- RETURNS TABLE(..., termin_id uuid, ...) implicitly declares an OUT
+    -- variable of that same name, colliding with the table column.
     select v_termin.max_tn - count(*) into v_remaining
-      from public.registrations where termin_id = v_termin.id and status = 'angemeldet';
+      from public.registrations r where r.termin_id = v_termin.id and r.status = 'angemeldet';
 
     -- Rotation got switched off for this group after people already
     -- registered 'ausstehend' for this termin (edge case, but leaving those
