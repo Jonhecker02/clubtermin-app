@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { Plus, Pencil } from "lucide-react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { PageBody } from "@/components/layout/PageBody";
 import { IconButton } from "@/components/ui/IconButton";
@@ -31,6 +31,9 @@ export default function AdminGruppenPage() {
   const [editShortCode, setEditShortCode] = useState("");
   const [editError, setEditError] = useState("");
   const [confirmKick, setConfirmKick] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState("");
+  const [deleting, setDeleting] = useState(false);
 
   function startEdit(id: string, name: string, shortCode: string | null) {
     setEditingId(id);
@@ -62,6 +65,23 @@ export default function AdminGruppenPage() {
     const supabase = createClient();
     await supabase.rpc("set_group_rotation", { p_group_id: groupId, p_enabled: enabled });
     await queryClient.invalidateQueries({ queryKey: queryKeys.groups });
+  }
+
+  async function deleteGroup(groupId: string) {
+    setDeleting(true);
+    setDeleteError("");
+    const supabase = createClient();
+    const { error } = await supabase.rpc("delete_group", { p_group_id: groupId });
+    setDeleting(false);
+    if (error) {
+      setDeleteError("Löschen fehlgeschlagen.");
+      return;
+    }
+    setConfirmDeleteId(null);
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.groups }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.profiles }),
+    ]);
   }
 
   async function kickMember(userId: string) {
@@ -106,14 +126,27 @@ export default function AdminGruppenPage() {
                       </span>
                       <span className={styles.groupCode}>{g.code}</span>
                     </div>
-                    <IconButton
-                      variant="soft"
-                      size="sm"
-                      label="Gruppe bearbeiten"
-                      onClick={() => startEdit(g.id, g.name, g.short_code)}
-                    >
-                      <Pencil size={15} strokeWidth={2} />
-                    </IconButton>
+                    <div className={styles.headActions}>
+                      <IconButton
+                        variant="soft"
+                        size="sm"
+                        label="Gruppe bearbeiten"
+                        onClick={() => startEdit(g.id, g.name, g.short_code)}
+                      >
+                        <Pencil size={15} strokeWidth={2} />
+                      </IconButton>
+                      <IconButton
+                        variant="ghost"
+                        size="sm"
+                        label="Gruppe löschen"
+                        onClick={() => {
+                          setConfirmDeleteId(g.id);
+                          setDeleteError("");
+                        }}
+                      >
+                        <Trash2 size={15} strokeWidth={2} />
+                      </IconButton>
+                    </div>
                   </div>
                 ) : (
                   <div className={styles.editRow}>
@@ -131,6 +164,21 @@ export default function AdminGruppenPage() {
                     </div>
                   </div>
                 )}
+
+                {confirmDeleteId === g.id && (
+                  <div className={styles.confirmRow}>
+                    <span className={styles.confirmText}>
+                      Gruppe &bdquo;{g.name}&ldquo; wirklich löschen? Mitglieder verlieren ihre Zuordnung.
+                    </span>
+                    <Button variant="accent" size="sm" onClick={() => deleteGroup(g.id)} disabled={deleting}>
+                      Ja, löschen
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => setConfirmDeleteId(null)}>
+                      Abbrechen
+                    </Button>
+                  </div>
+                )}
+                {confirmDeleteId === g.id && deleteError && <div className={styles.error}>{deleteError}</div>}
 
                 <div className={styles.divider} />
                 <Switch

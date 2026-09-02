@@ -296,6 +296,7 @@ export interface Database {
       create_group: { Args: { p_name: string; p_short_code?: string | null }; Returns: Group };
       rename_group: { Args: { p_group_id: string; p_name: string; p_short_code?: string | null }; Returns: void };
       remove_group_member: { Args: { p_user_id: string }; Returns: void };
+      delete_group: { Args: { p_group_id: string }; Returns: void };
       set_user_role: { Args: { p_user_id: string; p_role: "member" | "trainer" | "captain" }; Returns: void };
       admin_update_profile: { Args: { p_user_id: string; p_name: string; p_group_id: string | null }; Returns: void };
       delete_message: { Args: { p_message_id: string }; Returns: void };

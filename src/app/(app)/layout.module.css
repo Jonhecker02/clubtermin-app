@@ -1,5 +1,17 @@
-.shell {
+/* Pins the shell to exactly the app-shell box regardless of anything above
+   it — a plain height: 100dvh here only sets a *preferred* height; if body
+   ever ends up taller (a stray overflow, a keyboard resize quirk), the whole
+   page becomes draggable/bouncy and the bottom nav scrolls away with it.
+   Absolute + inset: 0 makes this shell's size unconditional, so BottomNav
+   can never move and the only place that ever scrolls is .content below. */
+.wide:global(.app-shell) {
   height: 100dvh;
+  overflow: hidden;
+}
+
+.shell {
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
   background: var(--color-bg);
