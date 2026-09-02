@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "@/types/database";
 
-const PUBLIC_PATHS = ["/login", "/privacy"];
+const PUBLIC_PATHS = ["/login", "/privacy", "/anleitung"];
 // /api/cron/ has no browser session at all (called by pg_net from Postgres) —
 // it authenticates itself via the CRON_SECRET header instead, checked inside
 // the route handler.
