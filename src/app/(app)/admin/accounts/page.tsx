@@ -41,7 +41,8 @@ export default function AdminAccountsPage() {
   const { data: groups = [] } = useGroups();
 
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editName, setEditName] = useState("");
+  const [editFirstName, setEditFirstName] = useState("");
+  const [editLastName, setEditLastName] = useState("");
   const [editGroupId, setEditGroupId] = useState("");
   const [editRotationExcluded, setEditRotationExcluded] = useState(false);
   const [editError, setEditError] = useState("");
@@ -50,7 +51,8 @@ export default function AdminAccountsPage() {
   const [deleting, setDeleting] = useState(false);
 
   const [showCreate, setShowCreate] = useState(false);
-  const [createName, setCreateName] = useState("");
+  const [createFirstName, setCreateFirstName] = useState("");
+  const [createLastName, setCreateLastName] = useState("");
   const [createGroupId, setCreateGroupId] = useState("");
   const [createRole, setCreateRole] = useState<UserRole>("member");
   const [createError, setCreateError] = useState("");
@@ -62,7 +64,8 @@ export default function AdminAccountsPage() {
 
   function resetCreateForm() {
     setShowCreate(false);
-    setCreateName("");
+    setCreateFirstName("");
+    setCreateLastName("");
     setCreateGroupId("");
     setCreateRole("member");
     setCreateError("");
@@ -71,8 +74,8 @@ export default function AdminAccountsPage() {
   }
 
   async function createUser() {
-    if (!createName.trim()) {
-      setCreateError("Bitte gib einen Namen ein.");
+    if (!createFirstName.trim() || !createLastName.trim()) {
+      setCreateError("Bitte gib Vor- und Nachname ein.");
       return;
     }
     if (!createGroupId) {
@@ -84,7 +87,11 @@ export default function AdminAccountsPage() {
     const res = await fetch("/api/admin/create-user", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: createName.trim(), group_id: createGroupId, role: createRole }),
+      body: JSON.stringify({
+        name: `${createFirstName.trim()} ${createLastName.trim()}`,
+        group_id: createGroupId,
+        role: createRole,
+      }),
     });
     const data = await res.json();
     setCreateLoading(false);
@@ -100,22 +107,27 @@ export default function AdminAccountsPage() {
   }
 
   function startEdit(id: string, name: string, groupId: string | null, rotationExcluded: boolean) {
+    // Splits on the first space only, so a multi-word last name ("van der
+    // Berg") stays intact in the Nachname box instead of losing everything
+    // after the second word.
+    const [first, ...rest] = name.trim().split(/\s+/);
     setEditingId(id);
-    setEditName(name);
+    setEditFirstName(first ?? "");
+    setEditLastName(rest.join(" "));
     setEditGroupId(groupId ?? "");
     setEditRotationExcluded(rotationExcluded);
     setEditError("");
   }
 
   async function saveEdit() {
-    if (!editName.trim()) {
-      setEditError("Bitte gib einen Namen ein.");
+    if (!editFirstName.trim() || !editLastName.trim()) {
+      setEditError("Bitte gib Vor- und Nachname ein.");
       return;
     }
     const supabase = createClient();
     const { error } = await supabase.rpc("admin_update_profile", {
       p_user_id: editingId!,
-      p_name: editName.trim(),
+      p_name: `${editFirstName.trim()} ${editLastName.trim()}`,
       p_group_id: editGroupId || null,
     });
     if (error) {
@@ -191,7 +203,13 @@ export default function AdminAccountsPage() {
               </>
             ) : (
               <div className={styles.editRow}>
-                <Input label="Name" placeholder="Vorname Nachname" value={createName} onChange={(e) => setCreateName(e.target.value)} />
+                <Input label="Vorname" placeholder="Max" value={createFirstName} onChange={(e) => setCreateFirstName(e.target.value)} />
+                <Input
+                  label="Nachname"
+                  placeholder="Mustermann"
+                  value={createLastName}
+                  onChange={(e) => setCreateLastName(e.target.value)}
+                />
                 <Select label="Gruppe" value={createGroupId} onChange={(e) => setCreateGroupId(e.target.value)}>
                   <option value="">— Gruppe wählen —</option>
                   {groups.map((g) => (
@@ -295,7 +313,8 @@ export default function AdminAccountsPage() {
                   </>
                 ) : (
                   <div className={styles.editRow}>
-                    <Input label="Name" value={editName} onChange={(e) => setEditName(e.target.value)} error={editError} />
+                    <Input label="Vorname" value={editFirstName} onChange={(e) => setEditFirstName(e.target.value)} error={editError} />
+                    <Input label="Nachname" value={editLastName} onChange={(e) => setEditLastName(e.target.value)} />
                     <Select label="Gruppe" value={editGroupId} onChange={(e) => setEditGroupId(e.target.value)}>
                       <option value="">— keine Gruppe —</option>
                       {groups.map((g) => (

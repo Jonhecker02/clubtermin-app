@@ -44,6 +44,8 @@ function LoginPageInner() {
 
   const [tab, setTab] = useState<"login" | "register">("login");
   const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -64,8 +66,8 @@ function LoginPageInner() {
         setError("Bitte gib eine gültige E-Mail ein.");
         return;
       }
-    } else if (!email.trim()) {
-      setError("Bitte gib deinen Namen ein.");
+    } else if (!firstName.trim() || !lastName.trim()) {
+      setError("Bitte gib Vor- und Nachname ein.");
       return;
     }
     if (password.length < 6) {
@@ -96,7 +98,7 @@ function LoginPageInner() {
         const res = await fetch("/api/auth/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: email.trim(), password }),
+          body: JSON.stringify({ name: `${firstName.trim()} ${lastName.trim()}`, password }),
         });
         if (!res.ok) {
           setError("Name oder Passwort ist falsch.");
@@ -159,12 +161,10 @@ function LoginPageInner() {
                 onChange={(e) => setEmail(e.target.value)}
               />
             ) : (
-              <Input
-                label="Name"
-                placeholder="Vorname Nachname"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
+              <>
+                <Input label="Vorname" placeholder="Max" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+                <Input label="Nachname" placeholder="Mustermann" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+              </>
             )}
             <Input
               label="Passwort"
