@@ -13,16 +13,24 @@ html,
 body {
   margin: 0;
   padding: 0;
-  overflow-x: hidden;
-  /* Belt-and-suspenders alongside overflow-x: hidden — this blocks the
-     horizontal pan/rubber-band gesture itself at the browser level, so an
-     overlooked overflowing element anywhere can't be dragged into view. */
+  /* Locks the page itself to exactly the viewport, full stop — position:
+     fixed takes html/body out of the browser's own scroll/bounce handling
+     entirely, so no ancestor-level overflow (a keyboard resize, a stray
+     tall element, dynamic-toolbar quirks) can ever make the whole page
+     draggable again. Every screen provides its own scrollable region
+     instead (.content in the app shell, .wrap in the intro shell) — this
+     is what keeps it feeling like a native app shell instead of a web page. */
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
   touch-action: pan-y;
 }
 
 html {
   background: var(--tp-grey-100);
-  height: 100%;
 }
 
 body {
@@ -31,7 +39,6 @@ body {
   font-size: var(--text-sm);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  min-height: 100dvh;
 }
 
 a {

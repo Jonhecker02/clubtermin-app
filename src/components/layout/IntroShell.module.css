@@ -1,5 +1,11 @@
 .wrap {
-  min-height: 100dvh;
+  /* dvh instead of a % height — .app-shell above this only sets min-height,
+     not a definite height, so a % height here wouldn't resolve to anything
+     usable and this scroll container would silently collapse to auto. */
+  height: 100dvh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
   display: flex;
   flex-direction: column;
   padding: calc(56px + env(safe-area-inset-top)) 24px calc(32px + env(safe-area-inset-bottom));
