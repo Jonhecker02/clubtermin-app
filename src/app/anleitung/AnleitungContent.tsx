@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import {
-  Award,
   Calendar,
   LogIn,
   MessageCircle,
@@ -11,8 +10,6 @@ import {
   Smartphone,
   Table2,
   UserCircle,
-  UserCog,
-  Users,
 } from "lucide-react";
 import styles from "./page.module.css";
 
@@ -320,10 +317,9 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
         ) : (
           <div role="tabpanel">
             <p className={styles.intro}>
-              Als <b>Trainer</b>, <b>Kapitän</b> oder <b>Clubmanager</b> siehst du zusätzlich einen
-              Admin-Bereich. Alles aus der Spieler-Anleitung gilt weiterhin auch für dich — hier kommt dazu,
-              was du zusätzlich verwalten kannst. Manche Bereiche sind dem <b>Clubmanager</b> vorbehalten
-              (siehe Tabelle unten).
+              Als <b>Trainer</b> oder <b>Kapitän</b> siehst du zusätzlich einen Admin-Bereich. Alles aus der
+              Spieler-Anleitung gilt weiterhin auch für dich — hier kommt dazu, was du zusätzlich verwalten
+              kannst.
             </p>
 
             <nav className={styles.jumpnav} aria-label="Abschnitte">
@@ -331,9 +327,6 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
               <a href="#a-wechsel">Admin-Bereich</a>
               <a href="#a-termine">Termine</a>
               <a href="#a-rotation">Faire Rotation</a>
-              <a href="#a-gruppen">Gruppen</a>
-              <a href="#a-accounts">Accounts</a>
-              <a href="#a-rollen">Rollen</a>
               <a href="#a-rechte">Rechte-Übersicht</a>
             </nav>
 
@@ -358,9 +351,8 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                 </li>
               </ul>
               <p className={styles.lede} style={{ marginTop: 14 }}>
-                Im Admin-Bereich findest du oben eine eigene Unternavigation: <b>Termine · Gruppen ·
-                Anfragen · Rollen · Accounts</b> (Trainer und Kapitäne sehen nur Termine und Anfragen). Über
-                denselben Schalter geht&rsquo;s zurück zur normalen Spieler-Ansicht.
+                Im Admin-Bereich findest du oben eine eigene Unternavigation mit <b>Termine</b> und{" "}
+                <b>Anfragen</b>. Über denselben Schalter geht&rsquo;s zurück zur normalen Spieler-Ansicht.
               </p>
             </section>
 
@@ -418,24 +410,21 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
 
             <section className={styles.card} id="a-rotation">
               <Eyebrow icon={<RotateCw size={20} strokeWidth={2} />} label="Für Teams mit Wartelisten-Problem" />
-              <h2>Faire Rotation einrichten</h2>
+              <h2>Faire Rotation verstehen</h2>
+              <p className={styles.lede}>
+                Bei manchen Teams entscheidet nicht die Anmeldereihenfolge, sondern eine faire Rotation, wer
+                bei einem Training teilnimmt — euer Clubmanager kann das pro Team aktivieren. Betrifft es
+                eines deiner Teams, gilt beim Anlegen eines Trainings dafür:
+              </p>
               <Steps
                 items={[
                   <>
-                    In <b>Gruppen</b> bei dem betroffenen Team den Schalter <b>„Faire Rotation aktiv“</b>{" "}
-                    einschalten.
-                  </>,
-                  <>
-                    Beim Anlegen eines Trainings für genau dieses eine Team erscheint das Feld{" "}
-                    <b>„Anmeldeschluss“</b> — festlegen, bis wann sich alle anmelden können.
+                    Es erscheint zusätzlich das Feld <b>„Anmeldeschluss“</b> — dort festlegen, bis wann sich
+                    alle anmelden können.
                   </>,
                   <>
                     Bis dahin sind Anmeldungen „ausstehend“; danach verteilt der Algorithmus die Plätze
                     automatisch — wer zuletzt seltener zum Zug kam, hat Vorrang.
-                  </>,
-                  <>
-                    Einzelne Personen von der Rotation ausnehmen (garantierter Platz) geht in{" "}
-                    <b>Accounts</b> beim Bearbeiten eines Profils.
                   </>,
                 ]}
               />
@@ -445,76 +434,20 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
               </Callout>
             </section>
 
-            <section className={styles.card} id="a-gruppen">
-              <Eyebrow icon={<Users size={20} strokeWidth={2} />} label="Nur Clubmanager" />
-              <h2>Gruppen verwalten</h2>
-              <ul className={styles.featureList}>
-                <li>
-                  <span className={styles.dot} />
-                  <span>Neues Team anlegen, Namen &amp; Kürzel bearbeiten (Stift-Symbol).</span>
-                </li>
-                <li>
-                  <span className={styles.dot} />
-                  <span>Einzelne Spieler direkt aus einer Gruppe entfernen (× am Namen-Chip).</span>
-                </li>
-                <li>
-                  <span className={styles.dot} />
-                  <span>
-                    <b>Gruppe löschen</b> (Papierkorb-Symbol, mit Sicherheitsabfrage) — Mitglieder verlieren
-                    dabei ihre Team-Zuordnung und landen wieder beim Teamcode-Schritt.
-                  </span>
-                </li>
-              </ul>
-            </section>
-
-            <section className={styles.card} id="a-accounts">
-              <Eyebrow icon={<UserCog size={20} strokeWidth={2} />} label="Nur Clubmanager" />
-              <h2>Accounts verwalten</h2>
-              <p className={styles.lede}>
-                So bekommt ein neuer Spieler Zugang — es gibt keine Selbstregistrierung:
-              </p>
-              <Steps
-                items={[
-                  <>
-                    <b>Vorname</b> und <b>Nachname</b> in den beiden Feldern eintragen, Team und Rolle
-                    wählen.
-                  </>,
-                  <>
-                    Auf <b>„Anlegen“</b> tippen — die App zeigt dir ein automatisch erzeugtes Passwort an.
-                  </>,
-                  <>
-                    Dieses Passwort <b>persönlich oder per Chat weitergeben</b> — es wird nirgends automatisch
-                    verschickt.
-                  </>,
-                ]}
-              />
-              <p className={styles.lede} style={{ marginTop: 14 }}>
-                Bestehende Accounts lassen sich bearbeiten (Name, Team, Rotations-Ausschluss) oder löschen.
-              </p>
-            </section>
-
-            <section className={styles.card} id="a-rollen">
-              <Eyebrow icon={<Award size={20} strokeWidth={2} />} label="Nur Clubmanager" />
-              <h2>Rollen vergeben</h2>
-              <p className={styles.lede}>
-                Jeder Spieler lässt sich mit einem Tippen zu <b>Kapitän</b> oder <b>Trainer</b> befördern
-                (und zurück). Es gibt immer genau einen <b>Clubmanager</b> — diese Rolle ist fest und nicht
-                übertragbar.
-              </p>
-            </section>
-
             <section className={styles.card} id="a-rechte">
               <Eyebrow icon={<Table2 size={20} strokeWidth={2} />} label="Zum Nachschlagen" />
               <h2>Wer darf was?</h2>
+              <p className={styles.lede}>
+                Als Kapitän oder Trainer habt ihr untereinander dieselben Rechte. Für alles darüber hinaus
+                (Teams, Accounts, Rollen) ist euer Clubmanager zuständig.
+              </p>
               <div className={styles.permWrap}>
                 <table className={styles.permTable}>
                   <thead>
                     <tr>
                       <th>Funktion</th>
                       <th>Spieler</th>
-                      <th>Kapitän</th>
-                      <th>Trainer</th>
-                      <th>Clubmanager</th>
+                      <th>Kapitän / Trainer</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -522,62 +455,24 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                       <td>Termine ansehen &amp; anmelden</td>
                       <td className={styles.yes}>✓</td>
                       <td className={styles.yes}>✓</td>
-                      <td className={styles.yes}>✓</td>
-                      <td className={styles.yes}>✓</td>
                     </tr>
                     <tr>
                       <td>Termine erstellen / bearbeiten</td>
                       <td className={styles.no}>—</td>
-                      <td className={styles.yes}>✓</td>
-                      <td className={styles.yes}>✓</td>
                       <td className={styles.yes}>✓</td>
                     </tr>
                     <tr>
                       <td>Teilnehmer verwalten</td>
                       <td className={styles.no}>—</td>
                       <td className={styles.yes}>✓</td>
-                      <td className={styles.yes}>✓</td>
-                      <td className={styles.yes}>✓</td>
                     </tr>
                     <tr>
                       <td>Ankündigungen posten</td>
                       <td className={styles.no}>—</td>
                       <td className={styles.yes}>✓</td>
-                      <td className={styles.yes}>✓</td>
-                      <td className={styles.yes}>✓</td>
                     </tr>
                     <tr>
                       <td>Anfragen bestätigen</td>
-                      <td className={styles.no}>—</td>
-                      <td className={styles.yes}>✓</td>
-                      <td className={styles.yes}>✓</td>
-                      <td className={styles.yes}>✓</td>
-                    </tr>
-                    <tr>
-                      <td>Nachrichten/Ankündigungen löschen</td>
-                      <td className={styles.no}>—</td>
-                      <td className={styles.no}>—</td>
-                      <td className={styles.no}>—</td>
-                      <td className={styles.yes}>✓</td>
-                    </tr>
-                    <tr>
-                      <td>Gruppen anlegen / löschen</td>
-                      <td className={styles.no}>—</td>
-                      <td className={styles.no}>—</td>
-                      <td className={styles.no}>—</td>
-                      <td className={styles.yes}>✓</td>
-                    </tr>
-                    <tr>
-                      <td>Accounts anlegen / löschen</td>
-                      <td className={styles.no}>—</td>
-                      <td className={styles.no}>—</td>
-                      <td className={styles.no}>—</td>
-                      <td className={styles.yes}>✓</td>
-                    </tr>
-                    <tr>
-                      <td>Rollen vergeben</td>
-                      <td className={styles.no}>—</td>
-                      <td className={styles.no}>—</td>
                       <td className={styles.no}>—</td>
                       <td className={styles.yes}>✓</td>
                     </tr>
