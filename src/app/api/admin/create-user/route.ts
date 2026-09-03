@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/serviceRole";
@@ -14,6 +14,15 @@ function initials(name: string): string {
   const first = parts[0][0];
   const last = parts[parts.length - 1][0];
   return (first + last).toUpperCase();
+}
+
+// Excludes 0/O/1/I/L — the initials+short_code prefix makes the password
+// guessable from public info alone (anyone who knows a member's name and
+// team could compute it), so a random suffix is what actually makes it
+// safe; this alphabet just keeps that suffix easy to read back over chat.
+const SUFFIX_ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
+function randomSuffix(length: number): string {
+  return Array.from(randomBytes(length), (b) => SUFFIX_ALPHABET[b % SUFFIX_ALPHABET.length]).join("");
 }
 
 export async function POST(request: Request) {
@@ -59,7 +68,7 @@ export async function POST(request: Request) {
   if (!initialsPart) {
     return NextResponse.json({ error: "invalid_name" }, { status: 400 });
   }
-  const password = `${initialsPart}${group.short_code}`;
+  const password = `${initialsPart}${group.short_code}-${randomSuffix(5)}`;
   const syntheticEmail = `user-${randomUUID().slice(0, 12)}@clubtermin.local`;
 
   const { data: created, error: createError } = await service.auth.admin.createUser({

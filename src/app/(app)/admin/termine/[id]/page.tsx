@@ -4,7 +4,8 @@ import { useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { toPng } from "html-to-image";
-import { ArrowLeft, Copy, ImageDown, Pencil, Plus, X } from "lucide-react";
+import { ArrowLeft, Copy, ImageDown, Pencil, Plus, StickyNote, X } from "lucide-react";
+import { PlayerNotesPanel } from "@/components/admin/PlayerNotesPanel";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { PageBody } from "@/components/layout/PageBody";
 import { IconButton } from "@/components/ui/IconButton";
@@ -54,6 +55,7 @@ export default function AdminParticipantsPage() {
     [registrations],
   );
 
+  const [notesOpenId, setNotesOpenId] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [addError, setAddError] = useState("");
@@ -233,15 +235,26 @@ export default function AdminParticipantsPage() {
 
         <div className={styles.list}>
           {participants.map((p) => (
-            <div key={p.id} className={styles.row}>
-              <div className={styles.avatar}>{initials(p.name)}</div>
-              <div className={styles.rowMain}>
-                <div className={styles.rowName}>{p.name}</div>
-                <div className={styles.rowEmail}>{p.email}</div>
+            <div key={p.id}>
+              <div className={styles.row}>
+                <div className={styles.avatar}>{initials(p.name)}</div>
+                <div className={styles.rowMain}>
+                  <div className={styles.rowName}>{p.name}</div>
+                  <div className={styles.rowEmail}>{p.email}</div>
+                </div>
+                <IconButton
+                  variant={notesOpenId === p.user_id ? "accent" : "ghost"}
+                  size="sm"
+                  label="Notizen"
+                  onClick={() => setNotesOpenId(notesOpenId === p.user_id ? null : p.user_id)}
+                >
+                  <StickyNote size={15} strokeWidth={2.4} />
+                </IconButton>
+                <IconButton variant="ghost" size="sm" label="Entfernen" onClick={() => removeParticipant(p.user_id)}>
+                  <X size={15} strokeWidth={2.4} />
+                </IconButton>
               </div>
-              <IconButton variant="ghost" size="sm" label="Entfernen" onClick={() => removeParticipant(p.user_id)}>
-                <X size={15} strokeWidth={2.4} />
-              </IconButton>
+              {notesOpenId === p.user_id && <PlayerNotesPanel userId={p.user_id} profiles={profiles} />}
             </div>
           ))}
           {participants.length === 0 && <div className={styles.empty}>Noch keine Anmeldungen.</div>}

@@ -70,6 +70,14 @@ export type RegistrationAllocation = {
   decided_at: string;
 };
 
+export type PlayerNote = {
+  id: string;
+  user_id: string;
+  author_id: string | null;
+  note: string;
+  created_at: string;
+};
+
 export type AllocationDecision = {
   user_id: string;
   termin_id: string;
@@ -282,6 +290,12 @@ export interface Database {
         Update: never;
         Relationships: [];
       };
+      player_notes: {
+        Row: PlayerNote;
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -320,6 +334,7 @@ export interface Database {
       claim_due_allocations: { Args: Record<string, never>; Returns: AllocationDecision[] };
       set_group_rotation: { Args: { p_group_id: string; p_enabled: boolean }; Returns: void };
       admin_set_rotation_excluded: { Args: { p_user_id: string; p_excluded: boolean }; Returns: void };
+      add_player_note: { Args: { p_user_id: string; p_note: string }; Returns: void };
     };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;

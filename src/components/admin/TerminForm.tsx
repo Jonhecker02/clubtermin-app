@@ -97,6 +97,11 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
+  // Only training happens on booked courts — events and Spieltage (team
+  // meetings, away matches, etc.) don't have a court to name, so the field
+  // is neither shown nor required for those two types.
+  const needsCourts = type === "training";
+
   // Fair rotation only ever applies to a termin tied to exactly one specific
   // team — with "alle Gruppen" or several groups selected there's no single
   // team history to rank by, so the deadline field simply doesn't apply.
@@ -123,7 +128,7 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
   }
 
   async function submit() {
-    if (!title.trim() || !date || !startTime || !endTime || !courts.trim() || !maxTn) {
+    if (!title.trim() || !date || !startTime || !endTime || !maxTn || (needsCourts && !courts.trim())) {
       setError("Bitte fülle alle Pflichtfelder aus.");
       return;
     }
@@ -154,7 +159,7 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
       title: title.trim(),
       trainer: trainer.trim() || "—",
       location: location.trim() || "The Padellers Essen",
-      courts: courts.trim(),
+      courts: needsCourts ? courts.trim() : "",
       date,
       start_time: startTime,
       end_time: endTime,
@@ -202,10 +207,14 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
         value={description}
         onChange={(e) => setDescription(e.target.value)}
       />
-      <div className={styles.fieldRow}>
-        <Input label="Courts" placeholder="z. B. Court 1–3" value={courts} onChange={(e) => setCourts(e.target.value)} />
+      {needsCourts ? (
+        <div className={styles.fieldRow}>
+          <Input label="Courts" placeholder="z. B. Court 1–3" value={courts} onChange={(e) => setCourts(e.target.value)} />
+          <Input label="Max. TN" type="number" value={maxTn} onChange={(e) => setMaxTn(e.target.value)} />
+        </div>
+      ) : (
         <Input label="Max. TN" type="number" value={maxTn} onChange={(e) => setMaxTn(e.target.value)} />
-      </div>
+      )}
       <Input
         label="Preis (€, optional)"
         type="number"

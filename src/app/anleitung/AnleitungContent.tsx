@@ -438,8 +438,9 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
               <Eyebrow icon={<Table2 size={20} strokeWidth={2} />} label="Zum Nachschlagen" />
               <h2>Wer darf was?</h2>
               <p className={styles.lede}>
-                Als Kapitän oder Trainer habt ihr untereinander dieselben Rechte. Für alles darüber hinaus
-                (Teams, Accounts, Rollen) ist euer Clubmanager zuständig.
+                Als Kapitän oder Trainer habt ihr untereinander dieselben Rechte. Die Zeilen unten, die nur
+                der Clubmanager hat, sind zur Orientierung dabei — was dahintersteckt, verwaltet er über
+                eigene Bereiche, die hier nicht im Detail beschrieben sind.
               </p>
               <div className={styles.permWrap}>
                 <table className={styles.permTable}>
@@ -447,7 +448,9 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                     <tr>
                       <th>Funktion</th>
                       <th>Spieler</th>
-                      <th>Kapitän / Trainer</th>
+                      <th>Kapitän</th>
+                      <th>Trainer</th>
+                      <th>Clubmanager</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -455,24 +458,62 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                       <td>Termine ansehen &amp; anmelden</td>
                       <td className={styles.yes}>✓</td>
                       <td className={styles.yes}>✓</td>
+                      <td className={styles.yes}>✓</td>
+                      <td className={styles.yes}>✓</td>
                     </tr>
                     <tr>
                       <td>Termine erstellen / bearbeiten</td>
                       <td className={styles.no}>—</td>
+                      <td className={styles.yes}>✓</td>
+                      <td className={styles.yes}>✓</td>
                       <td className={styles.yes}>✓</td>
                     </tr>
                     <tr>
                       <td>Teilnehmer verwalten</td>
                       <td className={styles.no}>—</td>
                       <td className={styles.yes}>✓</td>
+                      <td className={styles.yes}>✓</td>
+                      <td className={styles.yes}>✓</td>
                     </tr>
                     <tr>
                       <td>Ankündigungen posten</td>
                       <td className={styles.no}>—</td>
                       <td className={styles.yes}>✓</td>
+                      <td className={styles.yes}>✓</td>
+                      <td className={styles.yes}>✓</td>
                     </tr>
                     <tr>
                       <td>Anfragen bestätigen</td>
+                      <td className={styles.no}>—</td>
+                      <td className={styles.yes}>✓</td>
+                      <td className={styles.yes}>✓</td>
+                      <td className={styles.yes}>✓</td>
+                    </tr>
+                    <tr>
+                      <td>Nachrichten/Ankündigungen löschen</td>
+                      <td className={styles.no}>—</td>
+                      <td className={styles.no}>—</td>
+                      <td className={styles.no}>—</td>
+                      <td className={styles.yes}>✓</td>
+                    </tr>
+                    <tr>
+                      <td>Gruppen anlegen / löschen</td>
+                      <td className={styles.no}>—</td>
+                      <td className={styles.no}>—</td>
+                      <td className={styles.no}>—</td>
+                      <td className={styles.yes}>✓</td>
+                    </tr>
+                    <tr>
+                      <td>Accounts anlegen / löschen</td>
+                      <td className={styles.no}>—</td>
+                      <td className={styles.no}>—</td>
+                      <td className={styles.no}>—</td>
+                      <td className={styles.yes}>✓</td>
+                    </tr>
+                    <tr>
+                      <td>Rollen vergeben</td>
+                      <td className={styles.no}>—</td>
+                      <td className={styles.no}>—</td>
                       <td className={styles.no}>—</td>
                       <td className={styles.yes}>✓</td>
                     </tr>

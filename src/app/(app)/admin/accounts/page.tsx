@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, StickyNote, Trash2 } from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { PageBody } from "@/components/layout/PageBody";
 import { IconButton } from "@/components/ui/IconButton";
@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Input, Select } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { AdminTabs } from "@/components/admin/AdminTabs";
+import { PlayerNotesPanel } from "@/components/admin/PlayerNotesPanel";
 import { useProfile } from "@/lib/queries/useProfile";
 import { useProfiles } from "@/lib/queries/useProfiles";
 import { useGroups } from "@/lib/queries/useGroups";
@@ -49,6 +50,7 @@ export default function AdminAccountsPage() {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState("");
   const [deleting, setDeleting] = useState(false);
+  const [notesOpenId, setNotesOpenId] = useState<string | null>(null);
 
   const [showCreate, setShowCreate] = useState(false);
   const [createFirstName, setCreateFirstName] = useState("");
@@ -276,6 +278,14 @@ export default function AdminAccountsPage() {
                       >
                         <Pencil size={15} strokeWidth={2} />
                       </IconButton>
+                      <IconButton
+                        variant={notesOpenId === p.id ? "accent" : "soft"}
+                        size="sm"
+                        label="Notizen"
+                        onClick={() => setNotesOpenId(notesOpenId === p.id ? null : p.id)}
+                      >
+                        <StickyNote size={15} strokeWidth={2} />
+                      </IconButton>
                       {!isOwnerAccount &&
                         !isSelf &&
                         (confirmDeleteId === p.id ? (
@@ -310,6 +320,7 @@ export default function AdminAccountsPage() {
                         ))}
                     </div>
                     {confirmDeleteId === p.id && deleteError && <div className={styles.error}>{deleteError}</div>}
+                    {notesOpenId === p.id && <PlayerNotesPanel userId={p.id} profiles={profiles} />}
                   </>
                 ) : (
                   <div className={styles.editRow}>

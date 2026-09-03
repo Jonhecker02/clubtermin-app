@@ -48,6 +48,9 @@ export function RealtimeProvider() {
       .on("postgres_changes", { event: "*", schema: "public", table: "announcements" }, () => {
         invalidateUnlessFresh(queryClient, queryKeys.announcements);
       })
+      .on("postgres_changes", { event: "*", schema: "public", table: "player_notes" }, () => {
+        invalidateUnlessFresh(queryClient, ["playerNotes"]);
+      })
       .subscribe();
 
     return () => {
