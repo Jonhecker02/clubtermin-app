@@ -78,6 +78,25 @@ export type PlayerNote = {
   created_at: string;
 };
 
+export type TerminCourtGroup = {
+  id: string;
+  termin_id: string;
+  label: string;
+  trainer_name: string;
+  trains_in_round: 1 | 2;
+  created_at: string;
+};
+
+export type TerminCourtGroupMember = {
+  group_id: string;
+  user_id: string;
+};
+
+export type RoundQuote = {
+  user_id: string;
+  quote: number;
+};
+
 export type AllocationDecision = {
   user_id: string;
   termin_id: string;
@@ -296,6 +315,18 @@ export interface Database {
         Update: never;
         Relationships: [];
       };
+      termin_court_groups: {
+        Row: TerminCourtGroup;
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      termin_court_group_members: {
+        Row: TerminCourtGroupMember;
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -335,6 +366,8 @@ export interface Database {
       set_group_rotation: { Args: { p_group_id: string; p_enabled: boolean }; Returns: void };
       admin_set_rotation_excluded: { Args: { p_user_id: string; p_excluded: boolean }; Returns: void };
       add_player_note: { Args: { p_user_id: string; p_note: string }; Returns: void };
+      save_termin_court_groups: { Args: { p_termin_id: string; p_groups: unknown }; Returns: void };
+      get_round1_quotes: { Args: { p_club_group_id: string; p_user_ids: string[] }; Returns: RoundQuote[] };
     };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;

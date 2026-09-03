@@ -6,6 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toPng } from "html-to-image";
 import { ArrowLeft, Copy, ImageDown, Pencil, Plus, StickyNote, X } from "lucide-react";
 import { PlayerNotesPanel } from "@/components/admin/PlayerNotesPanel";
+import { CourtGroupsEditor } from "@/components/admin/CourtGroupsEditor";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { PageBody } from "@/components/layout/PageBody";
 import { IconButton } from "@/components/ui/IconButton";
@@ -329,6 +330,23 @@ export default function AdminParticipantsPage() {
                 ))}
               </div>
             )}
+          </>
+        )}
+
+        {termin.type === "training" && participants.length > 0 && (
+          <>
+            <div className={styles.sectionLabel} style={{ marginTop: 24 }}>
+              Trainingsgruppen
+            </div>
+            <CourtGroupsEditor
+              terminId={termin.id}
+              clubGroupId={
+                termin.register_groups.length === 1 && termin.register_groups[0] !== "all"
+                  ? termin.register_groups[0]
+                  : null
+              }
+              participants={participants.map((p) => ({ user_id: p.user_id, name: p.name }))}
+            />
           </>
         )}
       </PageBody>
