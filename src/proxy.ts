@@ -2,11 +2,12 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "@/types/database";
 
-const PUBLIC_PATHS = ["/login", "/privacy", "/anleitung"];
+const PUBLIC_PATHS = ["/login", "/privacy"];
 // /api/cron/ has no browser session at all (called by pg_net from Postgres) —
 // it authenticates itself via the CRON_SECRET header instead, checked inside
-// the route handler.
-const PUBLIC_PREFIXES = ["/auth/", "/api/ical/", "/api/cron/", "/api/debug/", "/api/auth/"];
+// the route handler. "/anleitung" is prefix-matched so both the player-only
+// page and "/anleitung/admin" are public without needing a session.
+const PUBLIC_PREFIXES = ["/auth/", "/api/ical/", "/api/cron/", "/api/debug/", "/api/auth/", "/anleitung"];
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });

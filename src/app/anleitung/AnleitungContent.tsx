@@ -117,13 +117,24 @@ function HomeScreenSection({ idPrefix }: { idPrefix: string }) {
   );
 }
 
-export function AnleitungContent() {
+interface AnleitungContentProps {
+  // "spieler": only the player guide exists on this URL, no switcher — for
+  // the link shared with the whole team. "admin": both guides live here,
+  // switchable, defaulting to Admin — for the link shared with co-admins.
+  audience: "spieler" | "admin";
+}
+
+export function AnleitungContent({ audience }: AnleitungContentProps) {
+  const canSwitch = audience === "admin";
+
   // Lazy initializer instead of an effect — this is a one-time read of the
-  // URL at mount (deep-linking to #admin), not a subscription to ongoing
-  // hash changes, so it doesn't need to run after render.
-  const [track, setTrack] = useState<Track>(() =>
-    typeof window !== "undefined" && window.location.hash === "#admin" ? "admin" : "spieler",
-  );
+  // URL at mount (deep-linking to #spieler on the admin page), not a
+  // subscription to ongoing hash changes, so it doesn't need to run after
+  // render. On the player-only page there's nothing to switch to.
+  const [track, setTrack] = useState<Track>(() => {
+    if (!canSwitch) return "spieler";
+    return typeof window !== "undefined" && window.location.hash === "#spieler" ? "spieler" : "admin";
+  });
 
   function selectTrack(next: Track) {
     setTrack(next);
@@ -134,31 +145,35 @@ export function AnleitungContent() {
     <div className={styles.page}>
       <div className={styles.masthead} data-mood="pink">
         <div className={styles.wordmark}>ClubTermine</div>
-        <div className={styles.tagline}>Anleitung für Spieler &amp; Admins</div>
-      </div>
-
-      <div className={styles.switcherBar}>
-        <div className={styles.switcher} role="tablist" aria-label="Zielgruppe wählen">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={track === "spieler"}
-            className={`${styles.switcherBtn} ${track === "spieler" ? styles.switcherBtnActive : ""}`}
-            onClick={() => selectTrack("spieler")}
-          >
-            Für Spieler
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={track === "admin"}
-            className={`${styles.switcherBtn} ${track === "admin" ? styles.switcherBtnActive : ""}`}
-            onClick={() => selectTrack("admin")}
-          >
-            Für Admins
-          </button>
+        <div className={styles.tagline}>
+          {canSwitch ? "Anleitung für Spieler & Admins" : "Anleitung für Spieler"}
         </div>
       </div>
+
+      {canSwitch && (
+        <div className={styles.switcherBar}>
+          <div className={styles.switcher} role="tablist" aria-label="Zielgruppe wählen">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={track === "spieler"}
+              className={`${styles.switcherBtn} ${track === "spieler" ? styles.switcherBtnActive : ""}`}
+              onClick={() => selectTrack("spieler")}
+            >
+              Für Spieler
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={track === "admin"}
+              className={`${styles.switcherBtn} ${track === "admin" ? styles.switcherBtnActive : ""}`}
+              onClick={() => selectTrack("admin")}
+            >
+              Für Admins
+            </button>
+          </div>
+        </div>
+      )}
 
       <main className={styles.main}>
         {track === "spieler" ? (
