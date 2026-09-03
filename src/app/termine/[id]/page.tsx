@@ -12,6 +12,7 @@ import { useProfile } from "@/lib/queries/useProfile";
 import { useTermine } from "@/lib/queries/useTermine";
 import { useGroups } from "@/lib/queries/useGroups";
 import { useRegistrationsForTermin } from "@/lib/queries/useRegistrations";
+import { useTerminCourtGroups } from "@/lib/queries/useTerminCourtGroups";
 import { queryKeys } from "@/lib/queries/keys";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -45,6 +46,7 @@ export default function TerminDetailPage() {
   const { data: termine = [] } = useTermine();
   const { data: groups = [] } = useGroups();
   const { data: registrations = [], isLoading: registrationsLoading } = useRegistrationsForTermin(terminId);
+  const { data: courtGroups = [] } = useTerminCourtGroups(terminId);
 
   const [pending, setPending] = useState(false);
   const [actionError, setActionError] = useState("");
@@ -136,6 +138,8 @@ export default function TerminDetailPage() {
   const canCancel = hoursLeft >= CANCEL_CUTOFF_HOURS;
   const eligible =
     !!profile && (termin.register_groups.includes("all") || termin.register_groups.includes(profile.group_id ?? ""));
+  const myCourtGroup =
+    termin.court_groups_published_at && userId ? courtGroups.find((g) => g.member_ids.includes(userId)) : undefined;
 
   let actionLabel = "Anmelden";
   let actionVariant: "accent" | "outline" = "accent";
@@ -224,6 +228,23 @@ export default function TerminDetailPage() {
             </div>
           )}
         </div>
+
+        {myCourtGroup && (
+          <div className={styles.infoCard}>
+            <div className={styles.sectionLabel}>Deine Trainingsgruppe</div>
+            <div className={styles.infoRow}>
+              <span>
+                {myCourtGroup.label} · Trainer: {myCourtGroup.trainer_name || "—"}
+              </span>
+            </div>
+            <div className={styles.infoRow}>
+              <span>
+                Du trainierst in Runde {myCourtGroup.trains_in_round} — Runde{" "}
+                {myCourtGroup.trains_in_round === 1 ? 2 : 1} spielst du.
+              </span>
+            </div>
+          </div>
+        )}
 
         <div className={styles.metaLine}>
           Sichtbar für: {groupsLabel(termin.visible_groups, groups)}

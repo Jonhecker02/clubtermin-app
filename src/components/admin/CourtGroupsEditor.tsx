@@ -43,19 +43,24 @@ export function CourtGroupsEditor({
   terminId,
   clubGroupId,
   participants,
+  publishedAt,
 }: {
   terminId: string;
   clubGroupId: string | null;
   participants: Participant[];
+  publishedAt: string | null;
 }) {
   const queryClient = useQueryClient();
   const { data: saved, isLoading } = useTerminCourtGroups(terminId);
 
   const [groups, setGroups] = useState<DraftGroup[]>([]);
   const [quotes, setQuotes] = useState<Record<string, number>>({});
+  // partnerCounts[a][b] = how many recent shared court groups a and b have.
+  const [partnerCounts, setPartnerCounts] = useState<Record<string, Record<string, number>>>({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [savedNotice, setSavedNotice] = useState(false);
+  const [publishing, setPublishing] = useState(false);
 
   // Seeds the editable draft from the saved groups exactly once, when they
   // first arrive — after that the admin's in-progress edits are the source
@@ -74,14 +79,21 @@ export function CourtGroupsEditor({
   useEffect(() => {
     if (!clubGroupId || participants.length === 0) return;
     const supabase = createClient();
-    supabase
-      .rpc("get_round1_quotes", { p_club_group_id: clubGroupId, p_user_ids: participants.map((p) => p.user_id) })
-      .then(({ data }) => {
-        if (!data) return;
-        const map: Record<string, number> = {};
-        for (const row of data) map[row.user_id] = row.quote;
-        setQuotes(map);
-      });
+    const userIds = participants.map((p) => p.user_id);
+    supabase.rpc("get_round1_quotes", { p_club_group_id: clubGroupId, p_user_ids: userIds }).then(({ data }) => {
+      if (!data) return;
+      const map: Record<string, number> = {};
+      for (const row of data) map[row.user_id] = row.quote;
+      setQuotes(map);
+    });
+    supabase.rpc("get_recent_partners", { p_club_group_id: clubGroupId, p_user_ids: userIds }).then(({ data }) => {
+      if (!data) return;
+      const map: Record<string, Record<string, number>> = {};
+      for (const row of data) {
+        (map[row.user_id] ??= {})[row.partner_id] = row.times_together;
+      }
+      setPartnerCounts(map);
+    });
     // Only needs to run once per termin — the participant list and club
     // group don't change while this editor is open.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -114,15 +126,48 @@ export function CourtGroupsEditor({
     setGroups((gs) => gs.map((g) => (g.key === key ? { ...g, memberIds: g.memberIds.filter((id) => id !== userId) } : g)));
   }
 
+  // Majority vote across the group's current members, not a group-level
+  // average — a group is a fresh, ad-hoc combination of whoever's placed in
+  // it right now, so "what does most of this specific mix of people need"
+  // is the more honest question than averaging quotes that can be skewed by
+  // one extreme value.
   function suggestedRound(memberIds: string[]): number | null {
     const known = memberIds.filter((id) => quotes[id] !== undefined);
     if (known.length === 0) return null;
-    const avg = known.reduce((sum, id) => sum + quotes[id], 0) / known.length;
-    return avg > 0.5 ? 2 : 1;
+    let wantsRound1 = 0;
+    let wantsRound2 = 0;
+    for (const id of known) {
+      if (quotes[id] > 0.5) wantsRound2++;
+      else if (quotes[id] < 0.5) wantsRound1++;
+    }
+    if (wantsRound1 === wantsRound2) return null;
+    return wantsRound1 > wantsRound2 ? 1 : 2;
   }
 
   function nameFor(userId: string): string {
     return participants.find((p) => p.user_id === userId)?.name ?? "—";
+  }
+
+  function partnersOf(userId: string): { name: string; count: number }[] {
+    const row = partnerCounts[userId];
+    if (!row) return [];
+    return Object.entries(row)
+      .map(([partnerId, count]) => ({ name: nameFor(partnerId), count }))
+      .sort((a, b) => b.count - a.count);
+  }
+
+  // Flags pairs already placed together in this draft group who've recently
+  // shared a court a lot — the actual "make sure other people train
+  // together too" moment.
+  function groupPairWarnings(memberIds: string[]): string {
+    const parts: string[] = [];
+    for (let i = 0; i < memberIds.length; i++) {
+      for (let j = i + 1; j < memberIds.length; j++) {
+        const count = partnerCounts[memberIds[i]]?.[memberIds[j]] ?? 0;
+        if (count > 0) parts.push(`${nameFor(memberIds[i])} & ${nameFor(memberIds[j])} (${count}×)`);
+      }
+    }
+    return parts.join(", ");
   }
 
   async function save() {
@@ -151,6 +196,19 @@ export function CourtGroupsEditor({
     await queryClient.invalidateQueries({ queryKey: queryKeys.courtGroups(terminId) });
   }
 
+  async function togglePublish() {
+    setPublishing(true);
+    const supabase = createClient();
+    const { error: rpcError } = await supabase.rpc("set_court_groups_published", {
+      p_termin_id: terminId,
+      p_published: !publishedAt,
+    });
+    setPublishing(false);
+    if (!rpcError) {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.termine });
+    }
+  }
+
   if (isLoading && !loadedOnce) {
     return <div className={styles.empty}>Trainingsgruppen werden geladen…</div>;
   }
@@ -160,12 +218,20 @@ export function CourtGroupsEditor({
       {unassigned.length > 0 && (
         <div className={styles.unassigned}>
           <span className={styles.unassignedLabel}>Nicht zugeteilt ({unassigned.length})</span>
-          <div className={styles.chips}>
-            {unassigned.map((p) => (
-              <span key={p.user_id} className={styles.chip}>
-                {p.name}
-              </span>
-            ))}
+          <div className={styles.unassignedList}>
+            {unassigned.map((p) => {
+              const partners = partnersOf(p.user_id);
+              return (
+                <div key={p.user_id} className={styles.unassignedRow}>
+                  <span>{p.name}</span>
+                  {partners.length > 0 && (
+                    <span className={styles.partnerHint}>
+                      zuletzt mit: {partners.map((x) => `${x.name} (${x.count}×)`).join(", ")}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
@@ -173,6 +239,7 @@ export function CourtGroupsEditor({
       <div className={styles.groupList}>
         {groups.map((g) => {
           const suggestion = suggestedRound(g.memberIds);
+          const pairWarning = groupPairWarnings(g.memberIds);
           return (
             <div key={g.key} className={styles.groupCard}>
               <div className={styles.groupHead}>
@@ -220,6 +287,7 @@ export function CourtGroupsEditor({
                 ))}
                 {g.memberIds.length === 0 && <span className={styles.chipEmpty}>Noch keine Spieler</span>}
               </div>
+              {pairWarning && <div className={styles.pairWarning}>Zuletzt schon zusammen: {pairWarning}</div>}
 
               {unassigned.length > 0 && (
                 <Select value="" onChange={(e) => addMember(g.key, e.target.value)}>
@@ -246,6 +314,13 @@ export function CourtGroupsEditor({
       <Button variant="accent" size="sm" full onClick={save} disabled={saving || groups.length === 0}>
         Trainingsgruppen speichern
       </Button>
+
+      {groups.length > 0 && (
+        <Button variant="outline" size="sm" full onClick={togglePublish} disabled={publishing}>
+          {publishedAt ? "Für Spieler verbergen" : "Für Spieler veröffentlichen"}
+        </Button>
+      )}
+      {publishedAt && <div className={styles.saved}>Sichtbar für die Teilnehmer dieses Termins.</div>}
     </div>
   );
 }

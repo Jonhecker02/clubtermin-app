@@ -48,6 +48,7 @@ export type Termin = {
   registration_opens_hidden: boolean;
   registration_closes_date: string | null;
   registration_closes_time: string | null;
+  court_groups_published_at: string | null;
   created_by: string | null;
   created_at: string;
 };
@@ -95,6 +96,12 @@ export type TerminCourtGroupMember = {
 export type RoundQuote = {
   user_id: string;
   quote: number;
+};
+
+export type RecentPartner = {
+  user_id: string;
+  partner_id: string;
+  times_together: number;
 };
 
 export type AllocationDecision = {
@@ -368,6 +375,8 @@ export interface Database {
       add_player_note: { Args: { p_user_id: string; p_note: string }; Returns: void };
       save_termin_court_groups: { Args: { p_termin_id: string; p_groups: unknown }; Returns: void };
       get_round1_quotes: { Args: { p_club_group_id: string; p_user_ids: string[] }; Returns: RoundQuote[] };
+      get_recent_partners: { Args: { p_club_group_id: string; p_user_ids: string[] }; Returns: RecentPartner[] };
+      set_court_groups_published: { Args: { p_termin_id: string; p_published: boolean }; Returns: void };
     };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
