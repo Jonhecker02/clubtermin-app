@@ -3,11 +3,13 @@
 import { useState } from "react";
 import {
   Calendar,
+  LayoutGrid,
   LogIn,
   MessageCircle,
   RotateCw,
   Settings,
   Smartphone,
+  StickyNote,
   Table2,
   UserCircle,
 } from "lucide-react";
@@ -251,6 +253,11 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                 darunter, siehst du nach der Anmeldung „ausstehend“ mit einem Countdown bis zum
                 Anmeldeschluss. Erst dann wird final zugeteilt und du bekommst Bescheid.
               </Callout>
+              <Callout mark="Trainingsgruppen">
+                Bei größeren Trainings mit mehreren Courts teilt euer Admin oft in kleine Gruppen mit
+                jeweils einem Trainer ein. Sobald das veröffentlicht ist, siehst du hier direkt auf dieser
+                Seite deine Gruppe, deinen Trainer und ob du in Runde 1 oder Runde 2 trainierst.
+              </Callout>
             </section>
 
             <section className={styles.card} id="s-chat">
@@ -327,6 +334,8 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
               <a href="#a-wechsel">Admin-Bereich</a>
               <a href="#a-termine">Termine</a>
               <a href="#a-rotation">Faire Rotation</a>
+              <a href="#a-notizen">Spieler-Notizen</a>
+              <a href="#a-courtgroups">Trainingsgruppen</a>
               <a href="#a-rechte">Rechte-Übersicht</a>
             </nav>
 
@@ -434,6 +443,64 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
               </Callout>
             </section>
 
+            <section className={styles.card} id="a-notizen">
+              <Eyebrow icon={<StickyNote size={20} strokeWidth={2} />} label="Für Trainer &amp; Kapitän" />
+              <h2>Spieler-Notizen</h2>
+              <p className={styles.lede}>
+                Zu jedem Spieler lassen sich kurze Notizen hinterlegen, die alle Admins sehen — praktisch,
+                wenn mal jemand anderes trainiert und wissen soll, woran die Person zuletzt gearbeitet hat.
+                Notizen bleiben als Verlauf erhalten (mit Datum und Autor) statt sich gegenseitig zu
+                überschreiben.
+              </p>
+              <ul className={styles.featureList}>
+                <li>
+                  <span className={styles.dot} />
+                  <span>
+                    In der <b>Teilnehmerverwaltung eines Termins</b> — Notiz-Symbol neben jedem Teilnehmer.
+                  </span>
+                </li>
+                <li>
+                  <span className={styles.dot} />
+                  <span>
+                    In <b>Accounts</b> (Clubmanager) — Notiz-Symbol neben jedem Account.
+                  </span>
+                </li>
+              </ul>
+            </section>
+
+            <section className={styles.card} id="a-courtgroups">
+              <Eyebrow icon={<LayoutGrid size={20} strokeWidth={2} />} label="Für Trainer &amp; Kapitän" />
+              <h2>Trainingsgruppen einteilen</h2>
+              <p className={styles.lede}>
+                Für große Trainings mit mehreren Courts und Trainern: Teilt die bestätigten Teilnehmer in
+                kleine Gruppen ein — z. B. bei 16 Leuten und 2 Trainern vier Gruppen à vier Spieler, je zwei
+                trainieren zuerst mit einem Trainer, während die anderen beiden spielen, danach wird
+                getauscht. Zu finden unten in der Teilnehmerverwaltung eines <b>Training</b>-Termins.
+              </p>
+              <Steps
+                items={[
+                  <>
+                    <b>„Neue Gruppe“</b> antippen, Spieler per Dropdown zuteilen. Bei „Nicht zugeteilt“ siehst
+                    du zu jedem Spieler, mit wem er zuletzt zusammen trainiert hat — so lässt sich bewusst mal
+                    anders mischen.
+                  </>,
+                  <>
+                    Pro Gruppe <b>Trainer</b> eintragen und <b>„Trainiert Runde 1“</b> oder{" "}
+                    <b>„Trainiert Runde 2“</b> wählen (die jeweils andere Runde spielt die Gruppe).
+                  </>,
+                  <>
+                    Erscheint eine <b>faire Empfehlung</b>, hat die Mehrheit der aktuell zugeteilten Spieler
+                    zuletzt öfter die andere Runde trainiert — anklicken übernimmt sie, muss aber nicht.
+                  </>,
+                  <>
+                    Mit <b>„Trainingsgruppen speichern“</b> sichern, dann über{" "}
+                    <b>„Für Spieler veröffentlichen“</b> freigeben — erst dann sehen die Teilnehmer ihre
+                    Gruppe, ihren Trainer und ihre Runde auf der Termin-Seite.
+                  </>,
+                ]}
+              />
+            </section>
+
             <section className={styles.card} id="a-rechte">
               <Eyebrow icon={<Table2 size={20} strokeWidth={2} />} label="Zum Nachschlagen" />
               <h2>Wer darf was?</h2>
@@ -484,6 +551,20 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                     </tr>
                     <tr>
                       <td>Anfragen bestätigen</td>
+                      <td className={styles.no}>—</td>
+                      <td className={styles.yes}>✓</td>
+                      <td className={styles.yes}>✓</td>
+                      <td className={styles.yes}>✓</td>
+                    </tr>
+                    <tr>
+                      <td>Spieler-Notizen sehen/schreiben</td>
+                      <td className={styles.no}>—</td>
+                      <td className={styles.yes}>✓</td>
+                      <td className={styles.yes}>✓</td>
+                      <td className={styles.yes}>✓</td>
+                    </tr>
+                    <tr>
+                      <td>Trainingsgruppen einteilen</td>
                       <td className={styles.no}>—</td>
                       <td className={styles.yes}>✓</td>
                       <td className={styles.yes}>✓</td>
