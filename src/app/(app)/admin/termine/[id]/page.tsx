@@ -347,6 +347,7 @@ export default function AdminParticipantsPage() {
               }
               participants={participants.map((p) => ({ user_id: p.user_id, name: p.name }))}
               publishedAt={termin.court_groups_published_at}
+              termin={termin}
             />
           </>
         )}

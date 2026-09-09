@@ -1,14 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Plus, Trash2 } from "lucide-react";
+import { toPng } from "html-to-image";
+import { ImageDown, Plus, Trash2 } from "lucide-react";
 import { Input, Select } from "@/components/ui/Input";
 import { Tabs } from "@/components/ui/Tabs";
 import { Button } from "@/components/ui/Button";
 import { createClient } from "@/lib/supabase/client";
 import { queryKeys } from "@/lib/queries/keys";
 import { useTerminCourtGroups } from "@/lib/queries/useTerminCourtGroups";
+import { CourtGroupsExportCard } from "./CourtGroupsExportCard";
+import type { Termin } from "@/types/database";
 import styles from "./CourtGroupsEditor.module.css";
 
 const ROUND_ITEMS = [
@@ -44,14 +47,18 @@ export function CourtGroupsEditor({
   clubGroupId,
   participants,
   publishedAt,
+  termin,
 }: {
   terminId: string;
   clubGroupId: string | null;
   participants: Participant[];
   publishedAt: string | null;
+  termin: Termin;
 }) {
   const queryClient = useQueryClient();
   const { data: saved, isLoading } = useTerminCourtGroups(terminId);
+  const exportRef = useRef<HTMLDivElement>(null);
+  const [exporting, setExporting] = useState(false);
 
   const [groups, setGroups] = useState<DraftGroup[]>([]);
   const [quotes, setQuotes] = useState<Record<string, number>>({});
@@ -209,6 +216,30 @@ export function CourtGroupsEditor({
     }
   }
 
+  async function exportPng() {
+    if (!exportRef.current) return;
+    setExporting(true);
+    try {
+      const dataUrl = await toPng(exportRef.current, { pixelRatio: 2, cacheBust: true });
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+      const file = new File([blob], `${termin.title} - Trainingsgruppen.png`, { type: "image/png" });
+
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: `${termin.title} — Trainingsgruppen` });
+      } else {
+        const link = document.createElement("a");
+        link.href = dataUrl;
+        link.download = `${termin.title} - Trainingsgruppen.png`;
+        link.click();
+      }
+    } catch {
+      // best-effort — admin can retry
+    } finally {
+      setExporting(false);
+    }
+  }
+
   if (isLoading && !loadedOnce) {
     return <div className={styles.empty}>Trainingsgruppen werden geladen…</div>;
   }
@@ -321,6 +352,28 @@ export function CourtGroupsEditor({
         </Button>
       )}
       {publishedAt && <div className={styles.saved}>Sichtbar für die Teilnehmer dieses Termins.</div>}
+
+      {groups.some((g) => g.memberIds.length > 0) && (
+        <Button variant="outline" size="sm" full onClick={exportPng} disabled={exporting}>
+          <ImageDown size={15} strokeWidth={2.2} style={{ marginRight: 4 }} />
+          {exporting ? "Erstelle Bild…" : "Als Bild exportieren"}
+        </Button>
+      )}
+
+      <div style={{ position: "fixed", top: 0, left: -9999, pointerEvents: "none" }}>
+        <CourtGroupsExportCard
+          ref={exportRef}
+          termin={termin}
+          groups={groups
+            .filter((g) => g.memberIds.length > 0)
+            .map((g) => ({
+              label: g.label,
+              trainerName: g.trainerName,
+              round: g.round,
+              memberNames: g.memberIds.map((id) => nameFor(id)),
+            }))}
+        />
+      </div>
     </div>
   );
 }

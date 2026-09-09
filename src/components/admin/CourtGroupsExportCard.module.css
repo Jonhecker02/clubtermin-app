@@ -1,0 +1,155 @@
+.card {
+  background: var(--tp-cream);
+  font-family: var(--font-sans);
+  color: var(--tp-navy);
+  overflow: hidden;
+}
+
+.header {
+  background: var(--tp-navy);
+  padding: 28px 32px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.eyebrow {
+  font-family: var(--font-condensed);
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--tp-pink);
+}
+
+.title {
+  font-family: var(--font-condensed);
+  font-weight: 900;
+  font-size: 28px;
+  line-height: 1.15;
+  color: var(--tp-cream);
+}
+
+.dateLine {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--tp-grey-300);
+}
+
+.grid {
+  display: flex;
+  gap: 16px;
+  padding: 24px 32px;
+  align-items: flex-start;
+}
+
+.column {
+  flex: 1;
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.columnHead {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 4px;
+}
+
+.groupLabel {
+  font-family: var(--font-condensed);
+  font-weight: 800;
+  font-size: 17px;
+  color: var(--tp-navy);
+}
+
+.trainerLabel {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--tp-ink-60);
+}
+
+.slot {
+  border-radius: 10px;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.slotType {
+  font-family: var(--font-condensed);
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.slotTime {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.slotTraining {
+  background: var(--tp-pink);
+  color: var(--tp-navy);
+}
+
+.slotPlaying {
+  background: #fff;
+  border: 1.5px solid var(--tp-navy-600);
+  color: var(--tp-ink-60);
+}
+
+.namesList {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 6px;
+}
+
+.nameRow {
+  background: #fff;
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-size: 13.5px;
+  font-weight: 600;
+  box-shadow: 0 1px 0 rgba(20, 34, 63, 0.06);
+}
+
+.legend {
+  display: flex;
+  gap: 20px;
+  padding: 0 32px 20px;
+  flex-wrap: wrap;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--tp-ink-60);
+}
+
+.legendSwatch {
+  width: 13px;
+  height: 13px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.footer {
+  text-align: center;
+  padding: 14px;
+  font-family: var(--font-condensed);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--tp-ink-60);
+  background: var(--tp-pink-tint);
+}
