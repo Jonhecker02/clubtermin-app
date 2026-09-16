@@ -50,6 +50,8 @@ export type Termin = {
   registration_closes_time: string | null;
   court_groups_published_at: string | null;
   court_groups_switch_time: string | null;
+  allocation_proposed_at: string | null;
+  allocation_run_at: string | null;
   created_by: string | null;
   created_at: string;
 };
@@ -373,7 +375,9 @@ export interface Database {
       admin_delete_apns_token: { Args: { p_device_token: string }; Returns: void };
       get_confirmed_apns_tokens: { Args: { p_termin_id: string }; Returns: ConfirmedApnsTarget[] };
       get_apns_tokens_for_users: { Args: { p_user_ids: string[] }; Returns: ApnsTokenForUser[] };
-      claim_due_allocations: { Args: Record<string, never>; Returns: AllocationDecision[] };
+      claim_due_allocations: { Args: Record<string, never>; Returns: void };
+      toggle_allocation_inclusion: { Args: { p_allocation_id: string; p_included: boolean }; Returns: void };
+      confirm_termin_allocation: { Args: { p_termin_id: string }; Returns: AllocationDecision[] };
       set_group_rotation: { Args: { p_group_id: string; p_enabled: boolean }; Returns: void };
       admin_set_rotation_excluded: { Args: { p_user_id: string; p_excluded: boolean }; Returns: void };
       add_player_note: { Args: { p_user_id: string; p_note: string }; Returns: void };

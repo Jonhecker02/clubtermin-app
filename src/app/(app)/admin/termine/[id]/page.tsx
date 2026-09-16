@@ -62,7 +62,35 @@ export default function AdminParticipantsPage() {
   const [addError, setAddError] = useState("");
   const [exporting, setExporting] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [confirmError, setConfirmError] = useState("");
   const exportRef = useRef<HTMLDivElement>(null);
+
+  async function toggleInclusion(allocationId: string, included: boolean) {
+    const supabase = createClient();
+    await supabase.rpc("toggle_allocation_inclusion", { p_allocation_id: allocationId, p_included: included });
+    await queryClient.invalidateQueries({ queryKey: queryKeys.allocations(terminId) });
+  }
+
+  async function confirmAllocation() {
+    setConfirming(true);
+    setConfirmError("");
+    const res = await fetch("/api/notify/allocation-confirmed", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ termin_id: terminId }),
+    });
+    setConfirming(false);
+    if (!res.ok) {
+      setConfirmError("Bestätigen fehlgeschlagen.");
+      return;
+    }
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.termine }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.registrations(terminId) }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.allocations(terminId) }),
+    ]);
+  }
 
   const addableProfiles = useMemo(() => {
     const registeredIds = new Set(registrations.map((r) => r.user_id));
@@ -309,6 +337,37 @@ export default function AdminParticipantsPage() {
                   return closesAt ? `Zuteilung erfolgt am ${fullDateLabel(termin.registration_closes_date)}, ${hhmm(termin.registration_closes_time ?? "00:00")} Uhr.` : "Noch keine Zuteilung.";
                 })()}
               </div>
+            ) : !termin.allocation_run_at ? (
+              <>
+                <div className={styles.empty}>
+                  Vorschlag bereit — prüfen, bei Bedarf einzelne Personen tauschen, dann bestätigen.
+                </div>
+                <div className={styles.list}>
+                  {allocations.map((a) => (
+                    <div key={a.id} className={styles.row}>
+                      <div className={styles.rowMain}>
+                        <div className={styles.rowName}>{a.name}</div>
+                        <div className={styles.rowEmail}>
+                          {a.excluded_from_rotation
+                            ? "Von Rotation ausgeschlossen — Platz garantiert"
+                            : a.quote != null
+                              ? `Quote: ${(a.quote * 100).toFixed(0)}%`
+                              : "Keine Historie"}
+                        </div>
+                      </div>
+                      <button type="button" onClick={() => toggleInclusion(a.id, !a.included)} title="Tauschen">
+                        <Badge tone={a.included ? "soft" : "outline"} size="sm">
+                          {a.included ? "Bestätigt" : "Warteliste"}
+                        </Badge>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                {confirmError && <div className={styles.addError}>{confirmError}</div>}
+                <Button variant="accent" size="sm" full onClick={confirmAllocation} disabled={confirming}>
+                  {confirming ? "Bestätige…" : "Zuteilung bestätigen"}
+                </Button>
+              </>
             ) : (
               <div className={styles.list}>
                 {allocations.map((a) => (
