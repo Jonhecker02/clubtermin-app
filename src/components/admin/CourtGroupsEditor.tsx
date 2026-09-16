@@ -11,13 +11,14 @@ import { createClient } from "@/lib/supabase/client";
 import { queryKeys } from "@/lib/queries/keys";
 import { useTerminCourtGroups } from "@/lib/queries/useTerminCourtGroups";
 import { CourtGroupsExportCard } from "./CourtGroupsExportCard";
+import { courtGroupRoundRange, courtGroupSwitchMinutes } from "@/lib/domain";
 import type { Termin } from "@/types/database";
 import styles from "./CourtGroupsEditor.module.css";
 
-const ROUND_ITEMS = [
-  { id: "1", label: "Trainiert Runde 1" },
-  { id: "2", label: "Trainiert Runde 2" },
-];
+// A court always seats 4 — caps each group at that so nobody accidentally
+// overfills one, though nothing blocks saving an intentionally smaller
+// last group when the confirmed count isn't a multiple of 4.
+const GROUP_SIZE = 4;
 
 interface DraftGroup {
   key: string;
@@ -59,6 +60,24 @@ export function CourtGroupsEditor({
   const { data: saved, isLoading } = useTerminCourtGroups(terminId);
   const exportRef = useRef<HTMLDivElement>(null);
   const [exporting, setExporting] = useState(false);
+
+  // Derived straight from termin (not local state) so a realtime update from
+  // another admin editing the same switch time is reflected immediately.
+  const switchMinutes = courtGroupSwitchMinutes(termin);
+  const switchTime = `${String(Math.floor(switchMinutes / 60)).padStart(2, "0")}:${String(switchMinutes % 60).padStart(2, "0")}`;
+  const roundItems = [
+    { id: "1", label: `Trainiert Runde 1 (${courtGroupRoundRange(1, termin)})` },
+    { id: "2", label: `Trainiert Runde 2 (${courtGroupRoundRange(2, termin)})` },
+  ];
+
+  async function saveSwitchTime(value: string) {
+    const supabase = createClient();
+    await supabase
+      .from("termine")
+      .update({ court_groups_switch_time: value ? `${value}:00` : null })
+      .eq("id", terminId);
+    await queryClient.invalidateQueries({ queryKey: queryKeys.termine });
+  }
 
   const [groups, setGroups] = useState<DraftGroup[]>([]);
   const [quotes, setQuotes] = useState<Record<string, number>>({});
@@ -126,7 +145,9 @@ export function CourtGroupsEditor({
 
   function addMember(key: string, userId: string) {
     if (!userId) return;
-    setGroups((gs) => gs.map((g) => (g.key === key ? { ...g, memberIds: [...g.memberIds, userId] } : g)));
+    setGroups((gs) =>
+      gs.map((g) => (g.key === key && g.memberIds.length < GROUP_SIZE ? { ...g, memberIds: [...g.memberIds, userId] } : g)),
+    );
   }
 
   function removeMember(key: string, userId: string) {
@@ -246,6 +267,14 @@ export function CourtGroupsEditor({
 
   return (
     <div className={styles.wrap}>
+      <Input
+        label="Wechsel zwischen Training und Spiel"
+        type="time"
+        value={switchTime}
+        onChange={(e) => saveSwitchTime(e.target.value)}
+        helper="Standardmäßig 1 Std. nach Beginn — bei Bedarf anpassen."
+      />
+
       {unassigned.length > 0 && (
         <div className={styles.unassigned}>
           <span className={styles.unassignedLabel}>Nicht zugeteilt ({unassigned.length})</span>
@@ -279,6 +308,9 @@ export function CourtGroupsEditor({
                   onChange={(e) => updateGroup(g.key, { label: e.target.value })}
                   className={styles.labelInput}
                 />
+                <span className={g.memberIds.length >= GROUP_SIZE ? styles.sizeBadgeFull : styles.sizeBadge}>
+                  {g.memberIds.length}/{GROUP_SIZE}
+                </span>
                 <button type="button" className={styles.removeGroup} onClick={() => removeGroup(g.key)} title="Gruppe entfernen">
                   <Trash2 size={15} strokeWidth={2} />
                 </button>
@@ -292,7 +324,7 @@ export function CourtGroupsEditor({
               />
 
               <Tabs
-                items={ROUND_ITEMS}
+                items={roundItems}
                 value={String(g.round)}
                 onChange={(id) => updateGroup(g.key, { round: Number(id) as 1 | 2 })}
                 size="sm"
@@ -320,7 +352,7 @@ export function CourtGroupsEditor({
               </div>
               {pairWarning && <div className={styles.pairWarning}>Zuletzt schon zusammen: {pairWarning}</div>}
 
-              {unassigned.length > 0 && (
+              {unassigned.length > 0 && g.memberIds.length < GROUP_SIZE && (
                 <Select value="" onChange={(e) => addMember(g.key, e.target.value)}>
                   <option value="">+ Spieler hinzufügen…</option>
                   {unassigned.map((p) => (

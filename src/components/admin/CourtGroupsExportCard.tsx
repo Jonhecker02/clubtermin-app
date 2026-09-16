@@ -1,5 +1,5 @@
 import { forwardRef } from "react";
-import { fullDateLabel, hhmm } from "@/lib/domain";
+import { courtGroupRoundRange, fullDateLabel, hhmm } from "@/lib/domain";
 import type { Termin } from "@/types/database";
 import styles from "./CourtGroupsExportCard.module.css";
 
@@ -15,29 +15,12 @@ interface CourtGroupsExportCardProps {
   groups: ExportGroup[];
 }
 
-function toMinutes(t: string): number {
-  const [h, m] = t.split(":").map(Number);
-  return h * 60 + m;
-}
-
-function toHHMM(min: number): string {
-  const h = Math.floor(min / 60) % 24;
-  const m = min % 60;
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-}
-
 // Rendered off-screen purely as a capture target for html-to-image, same
-// pattern as TerminExportCard — the actual clock split for "Runde 1"/"Runde
-// 2" is the termin's own start/end time cut in half, so the export shows
-// real times instead of the abstract round numbers the editor uses.
+// pattern as TerminExportCard — the "Runde 1"/"Runde 2" times shown here are
+// real clock times (courtGroupRoundRange), not the abstract round numbers
+// the editor's tabs use.
 export const CourtGroupsExportCard = forwardRef<HTMLDivElement, CourtGroupsExportCardProps>(
   function CourtGroupsExportCard({ termin, groups }, ref) {
-    const start = toMinutes(termin.start_time);
-    const end = toMinutes(termin.end_time);
-    const mid = Math.round((start + end) / 2);
-    const timeFor = (round: 1 | 2) =>
-      round === 1 ? `${toHHMM(start)}–${toHHMM(mid)}` : `${toHHMM(mid)}–${toHHMM(end)}`;
-
     return (
       <div ref={ref} className={styles.card} style={{ width: Math.max(560, groups.length * 200 + 64) }}>
         <div className={styles.header}>
@@ -58,11 +41,11 @@ export const CourtGroupsExportCard = forwardRef<HTMLDivElement, CourtGroupsExpor
 
               <div className={`${styles.slot} ${g.round === 1 ? styles.slotTraining : styles.slotPlaying}`}>
                 <span className={styles.slotType}>{g.round === 1 ? "Training" : "Spielt"}</span>
-                <span className={styles.slotTime}>{timeFor(1)}</span>
+                <span className={styles.slotTime}>{courtGroupRoundRange(1, termin)}</span>
               </div>
               <div className={`${styles.slot} ${g.round === 2 ? styles.slotTraining : styles.slotPlaying}`}>
                 <span className={styles.slotType}>{g.round === 2 ? "Training" : "Spielt"}</span>
-                <span className={styles.slotTime}>{timeFor(2)}</span>
+                <span className={styles.slotTime}>{courtGroupRoundRange(2, termin)}</span>
               </div>
 
               <div className={styles.namesList}>

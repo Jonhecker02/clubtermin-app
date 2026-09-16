@@ -65,7 +65,10 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
   const [endTime, setEndTime] = useState(initial ? hhmm(initial.end_time) : "");
   const [location, setLocation] = useState(initial?.location ?? "The Padellers Essen");
   const [description, setDescription] = useState(initial?.description ?? "");
-  const [courts, setCourts] = useState(initial?.courts ?? "");
+  // Stored as "Court 1–3" (matches every display site that just prints
+  // termin.courts after the location), but the admin only ever needs to
+  // type the number(s) — "Court " gets re-added on submit.
+  const [courts, setCourts] = useState(initial?.courts?.replace(/^court\s*/i, "") ?? "");
   const [maxTn, setMaxTn] = useState(initial ? String(initial.max_tn) : "8");
   const [price, setPrice] = useState(initial?.price != null ? String(initial.price) : "");
   const [visMode, setVisMode] = useState<"alle" | "ausgewaehlt">(
@@ -102,11 +105,14 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
   // is neither shown nor required for those two types.
   const needsCourts = type === "training";
 
-  // Fair rotation only ever applies to a termin tied to exactly one specific
-  // team — with "alle Gruppen" or several groups selected there's no single
-  // team history to rank by, so the deadline field simply doesn't apply.
+  // Fair rotation only ever applies to a training tied to exactly one
+  // specific team — with "alle Gruppen" or several groups selected there's
+  // no single team history to rank by, and Events don't need it at all (the
+  // whole point is deciding who trains, which doesn't apply to an Event).
   const rotationGroup =
-    regMode === "ausgewaehlt" && regGroups.length === 1 ? groups.find((g) => g.id === regGroups[0]) : undefined;
+    type !== "event" && regMode === "ausgewaehlt" && regGroups.length === 1
+      ? groups.find((g) => g.id === regGroups[0])
+      : undefined;
   const rotationActive = rotationGroup?.fair_rotation_enabled ?? false;
 
   function toggle(list: string[], id: string, set: (v: string[]) => void) {
@@ -159,7 +165,7 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
       title: title.trim(),
       trainer: trainer.trim() || "—",
       location: location.trim() || "The Padellers Essen",
-      courts: needsCourts ? courts.trim() : "",
+      courts: needsCourts && courts.trim() ? `Court ${courts.trim().replace(/^court\s*/i, "")}` : "",
       date,
       start_time: startTime,
       end_time: endTime,
@@ -209,7 +215,13 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
       />
       {needsCourts ? (
         <div className={styles.fieldRow}>
-          <Input label="Courts" placeholder="z. B. Court 1–3" value={courts} onChange={(e) => setCourts(e.target.value)} />
+          <Input
+            label="Courts"
+            placeholder="z. B. 1–3"
+            helper="Nur die Nummer eintragen — „Court“ wird automatisch ergänzt."
+            value={courts}
+            onChange={(e) => setCourts(e.target.value)}
+          />
           <Input label="Max. TN" type="number" value={maxTn} onChange={(e) => setMaxTn(e.target.value)} />
         </div>
       ) : (

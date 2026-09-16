@@ -78,6 +78,27 @@
   flex: 1;
 }
 
+.sizeBadge,
+.sizeBadgeFull {
+  flex: none;
+  font-family: var(--font-condensed);
+  font-weight: var(--fw-bold);
+  font-size: 12px;
+  border-radius: 999px;
+  padding: 6px 10px;
+  margin-bottom: 10px;
+}
+
+.sizeBadge {
+  background: var(--color-surface-alt);
+  color: var(--color-ink-muted);
+}
+
+.sizeBadgeFull {
+  background: var(--tp-success);
+  color: #fff;
+}
+
 .removeGroup {
   background: none;
   border: none;

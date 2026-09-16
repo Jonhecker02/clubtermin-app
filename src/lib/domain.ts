@@ -32,6 +32,43 @@ export function hoursUntil(dateISO: string, time: string): number {
   return (terminDateTime(dateISO, time).getTime() - Date.now()) / 3_600_000;
 }
 
+type CourtGroupTiming = {
+  start_time: string;
+  end_time: string;
+  court_groups_switch_time: string | null;
+};
+
+function timeToMinutes(t: string): number {
+  const [h, m] = t.split(":").map(Number);
+  return h * 60 + m;
+}
+
+function minutesToHHMM(min: number): string {
+  const h = Math.floor(min / 60) % 24;
+  const m = min % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
+// Where Runde 1 ends and Runde 2 begins. Defaults to start + 60 min (the
+// usual "1 Std. Training, 1 Std. Spiel" shape) rather than the exact
+// midpoint — a 2:15h slot should still default to a clean 1h first half,
+// not 1h07. Clamped into [start, end] so a manual override can't produce a
+// negative-length round even if the termin's time changes afterward.
+export function courtGroupSwitchMinutes(t: CourtGroupTiming): number {
+  const start = timeToMinutes(t.start_time);
+  const end = timeToMinutes(t.end_time);
+  const wanted = t.court_groups_switch_time ? timeToMinutes(t.court_groups_switch_time) : start + 60;
+  return Math.min(Math.max(wanted, start), end);
+}
+
+export function courtGroupRoundRange(round: 1 | 2, t: CourtGroupTiming): string {
+  const start = timeToMinutes(t.start_time);
+  const end = timeToMinutes(t.end_time);
+  const switchAt = courtGroupSwitchMinutes(t);
+  const [from, to] = round === 1 ? [start, switchAt] : [switchAt, end];
+  return `${minutesToHHMM(from)}–${minutesToHHMM(to)}`;
+}
+
 export function msUntil(target: Date): number {
   return target.getTime() - Date.now();
 }
