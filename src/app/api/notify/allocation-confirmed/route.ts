@@ -36,6 +36,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  // Every row shares the same termin_id (confirm is scoped to one termin),
+  // so this is a single lookup — gives each waitlisted player their real
+  // nachrück-position (fairness-ordered, not just registration order) to
+  // put in their notification instead of a bare "you're on the waitlist".
+  const { data: waitlistRankRows } = await service.rpc("get_waitlist_rank", { p_termin_id: termin_id });
+  const waitlistRankByUser = new Map((waitlistRankRows ?? []).map((r) => [r.user_id, r.rank_order]));
+
   let pushSent = 0;
   let apnsSent = 0;
   const vapidPublic = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
@@ -57,6 +64,15 @@ export async function POST(request: Request) {
     return shortCodeCache.get(row.termin_id) ? `${shortCodeCache.get(row.termin_id)} · ${row.title}` : row.title;
   }
 
+  function bodyFor(row: { user_id: string; final_status: string; start_time: string }, label: string): string {
+    if (row.final_status === "angemeldet") {
+      return `${label} — du bist dabei (${hhmm(row.start_time)} Uhr).`;
+    }
+    const rank = waitlistRankByUser.get(row.user_id);
+    const rankNote = rank ? ` (Platz ${rank})` : "";
+    return `${label} — du stehst aktuell auf der Warteliste${rankNote} (${hhmm(row.start_time)} Uhr).`;
+  }
+
   if (vapidPublic && vapidPrivate) {
     for (const row of allocations ?? []) {
       if (!row.endpoint || !row.p256dh || !row.auth) continue;
@@ -64,9 +80,7 @@ export async function POST(request: Request) {
       const confirmed = row.final_status === "angemeldet";
       const payload = JSON.stringify({
         title: confirmed ? "Deine Anmeldung wurde final zugeteilt! 🎉" : "Zuteilung abgeschlossen",
-        body: confirmed
-          ? `${label} — du bist dabei (${hhmm(row.start_time)} Uhr).`
-          : `${label} — du stehst aktuell auf der Warteliste (${hhmm(row.start_time)} Uhr).`,
+        body: bodyFor(row, label),
         url: `/termine/${row.termin_id}`,
       });
       try {
@@ -92,9 +106,7 @@ export async function POST(request: Request) {
       const confirmed = row.final_status === "angemeldet";
       const payload: ApnsPayload = {
         title: confirmed ? "Deine Anmeldung wurde final zugeteilt! 🎉" : "Zuteilung abgeschlossen",
-        body: confirmed
-          ? `${label} — du bist dabei (${hhmm(row.start_time)} Uhr).`
-          : `${label} — du stehst aktuell auf der Warteliste (${hhmm(row.start_time)} Uhr).`,
+        body: bodyFor(row, label),
         url: `/termine/${row.termin_id}`,
       };
       const result = await sendApnsNotification(device_token, payload);

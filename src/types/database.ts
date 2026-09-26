@@ -107,6 +107,18 @@ export type RecentPartner = {
   times_together: number;
 };
 
+export type WaitlistRank = {
+  user_id: string;
+  rank_order: number;
+};
+
+export type PlayerAttendanceStat = {
+  user_id: string;
+  total_trainings: number;
+  registered_count: number;
+  confirmed_count: number;
+};
+
 export type AllocationDecision = {
   user_id: string;
   termin_id: string;
@@ -384,6 +396,8 @@ export interface Database {
       save_termin_court_groups: { Args: { p_termin_id: string; p_groups: unknown }; Returns: void };
       get_round1_quotes: { Args: { p_club_group_id: string; p_user_ids: string[] }; Returns: RoundQuote[] };
       get_recent_partners: { Args: { p_club_group_id: string; p_user_ids: string[] }; Returns: RecentPartner[] };
+      get_waitlist_rank: { Args: { p_termin_id: string }; Returns: WaitlistRank[] };
+      get_player_attendance_stats: { Args: Record<string, never>; Returns: PlayerAttendanceStat[] };
       set_court_groups_published: { Args: { p_termin_id: string; p_published: boolean }; Returns: void };
     };
     Enums: Record<string, never>;

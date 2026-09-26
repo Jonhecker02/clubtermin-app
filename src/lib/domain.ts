@@ -125,6 +125,32 @@ export function splitRegistrations<T extends { status: RegistrationStatus }>(
   };
 }
 
+// The Saturday immediately before a training date, 22:00 — leaves Saturday
+// evening/Sunday morning free to review and confirm the fair-rotation
+// allocation before the week's session. Just a starting suggestion for the
+// admin to accept or override, not enforced.
+export function suggestedRegistrationCloses(dateISO: string): string {
+  const d = new Date(`${dateISO}T00:00:00`);
+  const daysSinceSaturday = (d.getDay() + 1) % 7; // Sat=0, Sun=1, Mon=2, ... Fri=6
+  const saturday = new Date(d);
+  saturday.setDate(d.getDate() - daysSinceSaturday);
+  const iso = `${saturday.getFullYear()}-${String(saturday.getMonth() + 1).padStart(2, "0")}-${String(saturday.getDate()).padStart(2, "0")}`;
+  return `${iso}T22:00`;
+}
+
+// Re-sorts the waitlist into actual nachrück-order — created_at order is
+// only correct when fair rotation is off; get_waitlist_rank() (queried once
+// per termin) supplies the real order otherwise, this just applies it.
+// Falls back to the incoming order (already created_at-sorted from the
+// query) while ranks haven't loaded yet or the termin has no rotation.
+export function orderByWaitlistRank<T extends { user_id: string }>(
+  waitlist: T[],
+  ranks: Record<string, number> | undefined,
+): T[] {
+  if (!ranks || Object.keys(ranks).length === 0) return waitlist;
+  return [...waitlist].sort((a, b) => (ranks[a.user_id] ?? Number.MAX_SAFE_INTEGER) - (ranks[b.user_id] ?? Number.MAX_SAFE_INTEGER));
+}
+
 // "2 Tage 4 Std." / "3 Std. 12 Min." / "8 Min." — coarsens to the two most
 // significant units so it doesn't tick unnecessarily fast in the UI: pass a
 // pre-computed remaining-ms value (the caller owns the ticking interval,

@@ -5,7 +5,7 @@ import { Input, Textarea } from "@/components/ui/Input";
 import { Tabs } from "@/components/ui/Tabs";
 import { Button } from "@/components/ui/Button";
 import { useGroups } from "@/lib/queries/useGroups";
-import { groupLabel, hhmm } from "@/lib/domain";
+import { groupLabel, hhmm, suggestedRegistrationCloses } from "@/lib/domain";
 import type { Termin, TerminType } from "@/types/database";
 import styles from "./AdminList.module.css";
 
@@ -275,6 +275,11 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
             onChange={(e) => setRegClosesAt(e.target.value)}
             helper={`${groupLabel(rotationGroup!)} hat faire Rotation aktiviert. Bis zu diesem Zeitpunkt sind Anmeldungen ausstehend, danach verteilt die Rotation die Plätze auf einen Schlag.`}
           />
+          {date && regClosesAt !== suggestedRegistrationCloses(date) && (
+            <button type="button" className={styles.suggestion} onClick={() => setRegClosesAt(suggestedRegistrationCloses(date))}>
+              Vorschlag übernehmen: Samstag davor, 22:00 Uhr
+            </button>
+          )}
         </div>
       )}
 

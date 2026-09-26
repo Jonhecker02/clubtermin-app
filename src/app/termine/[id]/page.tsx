@@ -13,6 +13,7 @@ import { useTermine } from "@/lib/queries/useTermine";
 import { useGroups } from "@/lib/queries/useGroups";
 import { useRegistrationsForTermin } from "@/lib/queries/useRegistrations";
 import { useTerminCourtGroups } from "@/lib/queries/useTerminCourtGroups";
+import { useWaitlistRank } from "@/lib/queries/useWaitlistRank";
 import { queryKeys } from "@/lib/queries/keys";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -28,6 +29,7 @@ import {
   initials,
   isRegistrationOpen,
   msUntil,
+  orderByWaitlistRank,
   registrationClosesAt,
   registrationOpensLabel,
   splitRegistrations,
@@ -47,6 +49,7 @@ export default function TerminDetailPage() {
   const { data: groups = [] } = useGroups();
   const { data: registrations = [], isLoading: registrationsLoading } = useRegistrationsForTermin(terminId);
   const { data: courtGroups = [] } = useTerminCourtGroups(terminId);
+  const { data: waitlistRanks } = useWaitlistRank(terminId);
 
   const [pending, setPending] = useState(false);
   const [actionError, setActionError] = useState("");
@@ -61,9 +64,13 @@ export default function TerminDetailPage() {
 
   const termin = termine.find((t) => t.id === terminId);
 
-  const { confirmed: participants, waitlist, pending: pendingRegistrations } = useMemo(
+  const { confirmed: participants, waitlist: waitlistUnordered, pending: pendingRegistrations } = useMemo(
     () => splitRegistrations(registrations),
     [registrations],
+  );
+  const waitlist = useMemo(
+    () => orderByWaitlistRank(waitlistUnordered, waitlistRanks),
+    [waitlistUnordered, waitlistRanks],
   );
 
   async function invalidateAll() {
@@ -163,7 +170,7 @@ export default function TerminDetailPage() {
     actionLabel = "Anmeldung zurückziehen";
     actionVariant = "outline";
     cancelNotice = closesAt
-      ? `Danke für deine Anmeldung — die finale Zuteilung erfolgt in ${formatCountdown(msUntil(closesAt))}.`
+      ? `Danke für deine Anmeldung — die finale Zuteilung erfolgt in ${formatCountdown(msUntil(closesAt))}. Die Anmeldung schließt in der Regel samstags um 22 Uhr, damit die Zuteilung sonntagfrüh erfolgen kann.`
       : "Danke für deine Anmeldung — die finale Zuteilung folgt in Kürze.";
     onAction = handleCancel;
   } else if (!eligible) {

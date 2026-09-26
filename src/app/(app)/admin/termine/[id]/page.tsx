@@ -19,6 +19,7 @@ import { useGroups } from "@/lib/queries/useGroups";
 import { useProfiles } from "@/lib/queries/useProfiles";
 import { useRegistrationsForTermin } from "@/lib/queries/useRegistrations";
 import { useAllocationsForTermin } from "@/lib/queries/useAllocations";
+import { useWaitlistRank } from "@/lib/queries/useWaitlistRank";
 import { queryKeys } from "@/lib/queries/keys";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -31,6 +32,7 @@ import {
   weekdayLabel,
   dateLabel,
   groupShortCode,
+  orderByWaitlistRank,
   registrationClosesAt,
   splitRegistrations,
   withShortCode,
@@ -49,11 +51,16 @@ export default function AdminParticipantsPage() {
   const { data: profiles = [] } = useProfiles();
   const { data: registrations = [] } = useRegistrationsForTermin(terminId);
   const { data: allocations = [] } = useAllocationsForTermin(terminId);
+  const { data: waitlistRanks } = useWaitlistRank(terminId);
 
   const termin = termine.find((t) => t.id === terminId);
-  const { confirmed: participants, waitlist, pending: pendingRegistrations } = useMemo(
+  const { confirmed: participants, waitlist: waitlistUnordered, pending: pendingRegistrations } = useMemo(
     () => splitRegistrations(registrations),
     [registrations],
+  );
+  const waitlist = useMemo(
+    () => orderByWaitlistRank(waitlistUnordered, waitlistRanks),
+    [waitlistUnordered, waitlistRanks],
   );
 
   const [notesOpenId, setNotesOpenId] = useState<string | null>(null);

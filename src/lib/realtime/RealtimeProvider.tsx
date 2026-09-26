@@ -34,6 +34,7 @@ export function RealtimeProvider() {
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "registrations" }, () => {
         invalidateUnlessFresh(queryClient, ["registrations"]);
+        invalidateUnlessFresh(queryClient, ["waitlistRank"]);
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, () => {
         invalidateUnlessFresh(queryClient, queryKeys.profile);
