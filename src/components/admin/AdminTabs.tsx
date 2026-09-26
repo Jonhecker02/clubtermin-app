@@ -5,7 +5,7 @@ import { Tabs } from "@/components/ui/Tabs";
 import { useProfiles } from "@/lib/queries/useProfiles";
 
 interface AdminTabsProps {
-  current: "termine" | "gruppen" | "anfragen" | "rollen" | "accounts";
+  current: "termine" | "gruppen" | "anfragen" | "rollen" | "accounts" | "statistik";
   isOwner: boolean;
 }
 
@@ -20,6 +20,7 @@ export function AdminTabs({ current, isOwner }: AdminTabsProps) {
     { id: "anfragen", label: `Anfragen (${pendingCount})` },
     ...(isOwner ? [{ id: "rollen", label: "Rollen" }] : []),
     ...(isOwner ? [{ id: "accounts", label: "Accounts" }] : []),
+    ...(isOwner ? [{ id: "statistik", label: "Statistik" }] : []),
   ];
 
   return (
