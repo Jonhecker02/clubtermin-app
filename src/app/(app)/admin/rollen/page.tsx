@@ -37,7 +37,7 @@ export default function AdminRollenPage() {
     <>
       <AppHeader title="Rollen" />
       <PageBody>
-        <AdminTabs current="rollen" isOwner />
+        <AdminTabs current="rollen" />
 
         <div className={styles.intro}>
           Trainer und Kapitäne sehen und verwalten wie du Termine und Anfragen, aber keine Gruppen oder Rollen. Es

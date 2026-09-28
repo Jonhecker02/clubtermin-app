@@ -64,13 +64,17 @@ export async function POST(request: Request) {
     return shortCodeCache.get(row.termin_id) ? `${shortCodeCache.get(row.termin_id)} · ${row.title}` : row.title;
   }
 
-  function bodyFor(row: { user_id: string; final_status: string; start_time: string }, label: string): string {
+  function bodyFor(row: { user_id: string; final_status: string; start_time: string; quote: number | null }, label: string): string {
     if (row.final_status === "angemeldet") {
       return `${label} — du bist dabei (${hhmm(row.start_time)} Uhr).`;
     }
     const rank = waitlistRankByUser.get(row.user_id);
     const rankNote = rank ? ` (Platz ${rank})` : "";
-    return `${label} — du stehst aktuell auf der Warteliste${rankNote} (${hhmm(row.start_time)} Uhr).`;
+    // row.quote is this player's own fairness quote from the allocation run
+    // (registration_allocations.quote) — the concrete "why", not just "you
+    // didn't make it": other players simply had a higher recent quote.
+    const reasonNote = row.quote != null ? ` Deine Anmeldequote lag zuletzt bei ${Math.round(row.quote * 100)}%.` : "";
+    return `${label} — du stehst aktuell auf der Warteliste${rankNote} (${hhmm(row.start_time)} Uhr).${reasonNote}`;
   }
 
   if (vapidPublic && vapidPrivate) {

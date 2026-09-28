@@ -5,10 +5,10 @@ import { AppHeader } from "@/components/layout/AppHeader";
 import { PageBody } from "@/components/layout/PageBody";
 import { Button } from "@/components/ui/Button";
 import { AdminTabs } from "@/components/admin/AdminTabs";
-import { useProfile } from "@/lib/queries/useProfile";
 import { useProfiles } from "@/lib/queries/useProfiles";
 import { useGroups } from "@/lib/queries/useGroups";
 import { useAttendanceStats } from "@/lib/queries/useAttendanceStats";
+import { useTrainerStats } from "@/lib/queries/useTrainerStats";
 import { groupLabel } from "@/lib/domain";
 import adminStyles from "@/components/admin/AdminList.module.css";
 import styles from "./page.module.css";
@@ -16,13 +16,23 @@ import styles from "./page.module.css";
 type SortMode = "quote" | "name";
 
 export default function AdminStatistikPage() {
-  const { data: profile } = useProfile();
   const { data: profiles = [] } = useProfiles();
   const { data: groups = [] } = useGroups();
   const { data: stats = [] } = useAttendanceStats();
+  const { data: trainerStats = [] } = useTrainerStats();
   const [sortMode, setSortMode] = useState<SortMode>("quote");
 
   const statsByUser = useMemo(() => new Map(stats.map((s) => [s.user_id, s])), [stats]);
+
+  const trainerStatsByUser = useMemo(() => {
+    const map = new Map<string, { trainer_name: string; session_count: number }[]>();
+    for (const s of trainerStats) {
+      const list = map.get(s.user_id) ?? [];
+      list.push({ trainer_name: s.trainer_name, session_count: s.session_count });
+      map.set(s.user_id, list);
+    }
+    return map;
+  }, [trainerStats]);
 
   const rows = useMemo(() => {
     const withStats = profiles
@@ -52,7 +62,7 @@ export default function AdminStatistikPage() {
     <>
       <AppHeader title="Statistik" />
       <PageBody>
-        <AdminTabs current="statistik" isOwner={profile?.role === "owner"} />
+        <AdminTabs current="statistik" />
 
         <div className={adminStyles.countRow}>
           <span className={adminStyles.count}>{rows.length} Spieler</span>
@@ -71,26 +81,34 @@ export default function AdminStatistikPage() {
           {rows.map((row) => {
             const group = groups.find((g) => g.id === row.profile.group_id);
             const lowQuote = row.attendanceQuote !== null && row.attendanceQuote < 0.5;
+            const trainerBreakdown = trainerStatsByUser.get(row.profile.id) ?? [];
             return (
-              <div key={row.profile.id} className={styles.card}>
-                <div className={styles.info}>
-                  <span className={styles.name}>{row.profile.name}</span>
-                  <span className={styles.meta}>{group ? groupLabel(group) : "—"}</span>
+              <div key={row.profile.id}>
+                <div className={styles.card}>
+                  <div className={styles.info}>
+                    <span className={styles.name}>{row.profile.name}</span>
+                    <span className={styles.meta}>{group ? groupLabel(group) : "—"}</span>
+                  </div>
+                  <div className={styles.stats}>
+                    {row.totalTrainings > 0 ? (
+                      <>
+                        <span className={[styles.quote, lowQuote ? styles.quoteLow : ""].join(" ")}>
+                          {Math.round(row.attendanceQuote! * 100)}%
+                        </span>
+                        <span className={styles.count}>
+                          {row.confirmedCount}/{row.totalTrainings} dabei · Anmeldequote {Math.round(row.registrationQuote! * 100)}%
+                        </span>
+                      </>
+                    ) : (
+                      <span className={styles.count}>Noch keine Trainings</span>
+                    )}
+                  </div>
                 </div>
-                <div className={styles.stats}>
-                  {row.totalTrainings > 0 ? (
-                    <>
-                      <span className={[styles.quote, lowQuote ? styles.quoteLow : ""].join(" ")}>
-                        {Math.round(row.attendanceQuote! * 100)}%
-                      </span>
-                      <span className={styles.count}>
-                        {row.confirmedCount}/{row.totalTrainings} dabei · Anmeldequote {Math.round(row.registrationQuote! * 100)}%
-                      </span>
-                    </>
-                  ) : (
-                    <span className={styles.count}>Noch keine Trainings</span>
-                  )}
-                </div>
+                {trainerBreakdown.length > 0 && (
+                  <div className={styles.trainerBreakdown}>
+                    {trainerBreakdown.map((b) => `${b.trainer_name}: ${b.session_count}×`).join(" · ")}
+                  </div>
+                )}
               </div>
             );
           })}

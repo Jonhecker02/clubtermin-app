@@ -165,7 +165,7 @@ export default function AdminAccountsPage() {
     <>
       <AppHeader title="Accounts" />
       <PageBody>
-        <AdminTabs current="accounts" isOwner={profile?.role === "owner"} />
+        <AdminTabs current="accounts" />
 
         <div className={adminStyles.countRow}>
           <span className={adminStyles.count}>{sorted.length} Accounts</span>

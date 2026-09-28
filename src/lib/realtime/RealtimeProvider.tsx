@@ -54,6 +54,7 @@ export function RealtimeProvider() {
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "registration_allocations" }, () => {
         invalidateUnlessFresh(queryClient, ["allocations"]);
+        invalidateUnlessFresh(queryClient, ["myAllocation"]);
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "termin_court_groups" }, () => {
         invalidateUnlessFresh(queryClient, ["courtGroups"]);

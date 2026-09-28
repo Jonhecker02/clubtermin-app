@@ -11,7 +11,6 @@ import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Switch } from "@/components/ui/Switch";
 import { AdminTabs } from "@/components/admin/AdminTabs";
-import { useProfile } from "@/lib/queries/useProfile";
 import { useGroups } from "@/lib/queries/useGroups";
 import { useProfiles } from "@/lib/queries/useProfiles";
 import { queryKeys } from "@/lib/queries/keys";
@@ -22,7 +21,6 @@ import styles from "./page.module.css";
 export default function AdminGruppenPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { data: profile } = useProfile();
   const { data: groups = [] } = useGroups();
   const { data: profiles = [] } = useProfiles();
 
@@ -99,7 +97,7 @@ export default function AdminGruppenPage() {
     <>
       <AppHeader title="Gruppen" />
       <PageBody>
-        <AdminTabs current="gruppen" isOwner={profile?.role === "owner"} />
+        <AdminTabs current="gruppen" />
 
         <div className={adminStyles.countRow}>
           <span className={adminStyles.count}>{groups.length} Gruppen</span>

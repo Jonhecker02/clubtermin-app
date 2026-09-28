@@ -14,6 +14,7 @@ import { useGroups } from "@/lib/queries/useGroups";
 import { useRegistrationsForTermin } from "@/lib/queries/useRegistrations";
 import { useTerminCourtGroups } from "@/lib/queries/useTerminCourtGroups";
 import { useWaitlistRank } from "@/lib/queries/useWaitlistRank";
+import { useMyAllocation } from "@/lib/queries/useMyAllocation";
 import { queryKeys } from "@/lib/queries/keys";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -50,6 +51,7 @@ export default function TerminDetailPage() {
   const { data: registrations = [], isLoading: registrationsLoading } = useRegistrationsForTermin(terminId);
   const { data: courtGroups = [] } = useTerminCourtGroups(terminId);
   const { data: waitlistRanks } = useWaitlistRank(terminId);
+  const { data: myAllocation } = useMyAllocation(terminId, profile?.id ?? null);
 
   const [pending, setPending] = useState(false);
   const [actionError, setActionError] = useState("");
@@ -165,6 +167,12 @@ export default function TerminDetailPage() {
   } else if (inWaitlist) {
     actionLabel = `Von Warteliste entfernen (Platz ${wlIdx + 1})`;
     actionVariant = "outline";
+    // myAllocation.included === false means the last fair-rotation run
+    // actively decided against this player (not just plain FCFS overflow) —
+    // give them the concrete reason instead of leaving them guessing.
+    if (myAllocation && !myAllocation.included && myAllocation.quote != null) {
+      cancelNotice = `Diesmal nicht dabei: Deine Anmeldequote lag zuletzt bei ${Math.round(myAllocation.quote * 100)}% — andere Spieler hatten eine höhere Quote und damit Vorrang.`;
+    }
     onAction = handleCancel;
   } else if (inPending) {
     actionLabel = "Anmeldung zurückziehen";

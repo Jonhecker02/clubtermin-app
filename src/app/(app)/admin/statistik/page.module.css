@@ -59,3 +59,10 @@
   gap: 8px;
   margin-bottom: 14px;
 }
+
+.trainerBreakdown {
+  margin-top: 4px;
+  padding: 0 16px;
+  font-size: 11.5px;
+  color: var(--color-ink-muted);
+}

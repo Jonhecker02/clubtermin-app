@@ -31,6 +31,7 @@ export type Termin = {
   type: TerminType;
   title: string;
   trainer: string;
+  trainer_id: string | null;
   location: string;
   courts: string;
   date: string; // YYYY-MM-DD
@@ -128,9 +129,22 @@ export type AllocationDecision = {
   location: string;
   register_groups: string[];
   final_status: RegistrationStatus;
+  quote: number | null;
   endpoint: string | null;
   p256dh: string | null;
   auth: string | null;
+};
+
+export type SkillLevel = {
+  user_id: string;
+  skill_level: number | null;
+};
+
+export type PlayerTrainerStat = {
+  user_id: string;
+  trainer_id: string;
+  trainer_name: string;
+  session_count: number;
 };
 
 export type Message = {
@@ -244,6 +258,7 @@ type TerminInsert = Pick<
   | "type"
   | "title"
   | "trainer"
+  | "trainer_id"
   | "location"
   | "courts"
   | "date"
@@ -398,6 +413,9 @@ export interface Database {
       get_recent_partners: { Args: { p_club_group_id: string; p_user_ids: string[] }; Returns: RecentPartner[] };
       get_waitlist_rank: { Args: { p_termin_id: string }; Returns: WaitlistRank[] };
       get_player_attendance_stats: { Args: Record<string, never>; Returns: PlayerAttendanceStat[] };
+      get_skill_levels: { Args: Record<string, never>; Returns: SkillLevel[] };
+      set_skill_level: { Args: { p_user_id: string; p_skill_level: number | null }; Returns: void };
+      get_player_trainer_stats: { Args: Record<string, never>; Returns: PlayerTrainerStat[] };
       set_court_groups_published: { Args: { p_termin_id: string; p_published: boolean }; Returns: void };
     };
     Enums: Record<string, never>;

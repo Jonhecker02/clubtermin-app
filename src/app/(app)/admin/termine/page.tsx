@@ -12,7 +12,6 @@ import { SwipeRow } from "@/components/ui/SwipeRow";
 import { Switch } from "@/components/ui/Switch";
 import { Tabs } from "@/components/ui/Tabs";
 import { AdminTabs } from "@/components/admin/AdminTabs";
-import { useProfile } from "@/lib/queries/useProfile";
 import { useTermine } from "@/lib/queries/useTermine";
 import { useGroups } from "@/lib/queries/useGroups";
 import { useRegistrationCounts } from "@/lib/queries/useRegistrations";
@@ -72,7 +71,6 @@ function CreatedNotice() {
 export default function AdminTerminePage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { data: profile } = useProfile();
   const { data: termine = EMPTY_TERMINE } = useTermine();
   const { data: groups = [] } = useGroups();
   const { data: counts = {} } = useRegistrationCounts();
@@ -111,7 +109,7 @@ export default function AdminTerminePage() {
         right={<Switch checked onChange={() => router.push("/termine")} label="Admin" onDark />}
       />
       <PageBody>
-        <AdminTabs current="termine" isOwner={profile?.role === "owner"} />
+        <AdminTabs current="termine" />
 
         <Suspense fallback={null}>
           <CreatedNotice />

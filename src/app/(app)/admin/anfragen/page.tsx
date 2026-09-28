@@ -5,7 +5,6 @@ import { AppHeader } from "@/components/layout/AppHeader";
 import { PageBody } from "@/components/layout/PageBody";
 import { Button } from "@/components/ui/Button";
 import { AdminTabs } from "@/components/admin/AdminTabs";
-import { useProfile } from "@/lib/queries/useProfile";
 import { useProfiles } from "@/lib/queries/useProfiles";
 import { useGroups } from "@/lib/queries/useGroups";
 import { queryKeys } from "@/lib/queries/keys";
@@ -15,7 +14,6 @@ import styles from "./page.module.css";
 
 export default function AdminAnfragenPage() {
   const queryClient = useQueryClient();
-  const { data: profile } = useProfile();
   const { data: profiles = [] } = useProfiles();
   const { data: groups = [] } = useGroups();
 
@@ -35,7 +33,7 @@ export default function AdminAnfragenPage() {
     <>
       <AppHeader title="Anfragen" />
       <PageBody>
-        <AdminTabs current="anfragen" isOwner={profile?.role === "owner"} />
+        <AdminTabs current="anfragen" />
 
         <div className={adminStyles.list}>
           {requests.map((r) => (

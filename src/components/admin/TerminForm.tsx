@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Input, Textarea } from "@/components/ui/Input";
+import { Input, Select, Textarea } from "@/components/ui/Input";
 import { Tabs } from "@/components/ui/Tabs";
 import { Button } from "@/components/ui/Button";
 import { useGroups } from "@/lib/queries/useGroups";
+import { useProfiles } from "@/lib/queries/useProfiles";
 import { groupLabel, hhmm, suggestedRegistrationCloses } from "@/lib/domain";
 import type { Termin, TerminType } from "@/types/database";
 import styles from "./AdminList.module.css";
@@ -29,6 +30,7 @@ export interface TerminFormValues {
   type: TerminType;
   title: string;
   trainer: string;
+  trainer_id: string | null;
   location: string;
   courts: string;
   date: string;
@@ -56,10 +58,14 @@ interface TerminFormProps {
 
 export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) {
   const { data: groups = [] } = useGroups();
+  const { data: profiles = [] } = useProfiles();
+  const trainerOptions = profiles
+    .filter((p) => (p.role === "owner" || p.role === "trainer") && p.status === "approved")
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   const [type, setType] = useState<TerminType>(initial?.type ?? "training");
   const [title, setTitle] = useState(initial?.title ?? "");
-  const [trainer, setTrainer] = useState(initial?.trainer ?? "");
+  const [trainerId, setTrainerId] = useState(initial?.trainer_id ?? "");
   const [date, setDate] = useState(initial?.date ?? "");
   const [startTime, setStartTime] = useState(initial ? hhmm(initial.start_time) : "");
   const [endTime, setEndTime] = useState(initial ? hhmm(initial.end_time) : "");
@@ -158,12 +164,18 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
     const [regOpensDate, regOpensTime] = regOpenMode === "geplant" ? regOpensAt.split("T") : [null, null];
     const [regClosesDate, regClosesTime] = rotationActive && regClosesAt ? regClosesAt.split("T") : [null, null];
 
+    const selectedTrainer = trainerOptions.find((p) => p.id === trainerId);
+
     setSaving(true);
     setError("");
     const result = await onSubmit({
       type,
       title: title.trim(),
-      trainer: trainer.trim() || "—",
+      // Falls back to the termin's existing free-text trainer (set before
+      // this dropdown existed) rather than blanking it out just because the
+      // admin edited something else without re-picking a trainer.
+      trainer: selectedTrainer?.name ?? initial?.trainer ?? "—",
+      trainer_id: trainerId || null,
       location: location.trim() || "The Padellers Essen",
       courts: needsCourts && courts.trim() ? `Court ${courts.trim().replace(/^court\s*/i, "")}` : "",
       date,
@@ -190,12 +202,14 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
     <div className={styles.form}>
       <Tabs items={TYPE_ITEMS} value={type} onChange={(id) => setType(id as TerminType)} />
       <Input label="Titel" placeholder="z. B. Trainingsgruppe A" value={title} onChange={(e) => setTitle(e.target.value)} />
-      <Input
-        label="Trainer / Verantwortlicher"
-        placeholder="z. B. Coach Mia"
-        value={trainer}
-        onChange={(e) => setTrainer(e.target.value)}
-      />
+      <Select label="Trainer / Verantwortlicher" value={trainerId} onChange={(e) => setTrainerId(e.target.value)}>
+        <option value="">— kein Trainer ausgewählt —</option>
+        {trainerOptions.map((p) => (
+          <option key={p.id} value={p.id}>
+            {p.name}
+          </option>
+        ))}
+      </Select>
       <Input label="Datum" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
       <div className={styles.fieldRow}>
         <Input label="Startzeit" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />

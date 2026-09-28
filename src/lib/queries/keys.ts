@@ -11,6 +11,9 @@ export const queryKeys = {
   courtGroups: (terminId: string) => ["courtGroups", terminId] as const,
   waitlistRank: (terminId: string) => ["waitlistRank", terminId] as const,
   attendanceStats: ["attendanceStats"] as const,
+  trainerStats: ["trainerStats"] as const,
+  skillLevels: ["skillLevels"] as const,
+  myAllocation: (terminId: string) => ["myAllocation", terminId] as const,
   messages: (groupId: string) => ["messages", groupId] as const,
   announcements: ["announcements"] as const,
 };
