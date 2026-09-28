@@ -28,10 +28,13 @@ function randomSuffix(length: number): string {
 export async function POST(request: Request) {
   const { name, group_id, role } = (await request.json()) as {
     name?: string;
-    group_id?: string;
+    group_id?: string | null;
     role?: "member" | "trainer" | "captain";
   };
-  if (!name?.trim() || !group_id) {
+  // Trainer aren't tied to one team's roster (unlike Spieler/Kapitän), so a
+  // Gruppe is optional for them — everyone else still needs one.
+  const groupRequired = role !== "trainer";
+  if (!name?.trim() || (groupRequired && !group_id)) {
     return NextResponse.json({ error: "missing_fields" }, { status: 400 });
   }
 
@@ -51,12 +54,18 @@ export async function POST(request: Request) {
   const trimmedName = name.trim();
   const service = createServiceRoleClient();
 
-  const { data: group } = await service.from("groups").select("id, short_code").eq("id", group_id).single();
-  if (!group) {
-    return NextResponse.json({ error: "group_not_found" }, { status: 404 });
-  }
-  if (!group.short_code) {
-    return NextResponse.json({ error: "group_missing_short_code" }, { status: 400 });
+  // No group picked (trainer only) — short_code stays empty, the password
+  // just leans on a longer random suffix instead to keep its entropy up.
+  let shortCode = "";
+  if (group_id) {
+    const { data: group } = await service.from("groups").select("id, short_code").eq("id", group_id).single();
+    if (!group) {
+      return NextResponse.json({ error: "group_not_found" }, { status: 404 });
+    }
+    if (!group.short_code) {
+      return NextResponse.json({ error: "group_missing_short_code" }, { status: 400 });
+    }
+    shortCode = group.short_code;
   }
 
   const { data: existing } = await service.from("profiles").select("id").ilike("name", trimmedName).maybeSingle();
@@ -68,7 +77,7 @@ export async function POST(request: Request) {
   if (!initialsPart) {
     return NextResponse.json({ error: "invalid_name" }, { status: 400 });
   }
-  const password = `${initialsPart}${group.short_code}-${randomSuffix(5)}`;
+  const password = shortCode ? `${initialsPart}${shortCode}-${randomSuffix(5)}` : `${initialsPart}-${randomSuffix(7)}`;
   const syntheticEmail = `user-${randomUUID().slice(0, 12)}@clubtermin.local`;
 
   const { data: created, error: createError } = await service.auth.admin.createUser({
@@ -83,7 +92,7 @@ export async function POST(request: Request) {
 
   const { error: patchError } = await service
     .from("profiles")
-    .update({ status: "approved", group_id, role: role ?? "member" })
+    .update({ status: "approved", group_id: group_id ?? null, role: role ?? "member" })
     .eq("id", created.user.id);
   if (patchError) {
     return NextResponse.json({ error: patchError.message }, { status: 500 });

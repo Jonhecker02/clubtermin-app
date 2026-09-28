@@ -66,7 +66,11 @@ function resolveTarget(
   profile: { role: string; group_id: string | null; status: string | null },
   pathname: string,
 ): string | null {
-  const needsTeamcode = !profile.group_id || !profile.status;
+  // Owner/Trainer aren't tied to one team's roster the way a Spieler or
+  // Kapitän is — is_admin() already bypasses every group-scoped RLS check
+  // for them, so they never need a teamcode just to get a group_id.
+  const needsGroup = profile.role === "member" || profile.role === "captain";
+  const needsTeamcode = (needsGroup && !profile.group_id) || !profile.status;
   const isPendingOrRejected = profile.status === "pending" || profile.status === "rejected";
   const isApproved = profile.status === "approved";
 

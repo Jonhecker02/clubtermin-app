@@ -80,7 +80,9 @@ export default function AdminAccountsPage() {
       setCreateError("Bitte gib Vor- und Nachname ein.");
       return;
     }
-    if (!createGroupId) {
+    // Trainer sind nicht an eine Mannschaft gebunden (anders als Spieler und
+    // Kapitän) — für sie ist die Gruppe optional.
+    if (createRole !== "trainer" && !createGroupId) {
       setCreateError("Bitte wähle eine Gruppe.");
       return;
     }
@@ -91,7 +93,7 @@ export default function AdminAccountsPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: `${createFirstName.trim()} ${createLastName.trim()}`,
-        group_id: createGroupId,
+        group_id: createGroupId || null,
         role: createRole,
       }),
     });
@@ -212,8 +214,12 @@ export default function AdminAccountsPage() {
                   value={createLastName}
                   onChange={(e) => setCreateLastName(e.target.value)}
                 />
-                <Select label="Gruppe" value={createGroupId} onChange={(e) => setCreateGroupId(e.target.value)}>
-                  <option value="">— Gruppe wählen —</option>
+                <Select
+                  label={createRole === "trainer" ? "Gruppe (optional)" : "Gruppe"}
+                  value={createGroupId}
+                  onChange={(e) => setCreateGroupId(e.target.value)}
+                >
+                  <option value="">{createRole === "trainer" ? "— keine Gruppe —" : "— Gruppe wählen —"}</option>
                   {groups.map((g) => (
                     <option key={g.id} value={g.id}>
                       {groupLabel(g)}
