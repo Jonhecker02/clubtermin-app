@@ -68,11 +68,14 @@ function resolveTarget(
 ): string | null {
   // Owner/Trainer aren't tied to one team's roster the way a Spieler or
   // Kapitän is — is_admin() already bypasses every group-scoped RLS check
-  // for them, so they never need a teamcode just to get a group_id.
-  const needsGroup = profile.role === "member" || profile.role === "captain";
-  const needsTeamcode = (needsGroup && !profile.group_id) || !profile.status;
-  const isPendingOrRejected = profile.status === "pending" || profile.status === "rejected";
-  const isApproved = profile.status === "approved";
+  // for them, so they're always treated as approved and never routed
+  // through /teamcode or /pending, regardless of what group_id/status
+  // happen to hold (a legacy bootstrap row can have status null, for
+  // instance — that shouldn't re-gate an owner behind the teamcode screen).
+  const isOwnerOrTrainer = profile.role === "owner" || profile.role === "trainer";
+  const needsTeamcode = !isOwnerOrTrainer && (!profile.group_id || !profile.status);
+  const isPendingOrRejected = !isOwnerOrTrainer && (profile.status === "pending" || profile.status === "rejected");
+  const isApproved = isOwnerOrTrainer || profile.status === "approved";
 
   if (needsTeamcode) {
     return pathname === "/teamcode" ? null : "/teamcode";
