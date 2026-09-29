@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Pencil, Plus, StickyNote, Trash2 } from "lucide-react";
+import { Check, KeyRound, Pencil, Plus, StickyNote, Trash2 } from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { PageBody } from "@/components/layout/PageBody";
 import { IconButton } from "@/components/ui/IconButton";
@@ -51,6 +51,11 @@ export default function AdminAccountsPage() {
   const [deleteError, setDeleteError] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [notesOpenId, setNotesOpenId] = useState<string | null>(null);
+  const [confirmResetId, setConfirmResetId] = useState<string | null>(null);
+  const [resetting, setResetting] = useState(false);
+  const [resetError, setResetError] = useState("");
+  const [resetResult, setResetResult] = useState<{ userId: string; password: string } | null>(null);
+  const [resetCopied, setResetCopied] = useState(false);
 
   const [showCreate, setShowCreate] = useState(false);
   const [createFirstName, setCreateFirstName] = useState("");
@@ -161,6 +166,25 @@ export default function AdminAccountsPage() {
     }
     setConfirmDeleteId(null);
     await queryClient.invalidateQueries({ queryKey: queryKeys.profiles });
+  }
+
+  async function resetPassword(id: string) {
+    setResetting(true);
+    setResetError("");
+    const res = await fetch("/api/admin/reset-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: id }),
+    });
+    const data = await res.json();
+    setResetting(false);
+    if (!res.ok) {
+      setResetError("Zurücksetzen fehlgeschlagen.");
+      return;
+    }
+    setConfirmResetId(null);
+    setResetCopied(false);
+    setResetResult({ userId: id, password: data.password });
   }
 
   return (
@@ -292,6 +316,36 @@ export default function AdminAccountsPage() {
                       >
                         <StickyNote size={15} strokeWidth={2} />
                       </IconButton>
+                      {confirmResetId === p.id ? (
+                        <div className={styles.confirmRow}>
+                          <span className={styles.confirmText}>Neues Passwort vergeben?</span>
+                          <Button variant="accent" size="sm" onClick={() => resetPassword(p.id)} disabled={resetting}>
+                            Ja, zurücksetzen
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setConfirmResetId(null);
+                              setResetError("");
+                            }}
+                          >
+                            Abbrechen
+                          </Button>
+                        </div>
+                      ) : (
+                        <IconButton
+                          variant="ghost"
+                          size="sm"
+                          label="Passwort zurücksetzen"
+                          onClick={() => {
+                            setConfirmResetId(p.id);
+                            setResetError("");
+                          }}
+                        >
+                          <KeyRound size={15} strokeWidth={2} />
+                        </IconButton>
+                      )}
                       {!isOwnerAccount &&
                         !isSelf &&
                         (confirmDeleteId === p.id ? (
@@ -326,6 +380,28 @@ export default function AdminAccountsPage() {
                         ))}
                     </div>
                     {confirmDeleteId === p.id && deleteError && <div className={styles.error}>{deleteError}</div>}
+                    {confirmResetId === p.id && resetError && <div className={styles.error}>{resetError}</div>}
+                    {resetResult?.userId === p.id && (
+                      <>
+                        <div className={styles.hint}>Neues Passwort — gib es direkt weiter, der Rest des Accounts bleibt unverändert.</div>
+                        <div className={styles.passwordBox}>
+                          <span className={styles.passwordValue}>{resetResult.password}</span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              navigator.clipboard.writeText(resetResult.password);
+                              setResetCopied(true);
+                            }}
+                          >
+                            {resetCopied ? "Kopiert!" : "Kopieren"}
+                          </Button>
+                          <IconButton variant="ghost" size="sm" label="Fertig" onClick={() => setResetResult(null)}>
+                            <Check size={15} strokeWidth={2} />
+                          </IconButton>
+                        </div>
+                      </>
+                    )}
                     {notesOpenId === p.id && <PlayerNotesPanel userId={p.id} profiles={profiles} />}
                   </>
                 ) : (

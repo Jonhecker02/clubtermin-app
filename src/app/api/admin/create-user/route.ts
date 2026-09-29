@@ -1,29 +1,14 @@
-import { randomBytes, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/serviceRole";
+import { generatePassword, initials } from "@/lib/passwordGen";
 
 // Owner creates a member directly (no email self-registration) — password is
 // derived from initials + the group's short_code, communicated out of band
 // since there's no email to send it to. Mirrors delete-account's auth
 // pattern: caller-role check on the regular client first, service role only
 // for the privileged Admin API call.
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "";
-  const first = parts[0][0];
-  const last = parts[parts.length - 1][0];
-  return (first + last).toUpperCase();
-}
-
-// Excludes 0/O/1/I/L — the initials+short_code prefix makes the password
-// guessable from public info alone (anyone who knows a member's name and
-// team could compute it), so a random suffix is what actually makes it
-// safe; this alphabet just keeps that suffix easy to read back over chat.
-const SUFFIX_ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
-function randomSuffix(length: number): string {
-  return Array.from(randomBytes(length), (b) => SUFFIX_ALPHABET[b % SUFFIX_ALPHABET.length]).join("");
-}
 
 export async function POST(request: Request) {
   const { name, group_id, role } = (await request.json()) as {
@@ -73,11 +58,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "name_taken" }, { status: 409 });
   }
 
-  const initialsPart = initials(trimmedName);
-  if (!initialsPart) {
+  if (!initials(trimmedName)) {
     return NextResponse.json({ error: "invalid_name" }, { status: 400 });
   }
-  const password = shortCode ? `${initialsPart}${shortCode}-${randomSuffix(5)}` : `${initialsPart}-${randomSuffix(7)}`;
+  const password = generatePassword(trimmedName, shortCode);
   const syntheticEmail = `user-${randomUUID().slice(0, 12)}@clubtermin.local`;
 
   const { data: created, error: createError } = await service.auth.admin.createUser({
