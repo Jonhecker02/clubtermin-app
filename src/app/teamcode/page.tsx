@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { Lock } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { IntroShell, introStyles as styles } from "@/components/layout/IntroShell";
@@ -10,6 +11,7 @@ import { Button } from "@/components/ui/Button";
 
 export default function TeamcodePage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const supabase = createClient();
 
   const [code, setCode] = useState("");
@@ -29,12 +31,14 @@ export default function TeamcodePage() {
       setError("Code ungültig. Bitte erneut versuchen.");
       return;
     }
+    queryClient.clear();
     router.push("/");
     router.refresh();
   }
 
   async function logout() {
     await supabase.auth.signOut();
+    queryClient.clear();
     router.push("/login");
     router.refresh();
   }

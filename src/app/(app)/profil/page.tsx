@@ -115,6 +115,11 @@ export default function ProfilPage() {
   async function logout() {
     const supabase = createClient();
     await supabase.auth.signOut();
+    // Otherwise a shared device switching users in the same tab keeps
+    // showing the previous account's cached profile/role-gated UI (RLS
+    // still enforces the real permissions server-side — this is purely a
+    // stale-display issue) until something forces a full reload.
+    queryClient.clear();
     router.push("/login");
     router.refresh();
   }

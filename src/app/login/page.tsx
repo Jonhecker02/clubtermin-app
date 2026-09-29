@@ -2,6 +2,7 @@
 
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2 } from "lucide-react";
 import { IntroShell, introStyles as styles } from "@/components/layout/IntroShell";
 import { Input } from "@/components/ui/Input";
@@ -25,6 +26,7 @@ function ConfirmedNotice({ onDismiss }: { onDismiss: () => void }) {
 function LoginPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
 
   const [dismissedConfirm, setDismissedConfirm] = useState(false);
   const showConfirmed = searchParams.get("confirmed") === "1" && !dismissedConfirm;
@@ -59,6 +61,10 @@ function LoginPageInner() {
         setError("Name oder Passwort ist falsch.");
         return;
       }
+      // A shared/reused tab may still hold another account's cached
+      // queries (profile, registrations, ...) — drop them so this session
+      // starts from a clean slate instead of briefly showing stale data.
+      queryClient.clear();
       router.push("/");
       router.refresh();
     } finally {

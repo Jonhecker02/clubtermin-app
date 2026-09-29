@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { UserPlus } from "lucide-react";
 import { IntroShell, introStyles as styles } from "@/components/layout/IntroShell";
 import { Input } from "@/components/ui/Input";
@@ -9,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 
 export default function RegistrierenPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -39,6 +41,7 @@ export default function RegistrierenPage() {
       setError(data.error === "name_taken" ? "Dieser Name ist schon vergeben — bitte eindeutig machen." : "Registrierung fehlgeschlagen. Bitte versuche es erneut.");
       return;
     }
+    queryClient.clear();
     router.push("/");
     router.refresh();
   }
