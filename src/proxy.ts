@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "@/types/database";
 
-const PUBLIC_PATHS = ["/login", "/privacy"];
+const PUBLIC_PATHS = ["/login", "/registrieren", "/privacy"];
 // /api/cron/ has no browser session at all (called by pg_net from Postgres) —
 // it authenticates itself via the CRON_SECRET header instead, checked inside
 // the route handler. "/anleitung" is prefix-matched so both the player-only
@@ -72,8 +72,14 @@ function resolveTarget(
   // through /teamcode or /pending, regardless of what group_id/status
   // happen to hold (a legacy bootstrap row can have status null, for
   // instance — that shouldn't re-gate an owner behind the teamcode screen).
+  //
+  // /teamcode itself is legacy now — self-registration (/registrieren) sets
+  // status: 'pending' directly with no group, so a real new signup never
+  // has status === null. Only a handful of pre-existing accounts from the
+  // old teamcode flow can still land here; Gruppe assignment now happens as
+  // part of the owner's approval in Admin → Anfragen instead.
   const isOwnerOrTrainer = profile.role === "owner" || profile.role === "trainer";
-  const needsTeamcode = !isOwnerOrTrainer && (!profile.group_id || !profile.status);
+  const needsTeamcode = !isOwnerOrTrainer && profile.status === null;
   const isPendingOrRejected = !isOwnerOrTrainer && (profile.status === "pending" || profile.status === "rejected");
   const isApproved = isOwnerOrTrainer || profile.status === "approved";
 
@@ -86,7 +92,7 @@ function resolveTarget(
   }
 
   if (isApproved) {
-    if (pathname === "/login" || pathname === "/teamcode" || pathname === "/pending" || pathname === "/") {
+    if (pathname === "/login" || pathname === "/registrieren" || pathname === "/teamcode" || pathname === "/pending" || pathname === "/") {
       // Admins land straight in their admin view — the Termine header has a
       // toggle to flip back to the member view when they need it.
       return profile.role === "member" ? "/termine" : "/admin/termine";

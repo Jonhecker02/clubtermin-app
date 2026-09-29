@@ -372,8 +372,9 @@ export interface Database {
     Functions: {
       submit_teamcode: { Args: { p_code: string }; Returns: UserStatus };
       retry_code: { Args: Record<string, never>; Returns: void };
-      approve_request: { Args: { p_user_id: string }; Returns: void };
+      approve_request: { Args: { p_user_id: string; p_group_id: string }; Returns: void };
       reject_request: { Args: { p_user_id: string }; Returns: void };
+      resubmit_request: { Args: Record<string, never>; Returns: void };
       register_for_termin: { Args: { p_termin_id: string }; Returns: RegistrationStatus };
       cancel_registration: { Args: { p_termin_id: string }; Returns: void };
       admin_remove_participant: { Args: { p_termin_id: string; p_user_id: string }; Returns: void };

@@ -263,6 +263,9 @@ export default function ProfilPage() {
               Admin-Bereich öffnen
             </Button>
           )}
+          <Button variant="outline" full onClick={() => router.push(isAdmin ? "/anleitung/admin" : "/anleitung")}>
+            Anleitung öffnen
+          </Button>
           <Button variant="outline" full onClick={logout}>
             Abmelden
           </Button>

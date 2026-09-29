@@ -11,7 +11,6 @@ export default function PendingPage() {
   const router = useRouter();
   const [supabase] = useState(() => createClient());
   const [status, setStatus] = useState<"pending" | "rejected" | null>(null);
-  const [groupName, setGroupName] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -23,20 +22,8 @@ export default function PendingPage() {
       } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("status, group_id")
-        .eq("id", user.id)
-        .single();
-
-      if (profile) {
-        let name = "";
-        if (profile.group_id) {
-          const { data: group } = await supabase.from("groups").select("name").eq("id", profile.group_id).single();
-          name = group?.name ?? "";
-        }
-        applyProfile(profile.status, name);
-      }
+      const { data: profile } = await supabase.from("profiles").select("status").eq("id", user.id).single();
+      if (profile) setStatus(profile.status === "rejected" ? "rejected" : "pending");
       setLoading(false);
 
       channel = supabase
@@ -44,27 +31,17 @@ export default function PendingPage() {
         .on(
           "postgres_changes",
           { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${user.id}` },
-          async (payload) => {
-            const next = payload.new as { status: string | null; group_id: string | null };
+          (payload) => {
+            const next = payload.new as { status: string | null };
             if (next.status === "approved") {
               router.push("/termine");
               router.refresh();
               return;
             }
-            let name = "";
-            if (next.group_id) {
-              const { data: group } = await supabase.from("groups").select("name").eq("id", next.group_id).single();
-              name = group?.name ?? "";
-            }
-            applyProfile(next.status as "pending" | "rejected" | null, name);
+            setStatus(next.status === "rejected" ? "rejected" : "pending");
           },
         )
         .subscribe();
-    }
-
-    function applyProfile(s: string | null, name: string) {
-      setStatus(s === "rejected" ? "rejected" : "pending");
-      setGroupName(name);
     }
 
     load();
@@ -74,10 +51,9 @@ export default function PendingPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function retryCode() {
-    await supabase.rpc("retry_code");
-    router.push("/teamcode");
-    router.refresh();
+  async function resubmit() {
+    await supabase.rpc("resubmit_request");
+    setStatus("pending");
   }
 
   async function logout() {
@@ -97,8 +73,8 @@ export default function PendingPage() {
           </div>
           <div className={styles.title}>Anfrage wird geprüft</div>
           <div className={styles.subtitle}>
-            Deine Anfrage für <strong>{groupName}</strong> wartet auf Bestätigung durch den Admin. Sobald sie
-            bestätigt ist, hast du Zugriff auf die App.
+            Deine Registrierung wartet auf Bestätigung durch deinen Trainer oder Clubmanager. Sobald du einer
+            Mannschaft zugeordnet bist, hast du Zugriff auf die App.
           </div>
         </>
       )}
@@ -109,11 +85,11 @@ export default function PendingPage() {
           </div>
           <div className={styles.title}>Anfrage abgelehnt</div>
           <div className={styles.subtitle}>
-            Deine Anfrage für <strong>{groupName}</strong> wurde nicht bestätigt. Prüfe deinen Teamcode oder wende
-            dich an deinen Trainer.
+            Deine Registrierung wurde nicht bestätigt. Wende dich an deinen Trainer oder Clubmanager, oder versuche
+            es erneut.
           </div>
-          <Button variant="accent" size="lg" full onClick={retryCode}>
-            Anderen Code eingeben
+          <Button variant="accent" size="lg" full onClick={resubmit}>
+            Erneut anfragen
           </Button>
         </>
       )}
