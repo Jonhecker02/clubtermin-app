@@ -171,7 +171,10 @@ export default function TerminDetailPage() {
     // actively decided against this player (not just plain FCFS overflow) —
     // give them the concrete reason instead of leaving them guessing.
     if (myAllocation && !myAllocation.included && myAllocation.quote != null) {
-      cancelNotice = `Diesmal nicht dabei: Deine Anmeldequote lag zuletzt bei ${Math.round(myAllocation.quote * 100)}% — andere Spieler hatten eine höhere Quote und damit Vorrang.`;
+      // Lower quote = higher priority (fair rotation favors whoever's been
+      // confirmed less often lately) — the wording has to say "niedrigere",
+      // not "höhere", or it claims the exact opposite of how the ranking works.
+      cancelNotice = `Diesmal nicht dabei: Deine Anmeldequote lag zuletzt bei ${Math.round(myAllocation.quote * 100)}% — Spieler, die zuletzt seltener zum Zug kamen, hatten diesmal Vorrang.`;
     }
     onAction = handleCancel;
   } else if (inPending) {

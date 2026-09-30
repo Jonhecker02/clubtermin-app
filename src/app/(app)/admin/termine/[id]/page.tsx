@@ -96,6 +96,11 @@ export default function AdminParticipantsPage() {
       queryClient.invalidateQueries({ queryKey: queryKeys.termine }),
       queryClient.invalidateQueries({ queryKey: queryKeys.registrations(terminId) }),
       queryClient.invalidateQueries({ queryKey: queryKeys.allocations(terminId) }),
+      // Otherwise the waitlist briefly shows plain registration order
+      // (get_waitlist_rank had nothing to rank before confirm, since
+      // everyone was still 'ausstehend') until the realtime subscription
+      // catches up independently.
+      queryClient.invalidateQueries({ queryKey: queryKeys.waitlistRank(terminId) }),
     ]);
   }
 
