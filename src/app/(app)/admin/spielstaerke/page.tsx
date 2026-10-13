@@ -1,17 +1,17 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { PageBody } from "@/components/layout/PageBody";
-import { Select } from "@/components/ui/Input";
+import { Input } from "@/components/ui/Input";
 import { AdminTabs } from "@/components/admin/AdminTabs";
 import { useProfiles } from "@/lib/queries/useProfiles";
 import { useGroups } from "@/lib/queries/useGroups";
 import { useSkillLevels } from "@/lib/queries/useSkillLevels";
 import { queryKeys } from "@/lib/queries/keys";
 import { createClient } from "@/lib/supabase/client";
-import { groupLabel } from "@/lib/domain";
+import { formatLevel, groupLabel, parseLevel } from "@/lib/domain";
 import adminStyles from "@/components/admin/AdminList.module.css";
 import styles from "../statistik/page.module.css";
 
@@ -29,10 +29,37 @@ export default function AdminSpielstaerkePage() {
     [profiles],
   );
 
-  async function setLevel(userId: string, value: string) {
+  // Text being typed per player, so "2," isn't reformatted under the cursor;
+  // it's validated and saved when the field loses focus (or on Enter).
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  function shown(userId: string): string {
+    if (drafts[userId] !== undefined) return drafts[userId];
+    const level = skillLevels[userId];
+    return level != null ? formatLevel(level) : "";
+  }
+
+  async function commit(userId: string) {
+    const text = drafts[userId];
+    if (text === undefined) return;
+    const level = parseLevel(text);
+    if (level === undefined) {
+      setErrors((e) => ({ ...e, [userId]: "0 bis 5, z. B. 2,5" }));
+      return;
+    }
+    setErrors((e) => ({ ...e, [userId]: "" }));
     const supabase = createClient();
-    const level = value === "" ? null : Number(value);
-    await supabase.rpc("set_skill_level", { p_user_id: userId, p_skill_level: level });
+    const { error } = await supabase.rpc("set_skill_level", { p_user_id: userId, p_skill_level: level });
+    if (error) {
+      setErrors((e) => ({ ...e, [userId]: "Speichern fehlgeschlagen" }));
+      return;
+    }
+    setDrafts((d) => {
+      const next = { ...d };
+      delete next[userId];
+      return next;
+    });
     await queryClient.invalidateQueries({ queryKey: queryKeys.skillLevels });
   }
 
@@ -46,7 +73,7 @@ export default function AdminSpielstaerkePage() {
           <span className={adminStyles.count}>{rows.length} Spieler</span>
         </div>
         <p className={styles.count} style={{ marginBottom: 14 }}>
-          Nur für Trainer/Clubmanager sichtbar — dient der internen Einteilung, Spieler sehen ihre Spielstärke nicht.
+          Nur für Trainer/Clubmanager sichtbar — dient der internen Einteilung, Spieler sehen ihre Spielstärke nicht. Werte von 0 bis 5, auch mit Komma (z. B. 2,5); leer = nicht bewertet.
         </p>
 
         <div className={adminStyles.list}>
@@ -58,18 +85,18 @@ export default function AdminSpielstaerkePage() {
                   <span className={styles.name}>{p.name}</span>
                   <span className={styles.meta}>{group ? groupLabel(group) : "—"}</span>
                 </div>
-                <Select
-                  value={skillLevels[p.id] != null ? String(skillLevels[p.id]) : ""}
-                  onChange={(e) => setLevel(p.id, e.target.value)}
-                  style={{ width: 110, flexShrink: 0 }}
-                >
-                  <option value="">— unbewertet —</option>
-                  {[0, 1, 2, 3, 4, 5].map((lvl) => (
-                    <option key={lvl} value={lvl}>
-                      {lvl}
-                    </option>
-                  ))}
-                </Select>
+                <Input
+                  value={shown(p.id)}
+                  placeholder="—"
+                  inputMode="decimal"
+                  error={errors[p.id] || undefined}
+                  onChange={(e) => setDrafts((d) => ({ ...d, [p.id]: e.target.value }))}
+                  onBlur={() => commit(p.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") e.currentTarget.blur();
+                  }}
+                  style={{ width: 96, textAlign: "center" }}
+                />
               </div>
             );
           })}

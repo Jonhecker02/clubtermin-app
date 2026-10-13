@@ -190,6 +190,9 @@ export default function AdminParticipantsPage() {
     );
   }
 
+  // Trainings with confirmed participants get the Trainingsgruppen section
+  // (and all exports bundled there); other termine keep the plain export row.
+  const showCourtGroups = termin.type === "training" && participants.length > 0;
   const badge = badgeInfo(termin.type);
   const displayTitle = withShortCode(termin.title, groupShortCode(termin.register_groups, groups));
 
@@ -228,16 +231,21 @@ export default function AdminParticipantsPage() {
           {termin.reminder_enabled && <Badge tone="soft">Erinnerung 2 Std. vorher aktiv</Badge>}
         </div>
 
-        <div className={styles.shareRow}>
-          <Button variant="outline" size="sm" full onClick={exportPng} disabled={exporting}>
-            <ImageDown size={15} strokeWidth={2.2} />
-            {exporting ? "Erstelle Bild…" : "Als Bild"}
-          </Button>
-          <Button variant="outline" size="sm" full onClick={copyText}>
-            <Copy size={15} strokeWidth={2.2} />
-            {copied ? "Kopiert ✓" : "Text kopieren"}
-          </Button>
-        </div>
+        {/* For trainings with participants the same two buttons live in the
+            Trainingsgruppen section below, next to the trainer exports —
+            showing them twice would just be confusing. */}
+        {!showCourtGroups && (
+          <div className={styles.shareRow}>
+            <Button variant="outline" size="sm" full onClick={exportPng} disabled={exporting}>
+              <ImageDown size={15} strokeWidth={2.2} />
+              {exporting ? "Erstelle Bild…" : "Als Bild"}
+            </Button>
+            <Button variant="outline" size="sm" full onClick={copyText}>
+              <Copy size={15} strokeWidth={2.2} />
+              {copied ? "Kopiert ✓" : "Text kopieren"}
+            </Button>
+          </div>
+        )}
 
         <div className={styles.sectionHeadRow}>
           <div className={styles.sectionLabel}>
@@ -399,7 +407,7 @@ export default function AdminParticipantsPage() {
           </>
         )}
 
-        {termin.type === "training" && participants.length > 0 && (
+        {showCourtGroups && (
           <>
             <div className={styles.sectionLabel} style={{ marginTop: 24 }}>
               Trainingsgruppen
@@ -415,6 +423,21 @@ export default function AdminParticipantsPage() {
               publishedAt={termin.court_groups_published_at}
               termin={termin}
             />
+
+            <div className={styles.sectionLabel} style={{ marginTop: 24 }}>
+              Für die Spielergruppe (WhatsApp)
+            </div>
+            <div className={styles.shareHint}>Teilnehmer und Warteliste dieses Termins.</div>
+            <div className={styles.shareRow}>
+              <Button variant="outline" size="sm" full onClick={exportPng} disabled={exporting}>
+                <ImageDown size={15} strokeWidth={2.2} />
+                {exporting ? "Erstelle Bild…" : "Als Bild"}
+              </Button>
+              <Button variant="outline" size="sm" full onClick={copyText}>
+                <Copy size={15} strokeWidth={2.2} />
+                {copied ? "Kopiert ✓" : "Text kopieren"}
+              </Button>
+            </div>
           </>
         )}
       </PageBody>

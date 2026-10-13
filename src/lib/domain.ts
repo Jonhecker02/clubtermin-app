@@ -308,6 +308,22 @@ export function buildTerminShareText(params: {
   return lines.join("\n");
 }
 
+// Spielstärke is 0–5 with decimals ("2,5"). Shown German-style, without
+// trailing zeros: 3 -> "3", 2.5 -> "2,5", 2.75 -> "2,75".
+export function formatLevel(level: number): string {
+  return String(Math.round(level * 100) / 100).replace(".", ",");
+}
+
+// Accepts "2,5" or "2.5"; empty = not rated. Returns undefined for anything
+// that isn't a number between 0 and 5.
+export function parseLevel(text: string): number | null | undefined {
+  const clean = text.trim().replace(",", ".");
+  if (clean === "") return null;
+  if (!/^\d+(\.\d+)?$/.test(clean)) return undefined;
+  const value = Math.round(Number(clean) * 100) / 100;
+  return value >= 0 && value <= 5 ? value : undefined;
+}
+
 // Trainer-facing overview of who plays on which court, for pasting into
 // WhatsApp (the *bold* markers render there and are harmless elsewhere).
 // Deliberately carries no Spielstärke — levels are for the planning screen

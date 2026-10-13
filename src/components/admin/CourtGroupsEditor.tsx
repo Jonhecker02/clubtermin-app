@@ -14,7 +14,7 @@ import { useSkillLevels } from "@/lib/queries/useSkillLevels";
 import { useProfiles } from "@/lib/queries/useProfiles";
 import { assignRounds, autoAssign, courtSizes, hashSeed, minCourts } from "@/lib/courtAssign";
 import { CourtGroupsExportCard } from "./CourtGroupsExportCard";
-import { buildCourtGroupsShareText, courtGroupRoundRange, courtGroupSwitchMinutes } from "@/lib/domain";
+import { buildCourtGroupsShareText, courtGroupRoundRange, courtGroupSwitchMinutes, formatLevel } from "@/lib/domain";
 import type { Termin } from "@/types/database";
 import styles from "./CourtGroupsEditor.module.css";
 
@@ -230,7 +230,7 @@ export function CourtGroupsEditor({
   function averageLevel(memberIds: string[]): string | null {
     const known = memberIds.map(levelOf).filter((l): l is number => l !== null);
     if (known.length === 0) return null;
-    return (known.reduce((s, l) => s + l, 0) / known.length).toFixed(1).replace(".", ",");
+    return formatLevel(known.reduce((s, l) => s + l, 0) / known.length);
   }
 
   function runAutoAssign(bump: number) {
@@ -417,7 +417,7 @@ export function CourtGroupsEditor({
                 <div key={p.user_id} className={styles.unassignedRow}>
                   <span>
                     {p.name}
-                    {levelOf(p.user_id) !== null && <span className={styles.levelTag}>{levelOf(p.user_id)}</span>}
+                    {levelOf(p.user_id) !== null && <span className={styles.levelTag}>{formatLevel(levelOf(p.user_id)!)}</span>}
                   </span>
                   {partners.length > 0 && (
                     <span className={styles.partnerHint}>
@@ -489,7 +489,7 @@ export function CourtGroupsEditor({
                 {g.memberIds.map((id) => (
                   <span key={id} className={styles.chip}>
                     {nameFor(id)}
-                    {levelOf(id) !== null && <span className={styles.levelTag}>{levelOf(id)}</span>}
+                    {levelOf(id) !== null && <span className={styles.levelTag}>{formatLevel(levelOf(id)!)}</span>}
                     <button type="button" onClick={() => removeMember(g.key, id)} title="Entfernen">
                       ×
                     </button>
@@ -536,7 +536,7 @@ export function CourtGroupsEditor({
         <>
           <Button variant="outline" size="sm" full onClick={exportPng} disabled={exporting}>
             <ImageDown size={15} strokeWidth={2.2} style={{ marginRight: 4 }} />
-            {exporting ? "Erstelle Bild…" : "Als Bild exportieren (für Trainer)"}
+            {exporting ? "Erstelle Bild…" : "Als Bild (für Trainer)"}
           </Button>
           <Button variant="outline" size="sm" full onClick={copyText}>
             <Copy size={15} strokeWidth={2.2} style={{ marginRight: 4 }} />

@@ -83,15 +83,6 @@ export const CourtGroupsExportCard = forwardRef<HTMLDivElement, CourtGroupsExpor
           ))}
         </div>
 
-        <div className={styles.legend}>
-          <span className={styles.legendItem}>
-            <span className={`${styles.legendSwatch} ${styles.slotTraining}`} /> Training (mit Trainer)
-          </span>
-          <span className={styles.legendItem}>
-            <span className={`${styles.legendSwatch} ${styles.slotPlaying}`} /> Spielt
-          </span>
-        </div>
-
         <div className={styles.footer}>The Padellers Essen</div>
       </div>
     );

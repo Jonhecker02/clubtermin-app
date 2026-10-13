@@ -562,8 +562,8 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                     verteilt (16 Spieler = 4 Courts à 4, die Anzahl lässt sich ändern). Gleich starke Spieler
                     stehen zusammen, und wer zuletzt oft zusammen auf einem Court war, wird getrennt — so
                     wechselt es von Woche zu Woche automatisch durch. <b>„Neu mischen“</b> liefert einen
-                    anderen Vorschlag. Spielstärken tragen Trainer und Clubmanager unter Admin → Spielstärke
-                    ein; ohne Level wird nur durchgewechselt. Danach lässt sich alles von Hand anpassen.
+                    anderen Vorschlag. Spielstärken (0 bis 5, auch mit Komma wie 2,5) tragen Trainer und
+                    Clubmanager unter Admin → Spielstärke ein; ohne Level wird nur durchgewechselt. Danach lässt sich alles von Hand anpassen.
                   </>,
                   <>
                     Alternativ <b>„Neue Gruppe“</b> antippen, Spieler per Dropdown zuteilen. Bei „Nicht zugeteilt“ siehst
@@ -584,9 +584,10 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                     Gruppe, ihren Trainer und ihre Runde auf der Termin-Seite.
                   </>,
                   <>
-                    Für die Weitergabe gibt es zwei Exporte: <b>Trainer-Ansicht</b> (alle Courts mit Spielern
-                    als Bild oder als Text, ohne Spielstärken) und im Termin oben <b>„Als Bild“ / „Text
-                    kopieren“</b> mit Teilnehmern und Warteliste für die Spielergruppe, z. B. WhatsApp.
+                    Für die Weitergabe gibt es unten im Bereich Trainingsgruppen zwei Exporte, jeweils als
+                    Bild oder Text: die <b>Trainer-Ansicht</b> (alle Courts mit Spielern, ohne
+                    Spielstärken) und <b>„Für die Spielergruppe“</b> mit Teilnehmern und Warteliste, z. B. für
+                    WhatsApp.
                   </>,
                 ]}
               />
