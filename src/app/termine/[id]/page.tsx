@@ -38,6 +38,7 @@ import {
   splitRegistrations,
   withShortCode,
 } from "@/lib/domain";
+import { pushWhen } from "@/lib/pushText";
 import { RealtimeProvider } from "@/lib/realtime/RealtimeProvider";
 import styles from "./page.module.css";
 
@@ -198,9 +199,10 @@ export default function TerminDetailPage() {
   } else if (inPending) {
     actionLabel = "Anmeldung zurückziehen";
     actionVariant = "outline";
-    infoNote = closesAt
-      ? `Danke für deine Anmeldung — die finale Zuteilung erfolgt in ${formatCountdown(msUntil(closesAt))}. Die Anmeldung schließt in der Regel samstags um 22 Uhr, damit die Zuteilung sonntagfrüh erfolgen kann.`
-      : "Danke für deine Anmeldung — die finale Zuteilung folgt in Kürze.";
+    infoNote =
+      closesAt && termin.registration_closes_date
+        ? `Danke für deine Anmeldung! Anmeldeschluss ist ${pushWhen(termin.registration_closes_date, termin.registration_closes_time ?? "00:00")} (noch ${formatCountdown(msUntil(closesAt))}). Danach werden die Plätze fair verteilt und du bekommst Bescheid.`
+        : "Danke für deine Anmeldung — die finale Zuteilung folgt in Kürze.";
     onAction = handleCancel;
   } else if (!eligible) {
     actionLabel = "Anmeldung geschlossen";

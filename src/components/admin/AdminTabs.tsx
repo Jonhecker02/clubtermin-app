@@ -35,6 +35,7 @@ export function AdminTabs({ current }: AdminTabsProps) {
       value={current}
       onChange={(id) => router.push(`/admin/${id}`)}
       size={items.length > 3 ? "sm" : "md"}
+      scrollable
       style={{ marginBottom: 14 }}
     />
   );

@@ -54,11 +54,13 @@ function HomeScreenSection({ idPrefix }: { idPrefix: string }) {
   return (
     <section className={styles.card} id={`${idPrefix}-home`}>
       <Eyebrow icon={<Smartphone size={20} strokeWidth={2} />} label="Empfohlen" />
-      <h2>Zum Home-Bildschirm hinzufügen</h2>
+      <h2>Zum Home-Bildschirm hinzufügen &amp; Benachrichtigungen</h2>
       <p className={styles.lede}>
         Damit startet ClubTermine wie eine echte App direkt von deinem Homescreen — ohne Browser-Leiste
-        drumherum. Auf dem iPhone ist das außerdem <b>Voraussetzung für Push-Benachrichtigungen</b> (z. B.
-        wenn ein neues Training online geht oder du von der Warteliste nachrückst).
+        drumherum. So bekommst du auch <b>Benachrichtigungen</b>, z. B. wenn die Zuteilung feststeht oder
+        du von der Warteliste nachrückst. Auf dem iPhone geht das <b>nur</b>, wenn die App auf dem
+        Home-Bildschirm liegt. Auf Android klappt es auch direkt im Chrome-Browser, mit der installierten
+        App ist es aber zuverlässiger.
       </p>
       <div className={styles.platformToggle} role="tablist" aria-label="Plattform wählen">
         <button
@@ -94,6 +96,11 @@ function HomeScreenSection({ idPrefix }: { idPrefix: string }) {
             <>
               Tippe oben rechts auf <b>„Hinzufügen“</b>.
             </>,
+            <>
+              Öffne ClubTermine jetzt <b>vom Home-Bildschirm</b> (nicht aus Safari), gehe unten auf{" "}
+              <b>Profil</b> und tippe auf <b>„Push-Benachrichtigungen aktivieren“</b>. Erlaube die
+              Mitteilungen.
+            </>,
           ]}
         />
       ) : (
@@ -109,9 +116,28 @@ function HomeScreenSection({ idPrefix }: { idPrefix: string }) {
               Wähle <code>App installieren</code> bzw. <code>Zum Startbildschirm hinzufügen</code>.
             </>,
             <>Bestätige den Dialog.</>,
+            <>
+              Öffne ClubTermine (am besten über das neue Symbol), gehe unten auf <b>Profil</b> und tippe auf{" "}
+              <b>„Push-Benachrichtigungen aktivieren“</b>. Erlaube die Benachrichtigungen, wenn Android
+              fragt.
+            </>,
           ]}
         />
       )}
+      <Callout mark="Kommt nichts an?">
+        {platform === "ios" ? (
+          <>
+            Prüfe unter <b>Einstellungen → Mitteilungen → ClubTermine</b>, ob Mitteilungen erlaubt sind, und
+            dass kein Fokus-Modus („Nicht stören“) aktiv ist.
+          </>
+        ) : (
+          <>
+            Prüfe unter <b>Einstellungen → Apps → Chrome (bzw. ClubTermine) → Benachrichtigungen</b>, ob sie
+            erlaubt sind. Spar-Modi können Nachrichten verzögern — nimm die App am besten vom Akku-Sparen
+            aus.
+          </>
+        )}
+      </Callout>
     </section>
   );
 }
@@ -178,14 +204,15 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
         {track === "spieler" ? (
           <div role="tabpanel">
             <p className={styles.intro}>
-              Diese Seite erklärt alles, was du als Spieler in ClubTermine brauchst — vom ersten Login bis
-              zur Trainingsanmeldung. <b>Am besten fügst du die App zuerst zu deinem Home-Bildschirm hinzu</b>{" "}
+              ClubTermine ist die App deines Clubs für Trainings, Events und Spieltage: Hier meldest du dich an,
+              siehst deine Termine und bekommst Bescheid, wenn etwas ansteht. Diese Seite erklärt alles, was du
+              dafür brauchst. <b>Am besten fügst du die App zuerst zu deinem Home-Bildschirm hinzu</b>{" "}
               (Abschnitt 2), dann fühlt sie sich wie eine echte App an und du bekommst Benachrichtigungen.
             </p>
 
             <nav className={styles.jumpnav} aria-label="Abschnitte">
               <a href="#s-login">Login</a>
-              <a href="#s-home">Home-Bildschirm</a>
+              <a href="#s-home">App &amp; Push</a>
               <a href="#s-termine">Termine</a>
               <a href="#s-rotation">Faire Rotation</a>
               <a href="#s-chat">Chat</a>
@@ -197,7 +224,7 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
               <h2>Login</h2>
               <p className={styles.lede}>
                 Du registrierst dich selbst über den Link, den du von deinem Trainer oder Clubmanager
-                bekommst — nur mit <b>Vorname, Nachname und einem Passwort</b>, ohne Teamcode. Danach ordnet
+                bekommst — nur mit <b>Vorname, Nachname und einem Passwort</b>. Danach ordnet
                 dich dein Trainer oder Clubmanager deiner Mannschaft zu; sobald das geschehen ist, kommst du
                 in die App.
               </p>
@@ -234,7 +261,8 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                   <span className={styles.dot} />
                   <span>
                     <b>Liste / Kalender</b> — oben rechts umschaltbar. Der Kalender zeigt pro Tag farbige
-                    Punkte je nach Termin-Typ; ein Tag antippen filtert die Liste darunter.
+                    Punkte je nach Termin-Typ. Mit den Pfeilen wechselst du den Monat — darunter stehen nur die Termine
+                    dieses Monats; ein Tag antippen zeigt nur diesen Tag.
                   </span>
                 </li>
                 <li>
@@ -246,46 +274,38 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                 <li>
                   <span className={styles.dot} />
                   <span>
-                    <b>Anmelden / Abmelden</b> — im Termin antippen, unten den Button drücken. Ist der Termin
-                    voll, landest du automatisch auf der <b>Warteliste</b> und rückst bei Absagen nach.
+                    <b>Anmelden / Abmelden</b> — im Termin antippen, unten den Button drücken. Bei Trainings
+                    siehst du danach „ausstehend“: Die Plätze werden nach dem Anmeldeschluss fair verteilt
+                    (siehe nächster Abschnitt). Bei Events und Spieltagen bekommst du direkt einen Platz —
+                    ist er voll, landest du auf der <b>Warteliste</b> und rückst bei Absagen nach.
                   </span>
                 </li>
               </ul>
-              <Callout mark="Faire Rotation">
-                Bei manchen Teams wird nicht nach Anmeldereihenfolge vergeben, sondern fair verteilt. Dann
-                siehst du nach der Anmeldung „ausstehend“ mit einem Countdown. Wie das genau funktioniert,
-                steht im nächsten Abschnitt.
-              </Callout>
-              <Callout mark="Trainingsgruppen">
-                Bei größeren Trainings mit mehreren Courts teilt euer Admin oft in kleine Gruppen mit
-                jeweils einem Trainer ein. Sobald das veröffentlicht ist, siehst du hier direkt auf dieser
-                Seite deine Gruppe, deinen Trainer und ob du in Runde 1 oder Runde 2 trainierst.
-              </Callout>
             </section>
 
             <section className={styles.card} id="s-rotation">
-              <Eyebrow icon={<RotateCw size={20} strokeWidth={2} />} label="Wenn mehr Spieler wollen als Plätze da sind" />
+              <Eyebrow icon={<RotateCw size={20} strokeWidth={2} />} label="So bekommst du deinen Platz" />
               <h2>Faire Rotation — so wird zugeteilt</h2>
               <p className={styles.lede}>
-                Bei manchen Teams gibt es mehr Anmeldungen als Plätze. Damit nicht immer die Schnellsten
-                dabei sind, wird fair verteilt: <b>Wer zuletzt am längsten nicht dabei war, kommt zuerst
-                dran.</b> Ob du dich als Erster oder als Letzter anmeldest, ist völlig egal.
+                Bei Trainings gibt es oft mehr Anmeldungen als Plätze. Damit nicht immer die Schnellsten
+                dabei sind, wird <b>immer fair verteilt</b>: <b>Wer zuletzt am längsten nicht dabei war,
+                kommt zuerst dran.</b> Ob du dich als Erster oder als Letzter anmeldest, ist völlig egal.
               </p>
 
               <Steps
                 items={[
                   <>
                     Du meldest dich an. Du siehst <b>„ausstehend“</b> und einen Countdown bis zum{" "}
-                    <b>Anmeldeschluss</b> — meist samstags um 22 Uhr. Bis dahin kannst du dich in Ruhe
-                    anmelden oder wieder abmelden.
+                    <b>Anmeldeschluss</b> — der ist immer <b>samstags um 22 Uhr</b>. Bis dahin kannst du dich
+                    in Ruhe anmelden oder wieder abmelden.
                   </>,
                   <>
                     Nach dem Anmeldeschluss wird einmal für alle zugeteilt. Euer Trainer oder Clubmanager
                     prüft den Vorschlag und bestätigt ihn — meist am Sonntag.
                   </>,
                   <>
-                    Du bekommst eine Benachrichtigung: entweder <b>„Du bist dabei“</b> oder{" "}
-                    <b>„Warteliste“</b> mit deinem Platz und dem Grund.
+                    Du bekommst eine Benachrichtigung (wenn du sie aktiviert hast): entweder{" "}
+                    <b>„Du bist dabei“</b> oder <b>„Warteliste“</b> mit deinem Platz und dem Grund.
                   </>,
                 ]}
               />
@@ -320,12 +340,6 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                 <b>Mia</b> beide vor 2 Wochen (Mia hat in letzter Zeit aber seltener einen Platz bekommen),{" "}
                 <b>Jan</b> letzte Woche. Ergebnis: Lena und Mia sind dabei. Tom steht auf Platz 1 der
                 Warteliste, Jan auf Platz 2 — auch wenn Jan sich als Erster angemeldet hat.
-              </Callout>
-
-              <Callout mark="Bin ich neu?">
-                Hast du noch nie an einem Training teilgenommen, zählt der Tag, an dem dein Account
-                angelegt wurde. Je länger du dabei bist und noch keinen Platz hattest, desto weiter rückst
-                du automatisch vor.
               </Callout>
 
               <Callout mark="Warteliste">
@@ -383,8 +397,8 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                 <li>
                   <span className={styles.dot} />
                   <span>
-                    <b>Push-Benachrichtigungen aktivieren</b> — für neue Termine, Erinnerungen und
-                    Warteliste-Updates.
+                    <b>Push-Benachrichtigungen aktivieren</b> — für neue Termine, Erinnerungen und die
+                    Zuteilung. Einrichtung: siehe Abschnitt „App &amp; Push“.
                   </span>
                 </li>
                 <li>
@@ -405,7 +419,7 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
             </p>
 
             <nav className={styles.jumpnav} aria-label="Abschnitte">
-              <a href="#a-home">Home-Bildschirm</a>
+              <a href="#a-home">App &amp; Push</a>
               <a href="#a-wechsel">Admin-Bereich</a>
               <a href="#a-termine">Termine</a>
               <a href="#a-rotation">Faire Rotation</a>
@@ -487,24 +501,24 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
               </div>
               <p className={styles.lede} style={{ marginTop: 16 }}>
                 In der Teilnehmerverwaltung eines Termins kannst du außerdem Leute manuell{" "}
-                <b>hinzufügen/entfernen</b>, die Liste als <b>Bild teilen</b> oder als <b>Text kopieren</b>,
-                und siehst Warteliste sowie ausstehende Anmeldungen.
+                <b>hinzufügen/entfernen</b>, die Liste als <b>Bild teilen</b> oder als <b>Text kopieren</b> (bei Trainings
+                unten im Bereich Trainingsgruppen) und siehst Warteliste sowie ausstehende Anmeldungen.
               </p>
             </section>
 
             <section className={styles.card} id="a-rotation">
-              <Eyebrow icon={<RotateCw size={20} strokeWidth={2} />} label="Für Teams mit Wartelisten-Problem" />
+              <Eyebrow icon={<RotateCw size={20} strokeWidth={2} />} label="Plätze verteilen" />
               <h2>Faire Rotation verstehen</h2>
               <p className={styles.lede}>
-                Bei manchen Teams entscheidet nicht die Anmeldereihenfolge, sondern eine faire Rotation, wer
-                bei einem Training teilnimmt — euer Clubmanager kann das pro Team aktivieren. Betrifft es
-                eines deiner Teams, gilt beim Anlegen eines Trainings dafür:
+                Die Plätze bei Trainings werden fair verteilt statt nach Anmeldereihenfolge — euer
+                Clubmanager schaltet das pro Team ein (Admin → Gruppen), normalerweise bei allen. Beim
+                Anlegen eines Trainings für ein solches Team gilt:
               </p>
               <Steps
                 items={[
                   <>
-                    Es erscheint zusätzlich das Feld <b>„Anmeldeschluss“</b> — dort festlegen, bis wann sich
-                    alle anmelden können.
+                    Es erscheint zusätzlich das Feld <b>„Anmeldeschluss“</b>. Der ist immer{" "}
+                    <b>samstags um 22 Uhr</b> — mit „Vorschlag übernehmen“ wird er automatisch gesetzt.
                   </>,
                   <>
                     Bis dahin sind Anmeldungen „ausstehend“; danach schlägt der Algorithmus eine Zuteilung
@@ -514,6 +528,11 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                   </>,
                 ]}
               />
+              <Callout mark="Benachrichtigung">
+                Nach dem Anmeldeschluss bekommt der Clubmanager die Nachricht „Zuteilung wartet auf dich“.
+                Im Termin den Vorschlag prüfen, bei Bedarf einzelne Personen tauschen und{" "}
+                <b>„Zuteilung bestätigen“</b> antippen — erst dann sehen die Spieler ihr Ergebnis.
+              </Callout>
               <Callout mark="Nachvollziehen">
                 Im Termin selbst zeigt der Abschnitt <b>„Zuteilung erklären“</b> nach Ablauf der Frist für
                 jede Person den Rang unter allen Bewerbern, wann sie zuletzt dabei war und ihre Quote.

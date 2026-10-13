@@ -127,7 +127,12 @@ export default function TerminePage() {
     setCalDate(null);
   }
 
-  const calendarTermine = calDate ? typeFiltered.filter((t) => t.date === calDate) : typeFiltered;
+  // A picked day shows that day; otherwise only the month on screen — not
+  // every termin there is.
+  const monthPrefix = `${calYear}-${String(calMonth + 1).padStart(2, "0")}-`;
+  const calendarTermine = calDate
+    ? typeFiltered.filter((t) => t.date === calDate)
+    : typeFiltered.filter((t) => t.date.startsWith(monthPrefix));
 
   function openTermin(id: string) {
     router.push(`/termine/${id}`);
@@ -261,7 +266,7 @@ export default function TerminePage() {
                   {Number(calDate.split("-")[2])}. {monthLabel(calYear, calMonth)}
                 </span>
                 <button type="button" className={styles.calClear} onClick={() => setCalDate(null)}>
-                  Alle anzeigen
+                  Ganzer Monat
                 </button>
               </div>
             )}
@@ -271,7 +276,11 @@ export default function TerminePage() {
                 const row = toRow(t, counts, groups);
                 return <EventRow key={t.id} {...row} onClick={() => openTermin(t.id)} />;
               })}
-              {calendarTermine.length === 0 && <div className={styles.empty}>Keine Termine an diesem Tag.</div>}
+              {calendarTermine.length === 0 && (
+                <div className={styles.empty}>
+                  {calDate ? "Keine Termine an diesem Tag." : `Keine Termine im ${monthLabel(calYear, calMonth)}.`}
+                </div>
+              )}
             </div>
           </>
         )}

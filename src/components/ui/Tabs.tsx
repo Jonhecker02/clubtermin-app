@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import styles from "./Tabs.module.css";
 
 export interface TabItem {
@@ -13,14 +14,28 @@ interface TabsProps {
   onChange: (id: string) => void;
   size?: "sm" | "md";
   onDark?: boolean;
+  // Never shorten labels: when they don't all fit, the row scrolls sideways
+  // instead (and keeps the active tab in view).
+  scrollable?: boolean;
   className?: string;
   style?: React.CSSProperties;
 }
 
-export function Tabs({ items, value, onChange, size = "md", onDark = false, className, style }: TabsProps) {
+export function Tabs({ items, value, onChange, size = "md", onDark = false, scrollable = false, className, style }: TabsProps) {
+  const trackRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!scrollable) return;
+    const track = trackRef.current;
+    const active = track?.querySelector<HTMLElement>('[aria-selected="true"]');
+    if (!track || !active) return;
+    track.scrollLeft = active.offsetLeft - (track.clientWidth - active.offsetWidth) / 2;
+  }, [scrollable, value, items.length]);
+
   return (
     <div
-      className={[styles.track, styles[size], onDark ? styles.trackOnDark : "", className]
+      ref={trackRef}
+      className={[styles.track, styles[size], onDark ? styles.trackOnDark : "", scrollable ? styles.trackScroll : "", className]
         .filter(Boolean)
         .join(" ")}
       style={style}

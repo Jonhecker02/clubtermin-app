@@ -55,3 +55,21 @@
 .track.sm {
   height: 36px;
 }
+
+/* Labels stay complete: tabs keep their natural width (growing to fill spare
+   room) and the row scrolls sideways when they don't all fit. */
+.trackScroll {
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.trackScroll::-webkit-scrollbar {
+  display: none;
+}
+
+.trackScroll .item {
+  flex: 1 0 auto;
+  overflow: visible;
+  text-overflow: clip;
+}

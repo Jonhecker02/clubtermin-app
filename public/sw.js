@@ -11,6 +11,8 @@ self.addEventListener("push", (event) => {
     body: data.body || "",
     // PNG on purpose: SVG icons aren't rendered in notifications on most platforms.
     icon: "/icons/icon-192.png",
+    // Android shows this white-on-transparent glyph in the status bar.
+    badge: "/icons/badge-96.png",
     data: { url: data.url || "/" },
   };
   // Same tag = replaces the previous notification for that termin instead of stacking.
