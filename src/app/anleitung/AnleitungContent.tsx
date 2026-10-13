@@ -558,7 +558,15 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
               <Steps
                 items={[
                   <>
-                    <b>„Neue Gruppe“</b> antippen, Spieler per Dropdown zuteilen. Bei „Nicht zugeteilt“ siehst
+                    <b>„Automatisch einteilen“</b> antippen: Die Teilnehmer werden nach Spielstärke auf Courts
+                    verteilt (16 Spieler = 4 Courts à 4, die Anzahl lässt sich ändern). Gleich starke Spieler
+                    stehen zusammen, und wer zuletzt oft zusammen auf einem Court war, wird getrennt — so
+                    wechselt es von Woche zu Woche automatisch durch. <b>„Neu mischen“</b> liefert einen
+                    anderen Vorschlag. Spielstärken tragen Trainer und Clubmanager unter Admin → Spielstärke
+                    ein; ohne Level wird nur durchgewechselt. Danach lässt sich alles von Hand anpassen.
+                  </>,
+                  <>
+                    Alternativ <b>„Neue Gruppe“</b> antippen, Spieler per Dropdown zuteilen. Bei „Nicht zugeteilt“ siehst
                     du zu jedem Spieler, mit wem er zuletzt zusammen trainiert hat — so lässt sich bewusst mal
                     anders mischen.
                   </>,
@@ -574,6 +582,11 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                     Mit <b>„Trainingsgruppen speichern“</b> sichern, dann über{" "}
                     <b>„Für Spieler veröffentlichen“</b> freigeben — erst dann sehen die Teilnehmer ihre
                     Gruppe, ihren Trainer und ihre Runde auf der Termin-Seite.
+                  </>,
+                  <>
+                    Für die Weitergabe gibt es zwei Exporte: <b>Trainer-Ansicht</b> (alle Courts mit Spielern
+                    als Bild oder als Text, ohne Spielstärken) und im Termin oben <b>„Als Bild“ / „Text
+                    kopieren“</b> mit Teilnehmern und Warteliste für die Spielergruppe, z. B. WhatsApp.
                   </>,
                 ]}
               />

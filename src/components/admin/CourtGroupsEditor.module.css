@@ -165,3 +165,100 @@
   font-size: 12.5px;
   color: var(--tp-success);
 }
+
+.autoCard {
+  background: var(--tp-pink-tint);
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.autoTitle {
+  font-family: var(--font-condensed);
+  font-weight: var(--fw-bold);
+  font-size: 13px;
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--tp-pink-deep);
+}
+
+.autoText {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-ink);
+}
+
+.autoHint {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-ink-muted);
+}
+
+.stepperRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.stepperLabel {
+  font-size: 13px;
+  font-weight: var(--fw-semibold);
+  color: var(--color-ink);
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--color-surface);
+  border-radius: 999px;
+  padding: 3px;
+}
+
+.stepper button {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: none;
+  background: var(--tp-pink-tint);
+  color: var(--tp-pink-deep);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.stepper button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.stepperValue {
+  min-width: 28px;
+  text-align: center;
+  font-weight: var(--fw-black);
+  font-size: 15px;
+}
+
+.levelTag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--tp-navy);
+  color: var(--tp-cream);
+  font-size: 10.5px;
+  font-weight: var(--fw-bold);
+  line-height: 17px;
+}
+
+.levelAvg {
+  align-self: center;
+  font-size: 12px;
+  font-weight: var(--fw-semibold);
+  color: var(--color-ink-muted);
+  white-space: nowrap;
+}

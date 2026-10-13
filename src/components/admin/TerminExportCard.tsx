@@ -17,8 +17,17 @@ export const TerminExportCard = forwardRef<HTMLDivElement, TerminExportCardProps
   { termin, shortCode, priceLabel, participants, waitlist },
   ref,
 ) {
+  // Long lists get two columns (filled top to bottom, so 1-8 left and 9-16
+  // right) — keeps the image a sensible shape in a chat instead of a very
+  // tall strip, while every name stays visible.
+  const wide = participants.length > 10 || waitlist.length > 10;
+  const listProps = (count: number) =>
+    wide && count > 6
+      ? { className: `${styles.namesList} ${styles.namesListTwo}`, style: { gridTemplateRows: `repeat(${Math.ceil(count / 2)}, auto)` } }
+      : { className: styles.namesList };
+
   return (
-    <div ref={ref} className={styles.card}>
+    <div ref={ref} className={`${styles.card} ${wide ? styles.cardWide : ""}`}>
       <div className={styles.header}>
         {shortCode && <span className={styles.shortCode}>{shortCode}</span>}
         <div className={styles.title}>{termin.title}</div>
@@ -51,7 +60,7 @@ export const TerminExportCard = forwardRef<HTMLDivElement, TerminExportCardProps
         <div className={styles.sectionTitle}>
           Teilnehmer ({participants.length}/{termin.max_tn})
         </div>
-        <div className={styles.namesList}>
+        <div {...listProps(participants.length)}>
           {participants.map((name, i) => (
             <div key={i} className={styles.nameRow}>
               <span className={styles.nameIdx}>{i + 1}</span>
@@ -64,7 +73,7 @@ export const TerminExportCard = forwardRef<HTMLDivElement, TerminExportCardProps
         {waitlist.length > 0 && (
           <>
             <div className={styles.sectionTitlePink}>Warteliste ({waitlist.length})</div>
-            <div className={styles.namesList}>
+            <div {...listProps(waitlist.length)}>
               {waitlist.map((name, i) => (
                 <div key={i} className={styles.nameRow}>
                   <span className={styles.nameIdxPink}>{i + 1}</span>

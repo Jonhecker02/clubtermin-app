@@ -1,4 +1,4 @@
-import type { Group, RegistrationStatus, TerminType } from "@/types/database";
+import type { Group, RegistrationStatus, Termin, TerminType } from "@/types/database";
 
 // Keep in sync with cancel_registration()'s v_cutoff_hours in supabase/migrations/0001_init.sql
 export const CANCEL_CUTOFF_HOURS = 24;
@@ -306,6 +306,33 @@ export function buildTerminShareText(params: {
     waitlist.forEach((name, i) => lines.push(`${i + 1}. ${name}`));
   }
   return lines.join("\n");
+}
+
+// Trainer-facing overview of who plays on which court, for pasting into
+// WhatsApp (the *bold* markers render there and are harmless elsewhere).
+// Deliberately carries no Spielstärke — levels are for the planning screen
+// only, a pasted text must not leak them.
+export function buildCourtGroupsShareText(params: {
+  termin: Pick<Termin, "title" | "date" | "start_time" | "end_time" | "location" | "courts" | "court_groups_switch_time">;
+  groups: { label: string; trainerName: string; round: 1 | 2; memberNames: string[] }[];
+}): string {
+  const { termin, groups } = params;
+  const lines: string[] = [
+    `*Trainingsgruppen · ${termin.title}*`,
+    `${fullDateLabel(termin.date)} · ${hhmm(termin.start_time)}–${hhmm(termin.end_time)} Uhr`,
+    `${termin.location}${termin.courts ? `, ${termin.courts}` : ""}`,
+    "",
+  ];
+  const r1 = courtGroupRoundRange(1, termin);
+  const r2 = courtGroupRoundRange(2, termin);
+  for (const g of groups) {
+    const trainer = g.trainerName ? ` · Trainer: ${g.trainerName}` : "";
+    lines.push(`*${g.label}*${trainer}`);
+    lines.push(g.round === 1 ? `Training ${r1} · Spielen ${r2}` : `Spielen ${r1} · Training ${r2}`);
+    g.memberNames.forEach((name, i) => lines.push(`${i + 1}. ${name}`));
+    lines.push("");
+  }
+  return lines.join("\n").trimEnd();
 }
 
 // Monday-start month grid; null entries pad the leading empty cells.

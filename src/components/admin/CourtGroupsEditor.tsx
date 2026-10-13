@@ -3,15 +3,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toPng } from "html-to-image";
-import { ImageDown, Plus, Trash2 } from "lucide-react";
+import { Copy, ImageDown, Minus, Plus, Shuffle, Trash2, WandSparkles } from "lucide-react";
 import { Input, Select } from "@/components/ui/Input";
 import { Tabs } from "@/components/ui/Tabs";
 import { Button } from "@/components/ui/Button";
 import { createClient } from "@/lib/supabase/client";
 import { queryKeys } from "@/lib/queries/keys";
 import { useTerminCourtGroups } from "@/lib/queries/useTerminCourtGroups";
+import { useSkillLevels } from "@/lib/queries/useSkillLevels";
+import { assignRounds, autoAssign, courtSizes, hashSeed, minCourts } from "@/lib/courtAssign";
 import { CourtGroupsExportCard } from "./CourtGroupsExportCard";
-import { courtGroupRoundRange, courtGroupSwitchMinutes } from "@/lib/domain";
+import { buildCourtGroupsShareText, courtGroupRoundRange, courtGroupSwitchMinutes } from "@/lib/domain";
 import type { Termin } from "@/types/database";
 import styles from "./CourtGroupsEditor.module.css";
 
@@ -83,6 +85,14 @@ export function CourtGroupsEditor({
   const [quotes, setQuotes] = useState<Record<string, number>>({});
   // partnerCounts[a][b] = how many recent shared court groups a and b have.
   const [partnerCounts, setPartnerCounts] = useState<Record<string, Record<string, number>>>({});
+  const [historyLoaded, setHistoryLoaded] = useState(!clubGroupId);
+  const [courtsWanted, setCourtsWanted] = useState<number | null>(null);
+  const [confirmReplace, setConfirmReplace] = useState(false);
+  const [shuffleCount, setShuffleCount] = useState(0);
+  const [autoInfo, setAutoInfo] = useState<{ unrated: number; repeats: number } | null>(null);
+  const [textCopied, setTextCopied] = useState(false);
+  // Spielstärke is trainer/owner-only; a captain just gets no levels back.
+  const { data: levels } = useSkillLevels();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [savedNotice, setSavedNotice] = useState(false);
@@ -106,20 +116,22 @@ export function CourtGroupsEditor({
     if (!clubGroupId || participants.length === 0) return;
     const supabase = createClient();
     const userIds = participants.map((p) => p.user_id);
-    supabase.rpc("get_round1_quotes", { p_club_group_id: clubGroupId, p_user_ids: userIds }).then(({ data }) => {
-      if (!data) return;
-      const map: Record<string, number> = {};
-      for (const row of data) map[row.user_id] = row.quote;
-      setQuotes(map);
-    });
-    supabase.rpc("get_recent_partners", { p_club_group_id: clubGroupId, p_user_ids: userIds }).then(({ data }) => {
-      if (!data) return;
-      const map: Record<string, Record<string, number>> = {};
-      for (const row of data) {
-        (map[row.user_id] ??= {})[row.partner_id] = row.times_together;
-      }
-      setPartnerCounts(map);
-    });
+    Promise.allSettled([
+      supabase.rpc("get_round1_quotes", { p_club_group_id: clubGroupId, p_user_ids: userIds }).then(({ data }) => {
+        if (!data) return;
+        const map: Record<string, number> = {};
+        for (const row of data) map[row.user_id] = row.quote;
+        setQuotes(map);
+      }),
+      supabase.rpc("get_recent_partners", { p_club_group_id: clubGroupId, p_user_ids: userIds }).then(({ data }) => {
+        if (!data) return;
+        const map: Record<string, Record<string, number>> = {};
+        for (const row of data) {
+          (map[row.user_id] ??= {})[row.partner_id] = row.times_together;
+        }
+        setPartnerCounts(map);
+      }),
+    ]).then(() => setHistoryLoaded(true));
     // Only needs to run once per termin — the participant list and club
     // group don't change while this editor is open.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -198,6 +210,76 @@ export function CourtGroupsEditor({
     return parts.join(", ");
   }
 
+  const minCourtCount = minCourts(participants.length);
+  const courtCount = Math.max(courtsWanted ?? minCourtCount, minCourtCount);
+  const sizes = courtSizes(participants.length, courtCount);
+  const sizeSummary = sizes.every((x) => x === sizes[0]) ? `à ${sizes[0]}` : sizes.join("/");
+  const hasLevels = !!levels && participants.some((p) => levels[p.user_id] != null);
+
+  function levelOf(userId: string): number | null {
+    return levels?.[userId] ?? null;
+  }
+
+  function averageLevel(memberIds: string[]): string | null {
+    const known = memberIds.map(levelOf).filter((l): l is number => l !== null);
+    if (known.length === 0) return null;
+    return (known.reduce((s, l) => s + l, 0) / known.length).toFixed(1).replace(".", ",");
+  }
+
+  function runAutoAssign(bump: number) {
+    const result = autoAssign({
+      players: participants.map((p) => ({ id: p.user_id, level: levelOf(p.user_id) })),
+      partnerCounts,
+      courts: courtCount,
+      seed: hashSeed(terminId) + bump * 104729,
+    });
+    const rounds = assignRounds(result.courts, quotes);
+    setGroups((previous) =>
+      result.courts.map((ids, i) => ({
+        key: crypto.randomUUID(),
+        label: `Court ${i + 1}`,
+        // Trainers were typed in by hand — keep them on the same court number.
+        trainerName: previous[i]?.trainerName ?? "",
+        round: rounds[i],
+        memberIds: ids,
+      })),
+    );
+    setAutoInfo({ unrated: result.unrated, repeats: result.repeatedPairs });
+    setSavedNotice(false);
+    setConfirmReplace(false);
+  }
+
+  function startAutoAssign() {
+    if (groups.some((g) => g.memberIds.length > 0) && !confirmReplace) {
+      setConfirmReplace(true);
+      return;
+    }
+    setShuffleCount(0);
+    runAutoAssign(0);
+  }
+
+  function reshuffle() {
+    const next = shuffleCount + 1;
+    setShuffleCount(next);
+    runAutoAssign(next);
+  }
+
+  async function copyText() {
+    const filled = groups.filter((g) => g.memberIds.length > 0);
+    const text = buildCourtGroupsShareText({
+      termin,
+      groups: filled.map((g) => ({
+        label: g.label,
+        trainerName: g.trainerName,
+        round: g.round,
+        memberNames: g.memberIds.map((id) => nameFor(id)),
+      })),
+    });
+    await navigator.clipboard.writeText(text);
+    setTextCopied(true);
+    setTimeout(() => setTextCopied(false), 2000);
+  }
+
   async function save() {
     setSaving(true);
     setError("");
@@ -267,6 +349,49 @@ export function CourtGroupsEditor({
 
   return (
     <div className={styles.wrap}>
+      <div className={styles.autoCard}>
+        <div className={styles.autoTitle}>Automatische Einteilung</div>
+        <div className={styles.autoText}>
+          {participants.length} Spieler → <b>{courtCount} Courts</b> ({sizeSummary}). Gleich starke Spieler kommen auf einen
+          Court, wer zuletzt oft zusammen trainiert hat, wird getrennt.
+        </div>
+        <div className={styles.stepperRow}>
+          <span className={styles.stepperLabel}>Anzahl Courts</span>
+          <div className={styles.stepper}>
+            <button type="button" onClick={() => setCourtsWanted(Math.max(courtCount - 1, minCourtCount))} disabled={courtCount <= minCourtCount} title="Weniger Courts">
+              <Minus size={15} strokeWidth={2.5} />
+            </button>
+            <span className={styles.stepperValue}>{courtCount}</span>
+            <button type="button" onClick={() => setCourtsWanted(Math.min(courtCount + 1, participants.length))} disabled={courtCount >= participants.length} title="Mehr Courts">
+              <Plus size={15} strokeWidth={2.5} />
+            </button>
+          </div>
+        </div>
+        <Button variant="accent" size="sm" full onClick={startAutoAssign} disabled={!historyLoaded}>
+          <WandSparkles size={15} strokeWidth={2.2} style={{ marginRight: 4 }} />
+          {confirmReplace ? "Bestehende Einteilung ersetzen? Nochmal tippen" : "Automatisch einteilen"}
+        </Button>
+        {autoInfo && (
+          <Button variant="outline" size="sm" full onClick={reshuffle}>
+            <Shuffle size={15} strokeWidth={2.2} style={{ marginRight: 4 }} />
+            Neu mischen
+          </Button>
+        )}
+        {!levels && <div className={styles.autoHint}>Spielstärken sehen nur Trainer und Clubmanager — ohne Level wird nur durchgewechselt.</div>}
+        {levels && !hasLevels && <div className={styles.autoHint}>Noch keine Spielstärken eingetragen (Admin → Spielstärke) — es wird nur durchgewechselt.</div>}
+        {!clubGroupId && <div className={styles.autoHint}>Dieser Termin gehört nicht genau einer Mannschaft — dafür gibt es keine Partner-Historie.</div>}
+        {autoInfo && autoInfo.unrated > 0 && hasLevels && (
+          <div className={styles.autoHint}>{autoInfo.unrated} Spieler ohne Level wurden mittig einsortiert.</div>
+        )}
+        {autoInfo && (
+          <div className={styles.autoHint}>
+            {autoInfo.repeats === 0
+              ? "Niemand trainiert mit jemandem zusammen, mit dem er zuletzt schon auf einem Court war."
+              : `Gleich starke Spieler wurden bestmöglich neu gemischt. ${autoInfo.repeats} Paarung${autoInfo.repeats === 1 ? "" : "en"} waren trotzdem zuletzt schon zusammen.`}
+          </div>
+        )}
+      </div>
+
       <Input
         label="Wechsel zwischen Training und Spiel"
         type="time"
@@ -283,7 +408,10 @@ export function CourtGroupsEditor({
               const partners = partnersOf(p.user_id);
               return (
                 <div key={p.user_id} className={styles.unassignedRow}>
-                  <span>{p.name}</span>
+                  <span>
+                    {p.name}
+                    {levelOf(p.user_id) !== null && <span className={styles.levelTag}>{levelOf(p.user_id)}</span>}
+                  </span>
                   {partners.length > 0 && (
                     <span className={styles.partnerHint}>
                       zuletzt mit: {partners.map((x) => `${x.name} (${x.count}×)`).join(", ")}
@@ -308,6 +436,7 @@ export function CourtGroupsEditor({
                   onChange={(e) => updateGroup(g.key, { label: e.target.value })}
                   className={styles.labelInput}
                 />
+                {averageLevel(g.memberIds) && <span className={styles.levelAvg}>Ø {averageLevel(g.memberIds)}</span>}
                 <span className={g.memberIds.length >= GROUP_SIZE ? styles.sizeBadgeFull : styles.sizeBadge}>
                   {g.memberIds.length}/{GROUP_SIZE}
                 </span>
@@ -343,6 +472,7 @@ export function CourtGroupsEditor({
                 {g.memberIds.map((id) => (
                   <span key={id} className={styles.chip}>
                     {nameFor(id)}
+                    {levelOf(id) !== null && <span className={styles.levelTag}>{levelOf(id)}</span>}
                     <button type="button" onClick={() => removeMember(g.key, id)} title="Entfernen">
                       ×
                     </button>
@@ -386,10 +516,16 @@ export function CourtGroupsEditor({
       {publishedAt && <div className={styles.saved}>Sichtbar für die Teilnehmer dieses Termins.</div>}
 
       {groups.some((g) => g.memberIds.length > 0) && (
-        <Button variant="outline" size="sm" full onClick={exportPng} disabled={exporting}>
-          <ImageDown size={15} strokeWidth={2.2} style={{ marginRight: 4 }} />
-          {exporting ? "Erstelle Bild…" : "Als Bild exportieren"}
-        </Button>
+        <>
+          <Button variant="outline" size="sm" full onClick={exportPng} disabled={exporting}>
+            <ImageDown size={15} strokeWidth={2.2} style={{ marginRight: 4 }} />
+            {exporting ? "Erstelle Bild…" : "Als Bild exportieren (für Trainer)"}
+          </Button>
+          <Button variant="outline" size="sm" full onClick={copyText}>
+            <Copy size={15} strokeWidth={2.2} style={{ marginRight: 4 }} />
+            {textCopied ? "Kopiert!" : "Als Text kopieren (für Trainer)"}
+          </Button>
+        </>
       )}
 
       <div style={{ position: "fixed", top: 0, left: -9999, pointerEvents: "none" }}>

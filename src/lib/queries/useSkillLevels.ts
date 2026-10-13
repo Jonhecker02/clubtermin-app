@@ -18,5 +18,8 @@ export function useSkillLevels() {
       for (const row of data ?? []) map[row.user_id] = row.skill_level;
       return map;
     },
+    // Captains can't read levels (RPC says not_authorized) — that's a
+    // permanent answer, not worth retrying.
+    retry: false,
   });
 }

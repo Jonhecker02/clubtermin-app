@@ -36,16 +36,21 @@
   color: var(--tp-grey-300);
 }
 
+.countLine {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--tp-pink);
+}
+
 .grid {
-  display: flex;
-  gap: 16px;
+  display: grid;
+  gap: 22px 16px;
   padding: 24px 32px;
-  align-items: flex-start;
+  align-items: start;
 }
 
 .column {
-  flex: 1;
-  min-width: 160px;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -111,12 +116,35 @@
 }
 
 .nameRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   background: #fff;
   border-radius: 8px;
   padding: 7px 10px;
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 600;
   box-shadow: 0 1px 0 rgba(20, 34, 63, 0.06);
+}
+
+.nameText {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  line-height: 1.25;
+}
+
+.nameIdx {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--tp-pink-tint);
+  color: var(--tp-pink-deep);
+  font-size: 11px;
+  font-weight: 800;
+  flex-shrink: 0;
 }
 
 .legend {
