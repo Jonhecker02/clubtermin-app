@@ -187,6 +187,7 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
               <a href="#s-login">Login</a>
               <a href="#s-home">Home-Bildschirm</a>
               <a href="#s-termine">Termine</a>
+              <a href="#s-rotation">Faire Rotation</a>
               <a href="#s-chat">Chat</a>
               <a href="#s-profil">Profil</a>
             </nav>
@@ -195,24 +196,27 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
               <Eyebrow icon={<LogIn size={20} strokeWidth={2} />} label="Erste Schritte" />
               <h2>Login</h2>
               <p className={styles.lede}>
-                Es gibt keine Selbstregistrierung — dein Trainer oder Clubmanager legt deinen Account für
-                dich an und gibt dir <b>Vorname, Nachname und ein Passwort</b> persönlich oder per Chat
-                weiter.
+                Du registrierst dich selbst über den Link, den du von deinem Trainer oder Clubmanager
+                bekommst — nur mit <b>Vorname, Nachname und einem Passwort</b>, ohne Teamcode. Danach ordnet
+                dich dein Trainer oder Clubmanager deiner Mannschaft zu; sobald das geschehen ist, kommst du
+                in die App.
               </p>
               <Steps
                 items={[
                   <>
-                    Öffne die ClubTermine-Seite und trage <b>Vorname</b> und <b>Nachname</b> in die beiden
-                    Felder ein.
+                    Öffne den Registrierungs-Link, trage <b>Vorname</b>, <b>Nachname</b> und ein{" "}
+                    <b>Passwort</b> (mindestens 6 Zeichen) ein und tippe auf <b>„Registrieren“</b>. Du siehst
+                    dann „Anfrage wird geprüft“ — das ist normal, bis du zugeordnet bist.
                   </>,
                   <>
-                    Gib dein Passwort ein und tippe auf <b>„Anmelden“</b>.
+                    Danach meldest du dich immer mit <b>Vorname</b>, <b>Nachname</b> und deinem Passwort an
+                    und tippst auf <b>„Anmelden“</b>.
                   </>,
                 ]}
               />
               <Callout mark="Passwort weg?">
-                Es gibt noch keine automatische „Passwort vergessen“-Funktion. Wende dich an deinen Admin —
-                er richtet dir bei Bedarf neu ein.
+                Wende dich an deinen Trainer oder Clubmanager — er vergibt dir ein neues Passwort, an
+                deinem Account (Anmeldungen, Mannschaft) ändert sich dabei nichts.
               </Callout>
             </section>
 
@@ -248,18 +252,86 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                 </li>
               </ul>
               <Callout mark="Faire Rotation">
-                Bei manchen Teams entscheidet nicht die Anmeldereihenfolge, sondern eine faire Rotation, wer
-                teilnimmt — damit nicht immer dieselben Leute den Platz bekommen. Steht dein Training
-                darunter, siehst du nach der Anmeldung „ausstehend“ mit einem Countdown bis zum
-                Anmeldeschluss. Erst dann wird final zugeteilt und du bekommst Bescheid. Es spielt keine
-                Rolle, wann du dich anmeldest — wer am längsten nicht dabei war, hat Vorrang (bei
-                Gleichstand: wer zuletzt seltener einen Platz bekam, danach entscheidet das Los). Hast du
-                keinen Platz bekommen, siehst du im Termin deinen Rang und warum.
+                Bei manchen Teams wird nicht nach Anmeldereihenfolge vergeben, sondern fair verteilt. Dann
+                siehst du nach der Anmeldung „ausstehend“ mit einem Countdown. Wie das genau funktioniert,
+                steht im nächsten Abschnitt.
               </Callout>
               <Callout mark="Trainingsgruppen">
                 Bei größeren Trainings mit mehreren Courts teilt euer Admin oft in kleine Gruppen mit
                 jeweils einem Trainer ein. Sobald das veröffentlicht ist, siehst du hier direkt auf dieser
                 Seite deine Gruppe, deinen Trainer und ob du in Runde 1 oder Runde 2 trainierst.
+              </Callout>
+            </section>
+
+            <section className={styles.card} id="s-rotation">
+              <Eyebrow icon={<RotateCw size={20} strokeWidth={2} />} label="Wenn mehr Spieler wollen als Plätze da sind" />
+              <h2>Faire Rotation — so wird zugeteilt</h2>
+              <p className={styles.lede}>
+                Bei manchen Teams gibt es mehr Anmeldungen als Plätze. Damit nicht immer die Schnellsten
+                dabei sind, wird fair verteilt: <b>Wer zuletzt am längsten nicht dabei war, kommt zuerst
+                dran.</b> Ob du dich als Erster oder als Letzter anmeldest, ist völlig egal.
+              </p>
+
+              <Steps
+                items={[
+                  <>
+                    Du meldest dich an. Du siehst <b>„ausstehend“</b> und einen Countdown bis zum{" "}
+                    <b>Anmeldeschluss</b> — meist samstags um 22 Uhr. Bis dahin kannst du dich in Ruhe
+                    anmelden oder wieder abmelden.
+                  </>,
+                  <>
+                    Nach dem Anmeldeschluss wird einmal für alle zugeteilt. Euer Trainer oder Clubmanager
+                    prüft den Vorschlag und bestätigt ihn — meist am Sonntag.
+                  </>,
+                  <>
+                    Du bekommst eine Benachrichtigung: entweder <b>„Du bist dabei“</b> oder{" "}
+                    <b>„Warteliste“</b> mit deinem Platz und dem Grund.
+                  </>,
+                ]}
+              />
+
+              <h3 className={styles.subhead}>Wer hat Vorrang?</h3>
+              <ul className={styles.featureList}>
+                <li>
+                  <span className={styles.dot} />
+                  <span>
+                    <b>1. Wer am längsten pausiert hat.</b> Entscheidend ist, wann du zuletzt bei einem
+                    Training dabei warst. Je länger das her ist, desto besser deine Chance.
+                  </span>
+                </li>
+                <li>
+                  <span className={styles.dot} />
+                  <span>
+                    <b>2. Bei gleichem Datum:</b> wer in letzter Zeit seltener einen Platz bekommen hat,
+                    obwohl er sich angemeldet hat.
+                  </span>
+                </li>
+                <li>
+                  <span className={styles.dot} />
+                  <span>
+                    <b>3. Ist dann immer noch alles gleich:</b> entscheidet das Los. Es ist für jedes
+                    Training fest und lässt sich von niemandem beeinflussen.
+                  </span>
+                </li>
+              </ul>
+
+              <Callout mark="Beispiel">
+                2 Plätze, 4 Anmeldungen. <b>Lena</b> war zuletzt vor 5 Wochen dabei, <b>Tom</b> und{" "}
+                <b>Mia</b> beide vor 2 Wochen (Mia hat in letzter Zeit aber seltener einen Platz bekommen),{" "}
+                <b>Jan</b> letzte Woche. Ergebnis: Lena und Mia sind dabei. Tom steht auf Platz 1 der
+                Warteliste, Jan auf Platz 2 — auch wenn Jan sich als Erster angemeldet hat.
+              </Callout>
+
+              <Callout mark="Bin ich neu?">
+                Hast du noch nie an einem Training teilgenommen, zählt der Tag, an dem dein Account
+                angelegt wurde. Je länger du dabei bist und noch keinen Platz hattest, desto weiter rückst
+                du automatisch vor.
+              </Callout>
+
+              <Callout mark="Warteliste">
+                Auf der Warteliste stehst du in der Reihenfolge, in der du nachrückst, wenn jemand absagt —
+                nach denselben Regeln. Den Grund und deinen Rang („Rang 5 von 7“) siehst du im Termin. Du
+                bekommst eine Benachrichtigung, sobald du nachgerückt bist.
               </Callout>
             </section>
 

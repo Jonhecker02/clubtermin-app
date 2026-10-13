@@ -3,7 +3,8 @@ import webpush from "web-push";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { isApnsConfigured, sendApnsNotification, shouldPruneApnsToken, type ApnsPayload } from "@/lib/apns";
-import { dateLabel, hhmm } from "@/lib/domain";
+import { makeLabelResolver } from "@/lib/pushLabel";
+import { pushText } from "@/lib/pushText";
 
 // Triggered client-side after an admin clicks "Zuteilung bestätigen" on a
 // termin whose fair-rotation allocation is proposed but not yet applied.
@@ -59,51 +60,34 @@ export async function POST(request: Request) {
     webpush.setVapidDetails("mailto:notifications@clubtermine-app.vercel.app", vapidPublic, vapidPrivate);
   }
 
-  const shortCodeCache = new Map<string, string | null>();
-  async function labelFor(row: { termin_id: string; title: string; register_groups: string[] }) {
-    if (!shortCodeCache.has(row.termin_id)) {
-      let shortCode: string | null = null;
-      if (row.register_groups.length === 1 && row.register_groups[0] !== "all") {
-        const { data: group } = await service.from("groups").select("short_code").eq("id", row.register_groups[0]).single();
-        shortCode = group?.short_code ?? null;
-      }
-      shortCodeCache.set(row.termin_id, shortCode);
-    }
-    return shortCodeCache.get(row.termin_id) ? `${shortCodeCache.get(row.termin_id)} · ${row.title}` : row.title;
-  }
+  const labelFor = makeLabelResolver(service);
 
-  function bodyFor(row: { user_id: string; final_status: string; start_time: string }, label: string): string {
-    if (row.final_status === "angemeldet") {
-      return `${label} — du bist dabei (${hhmm(row.start_time)} Uhr).`;
-    }
-    const rank = waitlistRankByUser.get(row.user_id);
-    const rankNote = rank ? ` (Platz ${rank})` : "";
-    // The concrete "why": where they ranked and when they were last dabei —
-    // the rotation's first criterion (who's been out longest gets priority).
-    const alloc = allocationByUser.get(row.user_id);
-    const rankPart =
-      alloc?.rank_order != null && alloc.applicant_count != null
-        ? ` Rang ${alloc.rank_order} von ${alloc.applicant_count} Bewerbern.`
-        : "";
-    const lastPart = alloc?.last_participation
-      ? alloc.never_participated
-        ? " Du warst bisher noch nie dabei."
-        : ` Du warst zuletzt am ${dateLabel(alloc.last_participation)} dabei.`
-      : "";
-    const reasonNote = alloc ? `${rankPart}${lastPart} Wer länger nicht dran war, hatte Vorrang.` : "";
-    return `${label} — du stehst aktuell auf der Warteliste${rankNote} (${hhmm(row.start_time)} Uhr).${reasonNote}`;
+  type DecisionRow = NonNullable<typeof allocations>[number];
+  async function payloadFor(row: DecisionRow): Promise<ApnsPayload> {
+    const base = {
+      label: await labelFor(row),
+      date: row.date,
+      startTime: row.start_time,
+      terminId: row.termin_id,
+    };
+    const message =
+      row.final_status === "angemeldet"
+        ? pushText.allocationIn(base)
+        : pushText.allocationWaitlist({
+            ...base,
+            waitlistPlace: waitlistRankByUser.get(row.user_id) ?? null,
+            rank: allocationByUser.get(row.user_id)?.rank_order ?? null,
+            applicants: allocationByUser.get(row.user_id)?.applicant_count ?? null,
+            lastParticipation: allocationByUser.get(row.user_id)?.last_participation ?? null,
+            neverParticipated: allocationByUser.get(row.user_id)?.never_participated ?? false,
+          });
+    return { ...message, url: `/termine/${row.termin_id}` };
   }
 
   if (vapidPublic && vapidPrivate) {
     for (const row of allocations ?? []) {
       if (!row.endpoint || !row.p256dh || !row.auth) continue;
-      const label = await labelFor(row);
-      const confirmed = row.final_status === "angemeldet";
-      const payload = JSON.stringify({
-        title: confirmed ? "Deine Anmeldung wurde final zugeteilt! 🎉" : "Zuteilung abgeschlossen",
-        body: bodyFor(row, label),
-        url: `/termine/${row.termin_id}`,
-      });
+      const payload = JSON.stringify(await payloadFor(row));
       try {
         await webpush.sendNotification({ endpoint: row.endpoint, keys: { p256dh: row.p256dh, auth: row.auth } }, payload);
         pushSent += 1;
@@ -123,14 +107,7 @@ export async function POST(request: Request) {
     for (const { user_id, device_token } of apnsTargets ?? []) {
       const row = rowByUser.get(user_id);
       if (!row) continue;
-      const label = await labelFor(row);
-      const confirmed = row.final_status === "angemeldet";
-      const payload: ApnsPayload = {
-        title: confirmed ? "Deine Anmeldung wurde final zugeteilt! 🎉" : "Zuteilung abgeschlossen",
-        body: bodyFor(row, label),
-        url: `/termine/${row.termin_id}`,
-      };
-      const result = await sendApnsNotification(device_token, payload);
+      const result = await sendApnsNotification(device_token, await payloadFor(row));
       if (result.ok) {
         apnsSent += 1;
       } else if (shouldPruneApnsToken(result)) {

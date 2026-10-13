@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import webpush from "web-push";
 import { createClient } from "@/lib/supabase/server";
 import { isApnsConfigured, sendApnsNotification, shouldPruneApnsToken } from "@/lib/apns";
+import { pushText } from "@/lib/pushText";
 
 // Triggered client-side right after an admin posts an announcement. Push-only
 // (no email) — announcements are meant to be quick, and email delivery is
@@ -30,12 +31,9 @@ export async function POST(request: Request) {
     const { data: group } = await supabase.from("groups").select("short_code").eq("id", announcement.visible_groups[0]).single();
     shortCode = group?.short_code ?? null;
   }
-  const title = shortCode ? `📢 Neue Ankündigung in Gruppe ${shortCode}` : "📢 Neue Ankündigung";
-
   const appUrl = new URL(request.url).origin;
   const payload = {
-    title,
-    body: announcement.content.length > 140 ? `${announcement.content.slice(0, 140)}…` : announcement.content,
+    ...pushText.announcement({ shortCode, content: announcement.content, announcementId: announcement.id }),
     url: `${appUrl}/chat`,
   };
 

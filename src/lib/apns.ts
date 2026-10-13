@@ -62,6 +62,9 @@ export interface ApnsPayload {
   title: string;
   body: string;
   url: string;
+  // Web push only — lets a newer notification replace an older one for the
+  // same termin. APNs ignores it.
+  tag?: string;
 }
 
 export type ApnsSendResult = { ok: true } | { ok: false; status: number; reason: string };

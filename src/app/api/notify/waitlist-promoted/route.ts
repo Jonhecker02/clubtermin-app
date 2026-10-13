@@ -3,15 +3,9 @@ import webpush from "web-push";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { isApnsConfigured, sendApnsNotification, shouldPruneApnsToken, type ApnsPayload } from "@/lib/apns";
+import { makeLabelResolver } from "@/lib/pushLabel";
+import { pushText } from "@/lib/pushText";
 import type { WaitlistPromotionPush } from "@/types/database";
-
-function buildPayload(promo: WaitlistPromotionPush): ApnsPayload {
-  return {
-    title: "⚡️ Du bist nachgerückt!",
-    body: "Schaue jetzt rein und trage dir den Termin ein!",
-    url: `/termine/${promo.termin_id}`,
-  };
-}
 
 // Triggered client-side (fire-and-forget) right after cancel_registration,
 // admin_remove_participant, or remove_group_member — any of which can free up
@@ -34,6 +28,19 @@ export async function POST() {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  const labelFor = makeLabelResolver(service);
+  async function buildPayload(promo: WaitlistPromotionPush): Promise<ApnsPayload> {
+    return {
+      ...pushText.waitlistPromoted({
+        label: await labelFor(promo),
+        date: promo.date,
+        startTime: promo.start_time,
+        terminId: promo.termin_id,
+      }),
+      url: `/termine/${promo.termin_id}`,
+    };
+  }
+
   let pushSent = 0;
   const vapidPublic = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
   const vapidPrivate = process.env.VAPID_PRIVATE_KEY;
@@ -46,7 +53,7 @@ export async function POST() {
       try {
         await webpush.sendNotification(
           { endpoint: promo.endpoint, keys: { p256dh: promo.p256dh, auth: promo.auth } },
-          JSON.stringify(buildPayload(promo)),
+          JSON.stringify(await buildPayload(promo)),
         );
         pushSent += 1;
       } catch (err) {
@@ -66,7 +73,7 @@ export async function POST() {
     for (const { user_id, device_token } of apnsTargets ?? []) {
       const promo = byUser.get(user_id);
       if (!promo) continue;
-      const result = await sendApnsNotification(device_token, buildPayload(promo));
+      const result = await sendApnsNotification(device_token, await buildPayload(promo));
       if (result.ok) {
         apnsSent += 1;
       } else if (shouldPruneApnsToken(result)) {

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import webpush from "web-push";
 import { createClient } from "@/lib/supabase/server";
 import { isApnsConfigured, sendApnsNotification, shouldPruneApnsToken } from "@/lib/apns";
-import { fullDateLabel, hhmm } from "@/lib/domain";
+import { pushText } from "@/lib/pushText";
 
 // Triggered client-side right after an admin creates a termin with "notify"
 // checked. Push-only — email was dropped (Resend's sandbox mode without a
@@ -36,14 +36,16 @@ export async function POST(request: Request) {
   }
 
   const appUrl = new URL(request.url).origin;
-  const terminUrl = `${appUrl}/termine/${termin.id}`;
-  const dateLabel = fullDateLabel(termin.date);
-  const timeLabel = hhmm(termin.start_time);
-
   const payload = {
-    title: shortCode ? `🗓️ Neuer Termin für Gruppe ${shortCode}` : "🗓️ Neuer Termin",
-    body: `${termin.title} · ${dateLabel}, ${timeLabel} Uhr · ${termin.location}`,
-    url: terminUrl,
+    ...pushText.terminCreated({
+      shortCode,
+      title: termin.title,
+      date: termin.date,
+      startTime: termin.start_time,
+      location: termin.location,
+      terminId: termin.id,
+    }),
+    url: `${appUrl}/termine/${termin.id}`,
   };
 
   let pushSent = 0;

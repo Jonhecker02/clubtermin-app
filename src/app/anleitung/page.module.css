@@ -253,3 +253,13 @@
   line-height: 1.6;
   text-align: center;
 }
+
+.subhead {
+  font-family: var(--font-condensed);
+  font-weight: var(--fw-black);
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--color-ink);
+  margin: 22px 0 6px;
+}

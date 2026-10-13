@@ -189,10 +189,10 @@ export default function TerminDetailPage() {
           : "";
       const lastPart = myAllocation.last_participation
         ? myAllocation.never_participated
-          ? `Du warst bisher noch nie dabei (zählt ab ${dateLabel(myAllocation.last_participation)}). `
-          : `Du warst zuletzt am ${dateLabel(myAllocation.last_participation)} dabei. `
-        : "";
-      infoNote = `Diesmal nicht dabei: ${rankPart}${lastPart}Wer länger nicht dran war, hatte Vorrang.`;
+          ? `Du warst bisher noch nie dabei (zählt ab ${dateLabel(myAllocation.last_participation)}). Wer länger wartet, hatte Vorrang.`
+          : `Du warst zuletzt am ${dateLabel(myAllocation.last_participation)} dabei. Wer länger pausiert hat, hatte Vorrang.`
+        : "Wer länger nicht dran war, hatte Vorrang.";
+      infoNote = `Diesmal nicht dabei: ${rankPart}${lastPart}`;
     }
     onAction = handleCancel;
   } else if (inPending) {
