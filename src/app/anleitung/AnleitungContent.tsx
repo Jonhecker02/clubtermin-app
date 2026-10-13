@@ -296,8 +296,8 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                 items={[
                   <>
                     Du meldest dich an. Du siehst <b>„ausstehend“</b> und einen Countdown bis zum{" "}
-                    <b>Anmeldeschluss</b> — der ist immer <b>samstags um 22 Uhr</b>. Bis dahin kannst du dich
-                    in Ruhe anmelden oder wieder abmelden.
+                    <b>Anmeldeschluss</b> — der ist in der Regel <b>samstags um 22 Uhr</b> (die genaue Frist
+                    steht im Termin). Bis dahin kannst du dich in Ruhe anmelden oder wieder abmelden.
                   </>,
                   <>
                     Nach dem Anmeldeschluss wird einmal für alle zugeteilt. Euer Trainer oder Clubmanager
@@ -510,15 +510,15 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
               <Eyebrow icon={<RotateCw size={20} strokeWidth={2} />} label="Plätze verteilen" />
               <h2>Faire Rotation verstehen</h2>
               <p className={styles.lede}>
-                Die Plätze bei Trainings werden fair verteilt statt nach Anmeldereihenfolge — euer
+                Die Plätze bei Trainings werden fair verteilt statt nach Anmeldereihenfolge (bei Events und Spieltagen gilt weiterhin der Anmeldezeitpunkt — oder du trägst Leute von Hand ein) — euer
                 Clubmanager schaltet das pro Team ein (Admin → Gruppen), normalerweise bei allen. Beim
                 Anlegen eines Trainings für ein solches Team gilt:
               </p>
               <Steps
                 items={[
                   <>
-                    Es erscheint zusätzlich das Feld <b>„Anmeldeschluss“</b>. Der ist immer{" "}
-                    <b>samstags um 22 Uhr</b> — mit „Vorschlag übernehmen“ wird er automatisch gesetzt.
+                    Es erscheint zusätzlich das Feld <b>„Anmeldeschluss“</b>. Er ist automatisch auf den{" "}
+                    <b>Samstag vor dem Training, 22 Uhr</b> eingestellt und lässt sich bei Bedarf ändern.
                   </>,
                   <>
                     Bis dahin sind Anmeldungen „ausstehend“; danach schlägt der Algorithmus eine Zuteilung

@@ -131,7 +131,9 @@ export function splitRegistrations<T extends { status: RegistrationStatus }>(
 // admin to accept or override, not enforced.
 export function suggestedRegistrationCloses(dateISO: string): string {
   const d = new Date(`${dateISO}T00:00:00`);
-  const daysSinceSaturday = (d.getDay() + 1) % 7; // Sat=0, Sun=1, Mon=2, ... Fri=6
+  // Sat=0, Sun=1, Mon=2, ... Fri=6 — and a Saturday training gets the Saturday
+  // a week earlier (22:00 the same evening would be after the training).
+  const daysSinceSaturday = (d.getDay() + 1) % 7 || 7;
   const saturday = new Date(d);
   saturday.setDate(d.getDate() - daysSinceSaturday);
   const iso = `${saturday.getFullYear()}-${String(saturday.getMonth() + 1).padStart(2, "0")}-${String(saturday.getDate()).padStart(2, "0")}`;

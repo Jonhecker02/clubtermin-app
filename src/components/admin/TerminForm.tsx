@@ -98,11 +98,15 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
     initial?.registration_opens_date ? `${initial.registration_opens_date}T${hhmm(initial.registration_opens_time ?? "00:00")}` : "",
   );
   const [regOpensHidden, setRegOpensHidden] = useState(initial?.registration_opens_hidden ?? false);
-  const [regClosesAt, setRegClosesAt] = useState(
+  // Until the admin edits it, the deadline simply follows the date (Saturday
+  // before, 22:00) — also when they change the date afterwards.
+  const [regClosesTouched, setRegClosesTouched] = useState(!!initial?.registration_closes_date);
+  const [regClosesManual, setRegClosesAt] = useState(
     initial?.registration_closes_date
       ? `${initial.registration_closes_date}T${hhmm(initial.registration_closes_time ?? "00:00")}`
       : "",
   );
+  const regClosesAt = regClosesTouched ? regClosesManual : date ? suggestedRegistrationCloses(date) : "";
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -111,12 +115,12 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
   // is neither shown nor required for those two types.
   const needsCourts = type === "training";
 
-  // Fair rotation only ever applies to a training tied to exactly one
+  // Fair rotation only ever applies to a TRAINING tied to exactly one
   // specific team — with "alle Gruppen" or several groups selected there's
-  // no single team history to rank by, and Events don't need it at all (the
-  // whole point is deciding who trains, which doesn't apply to an Event).
+  // no single team history to rank by, and Events/Spieltage are decided by
+  // registration time or by hand, never by rotation.
   const rotationGroup =
-    type !== "event" && regMode === "ausgewaehlt" && regGroups.length === 1
+    type === "training" && regMode === "ausgewaehlt" && regGroups.length === 1
       ? groups.find((g) => g.id === regGroups[0])
       : undefined;
   const rotationActive = rotationGroup?.fair_rotation_enabled ?? false;
@@ -286,12 +290,22 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
             label="Anmeldeschluss"
             type="datetime-local"
             value={regClosesAt}
-            onChange={(e) => setRegClosesAt(e.target.value)}
-            helper={`${groupLabel(rotationGroup!)} hat faire Rotation aktiviert. Bis zu diesem Zeitpunkt sind Anmeldungen ausstehend, danach verteilt die Rotation die Plätze auf einen Schlag.`}
+            onChange={(e) => {
+              setRegClosesTouched(true);
+              setRegClosesAt(e.target.value);
+            }}
+            helper={`Standard: Samstag vor dem Training, 22:00 Uhr — bei Bedarf änderbar. ${groupLabel(rotationGroup!)} hat faire Rotation: bis dahin sind Anmeldungen ausstehend, danach werden die Plätze fair verteilt.`}
           />
           {date && regClosesAt !== suggestedRegistrationCloses(date) && (
-            <button type="button" className={styles.suggestion} onClick={() => setRegClosesAt(suggestedRegistrationCloses(date))}>
-              Vorschlag übernehmen: Samstag davor, 22:00 Uhr
+            <button
+              type="button"
+              className={styles.suggestion}
+              onClick={() => {
+                setRegClosesTouched(false);
+                setRegClosesAt("");
+              }}
+            >
+              Zurück auf Standard: Samstag davor, 22:00 Uhr
             </button>
           )}
         </div>
