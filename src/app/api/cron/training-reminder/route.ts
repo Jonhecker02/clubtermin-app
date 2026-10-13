@@ -136,36 +136,29 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: allocationsError.message }, { status: 500 });
   }
 
-  // The admins are the ones waiting on a proposal, so they get the push —
-  // without it nobody would know a Saturday-night deadline had passed.
-  // Recipients: whoever created the termin, its trainer, and the team's
-  // captain; if that yields nobody, the owner(s) as a fallback.
-  // 30s of margin covers clock drift between this server and the database;
-  // the 10-minute cadence means a proposal can never fall in two windows.
+  // The owner is the one waiting on a proposal (they review and confirm it),
+  // so they get the push — without it nobody would know a Saturday-night
+  // deadline had passed. 30s of margin covers clock drift between this
+  // server and the database; the 10-minute cadence means a proposal can
+  // never fall in two windows.
   const proposedSince = new Date(startedAt - 30_000).toISOString();
   const { data: proposed } = await supabase
     .from("termine")
-    .select("id, title, date, start_time, register_groups, trainer_id, created_by")
+    .select("id, title, date, start_time, register_groups")
     .gte("allocation_proposed_at", proposedSince)
     .is("allocation_run_at", null);
 
   let proposalPushSent = 0;
   let proposalApnsSent = 0;
   if ((proposed ?? []).length > 0) {
-    const { data: admins } = await supabase.from("profiles").select("id, role, group_id").in("role", ["owner", "trainer", "captain"]);
-    for (const termin of proposed ?? []) {
+    const { data: owners } = await supabase.from("profiles").select("id").eq("role", "owner");
+    const recipients = (owners ?? []).map((o) => o.id);
+    for (const termin of recipients.length > 0 ? (proposed ?? []) : []) {
       const { count } = await supabase
         .from("registration_allocations")
         .select("id", { count: "exact", head: true })
         .eq("termin_id", termin.id);
       if (!count) continue;
-
-      const teamId = termin.register_groups.length === 1 && termin.register_groups[0] !== "all" ? termin.register_groups[0] : null;
-      const responsible = (admins ?? []).filter(
-        (a) => a.id === termin.created_by || a.id === termin.trainer_id || (a.role === "captain" && teamId && a.group_id === teamId),
-      );
-      const recipients = (responsible.length > 0 ? responsible : (admins ?? []).filter((a) => a.role === "owner")).map((a) => a.id);
-      if (recipients.length === 0) continue;
 
       const payload: ApnsPayload = {
         ...pushText.allocationReady({
