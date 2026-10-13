@@ -11,6 +11,7 @@ import { createClient } from "@/lib/supabase/client";
 import { queryKeys } from "@/lib/queries/keys";
 import { useTerminCourtGroups } from "@/lib/queries/useTerminCourtGroups";
 import { useSkillLevels } from "@/lib/queries/useSkillLevels";
+import { useProfiles } from "@/lib/queries/useProfiles";
 import { assignRounds, autoAssign, courtSizes, hashSeed, minCourts } from "@/lib/courtAssign";
 import { CourtGroupsExportCard } from "./CourtGroupsExportCard";
 import { buildCourtGroupsShareText, courtGroupRoundRange, courtGroupSwitchMinutes } from "@/lib/domain";
@@ -93,6 +94,12 @@ export function CourtGroupsEditor({
   const [textCopied, setTextCopied] = useState(false);
   // Spielstärke is trainer/owner-only; a captain just gets no levels back.
   const { data: levels } = useSkillLevels();
+  // Same trainer pool as the Termin form: approved owner/trainer accounts.
+  const { data: profiles = [] } = useProfiles();
+  const trainerPool = profiles
+    .filter((p) => (p.role === "owner" || p.role === "trainer") && p.status === "approved")
+    .map((p) => p.name)
+    .sort((a, b) => a.localeCompare(b));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [savedNotice, setSavedNotice] = useState(false);
@@ -445,12 +452,22 @@ export function CourtGroupsEditor({
                 </button>
               </div>
 
-              <Input
+              <Select
                 label="Trainer"
-                placeholder="z. B. Coach Mia"
                 value={g.trainerName}
                 onChange={(e) => updateGroup(g.key, { trainerName: e.target.value })}
-              />
+              >
+                <option value="">— kein Trainer —</option>
+                {trainerPool.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
+                {/* A name saved earlier as free text (before the pool existed) stays selectable instead of silently disappearing. */}
+                {g.trainerName && !trainerPool.includes(g.trainerName) && (
+                  <option value={g.trainerName}>{g.trainerName}</option>
+                )}
+              </Select>
 
               <Tabs
                 items={roundItems}

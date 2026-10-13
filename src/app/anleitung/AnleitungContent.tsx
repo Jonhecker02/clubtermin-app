@@ -571,7 +571,7 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                     anders mischen.
                   </>,
                   <>
-                    Pro Gruppe <b>Trainer</b> eintragen und <b>„Trainiert Runde 1“</b> oder{" "}
+                    Pro Gruppe den <b>Trainer</b> aus der Liste wählen und <b>„Trainiert Runde 1“</b> oder{" "}
                     <b>„Trainiert Runde 2“</b> wählen (die jeweils andere Runde spielt die Gruppe).
                   </>,
                   <>
