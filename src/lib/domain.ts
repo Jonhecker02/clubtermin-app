@@ -151,6 +151,46 @@ export function orderByWaitlistRank<T extends { user_id: string }>(
   return [...waitlist].sort((a, b) => (ranks[a.user_id] ?? Number.MAX_SAFE_INTEGER) - (ranks[b.user_id] ?? Number.MAX_SAFE_INTEGER));
 }
 
+interface RotationFacts {
+  last_participation: string | null;
+  never_participated: boolean;
+}
+
+// The one fact the rotation ranks on first. For players who were never
+// confirmed, the stored date is the day their account was created — their
+// "waiting since" — so it's labeled differently, not as a participation.
+export function lastParticipationLabel(a: RotationFacts): string | null {
+  if (!a.last_participation) return null;
+  return a.never_participated
+    ? `noch nie dabei (zählt ab ${dateLabel(a.last_participation)})`
+    : `zuletzt dabei am ${dateLabel(a.last_participation)}`;
+}
+
+// One line per allocated player for the admin's "Zuteilung erklären":
+// where they ranked among applicants and the facts that decided it.
+export function allocationDetail(
+  a: RotationFacts & {
+    excluded_from_rotation: boolean;
+    rank_order: number | null;
+    applicant_count: number | null;
+    quote: number | null;
+  },
+): string {
+  const parts: string[] = [];
+  if (a.rank_order != null && a.applicant_count != null) parts.push(`Rang ${a.rank_order} von ${a.applicant_count}`);
+  if (a.excluded_from_rotation) {
+    parts.push("von Rotation ausgeschlossen — Platz garantiert");
+  } else {
+    const last = lastParticipationLabel(a);
+    if (last) parts.push(last);
+    if (a.quote != null) parts.push(`Quote ${Math.round(a.quote * 100)}%`);
+  }
+  return parts.length > 0 ? parts.join(" · ") : "Keine Historie";
+}
+
+export const ROTATION_RULE_TEXT =
+  "So wird zugeteilt: 1. Wer am längsten nicht dabei war, hat Vorrang. 2. Bei Gleichstand: wer zuletzt seltener einen Platz bekam. 3. Dann entscheidet das Los. Der Anmeldezeitpunkt spielt keine Rolle.";
+
 // "2 Tage 4 Std." / "3 Std. 12 Min." / "8 Min." — coarsens to the two most
 // significant units so it doesn't tick unnecessarily fast in the UI: pass a
 // pre-computed remaining-ms value (the caller owns the ticking interval,

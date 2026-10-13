@@ -23,6 +23,8 @@ import { useWaitlistRank } from "@/lib/queries/useWaitlistRank";
 import { queryKeys } from "@/lib/queries/keys";
 import { createClient } from "@/lib/supabase/client";
 import {
+  ROTATION_RULE_TEXT,
+  allocationDetail,
   badgeInfo,
   buildTerminShareText,
   formatPrice,
@@ -354,17 +356,14 @@ export default function AdminParticipantsPage() {
                 <div className={styles.empty}>
                   Vorschlag bereit — prüfen, bei Bedarf einzelne Personen tauschen, dann bestätigen.
                 </div>
+                <div className={styles.empty}>{ROTATION_RULE_TEXT}</div>
                 <div className={styles.list}>
                   {allocations.map((a) => (
                     <div key={a.id} className={styles.row}>
                       <div className={styles.rowMain}>
                         <div className={styles.rowName}>{a.name}</div>
                         <div className={styles.rowEmail}>
-                          {a.excluded_from_rotation
-                            ? "Von Rotation ausgeschlossen — Platz garantiert"
-                            : a.quote != null
-                              ? `Quote: ${(a.quote * 100).toFixed(0)}%`
-                              : "Keine Historie"}
+                          {allocationDetail(a)}
                         </div>
                       </div>
                       <button type="button" onClick={() => toggleInclusion(a.id, !a.included)} title="Tauschen">
@@ -387,11 +386,7 @@ export default function AdminParticipantsPage() {
                     <div className={styles.rowMain}>
                       <div className={styles.rowName}>{a.name}</div>
                       <div className={styles.rowEmail}>
-                        {a.excluded_from_rotation
-                          ? "Von Rotation ausgeschlossen — Platz garantiert"
-                          : a.quote != null
-                            ? `Quote: ${(a.quote * 100).toFixed(0)}%`
-                            : "Keine Historie"}
+                        {allocationDetail(a)}
                       </div>
                     </div>
                     <Badge tone={a.included ? "soft" : "outline"} size="sm">

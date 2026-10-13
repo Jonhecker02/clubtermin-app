@@ -251,7 +251,10 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                 Bei manchen Teams entscheidet nicht die Anmeldereihenfolge, sondern eine faire Rotation, wer
                 teilnimmt — damit nicht immer dieselben Leute den Platz bekommen. Steht dein Training
                 darunter, siehst du nach der Anmeldung „ausstehend“ mit einem Countdown bis zum
-                Anmeldeschluss. Erst dann wird final zugeteilt und du bekommst Bescheid.
+                Anmeldeschluss. Erst dann wird final zugeteilt und du bekommst Bescheid. Es spielt keine
+                Rolle, wann du dich anmeldest — wer am längsten nicht dabei war, hat Vorrang (bei
+                Gleichstand: wer zuletzt seltener einen Platz bekam, danach entscheidet das Los). Hast du
+                keinen Platz bekommen, siehst du im Termin deinen Rang und warum.
               </Callout>
               <Callout mark="Trainingsgruppen">
                 Bei größeren Trainings mit mehreren Courts teilt euer Admin oft in kleine Gruppen mit
@@ -432,14 +435,17 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                     alle anmelden können.
                   </>,
                   <>
-                    Bis dahin sind Anmeldungen „ausstehend“; danach verteilt der Algorithmus die Plätze
-                    automatisch — wer zuletzt seltener zum Zug kam, hat Vorrang.
+                    Bis dahin sind Anmeldungen „ausstehend“; danach schlägt der Algorithmus eine Zuteilung
+                    vor — <b>wer am längsten nicht dabei war, hat Vorrang</b>. Bei Gleichstand zählt, wer
+                    zuletzt seltener einen Platz bekam, danach entscheidet ein festes Los. Der
+                    Anmeldezeitpunkt spielt keine Rolle.
                   </>,
                 ]}
               />
               <Callout mark="Nachvollziehen">
-                Im Termin selbst zeigt der Abschnitt <b>„Zuteilung erklären“</b> nach Ablauf der Frist, wer
-                mit welcher Quote reinkam oder auf der Warteliste landete.
+                Im Termin selbst zeigt der Abschnitt <b>„Zuteilung erklären“</b> nach Ablauf der Frist für
+                jede Person den Rang unter allen Bewerbern, wann sie zuletzt dabei war und ihre Quote.
+                Spieler ohne Platz sehen denselben Grund in ihrer Ansicht und in der Benachrichtigung.
               </Callout>
             </section>
 

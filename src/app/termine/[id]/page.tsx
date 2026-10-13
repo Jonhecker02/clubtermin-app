@@ -32,6 +32,8 @@ import {
   msUntil,
   orderByWaitlistRank,
   registrationClosesAt,
+  ROTATION_RULE_TEXT,
+  dateLabel,
   registrationOpensLabel,
   splitRegistrations,
   withShortCode,
@@ -154,6 +156,9 @@ export default function TerminDetailPage() {
   let actionVariant: "accent" | "outline" = "accent";
   let actionDisabled = false;
   let cancelNotice = "";
+  // Friendly, non-error information (countdown, allocation reason) — kept
+  // apart from cancelNotice, which is styled as a warning.
+  let infoNote = "";
   let onAction: () => void = handleRegister;
 
   if (inParticipants) {
@@ -163,6 +168,13 @@ export default function TerminDetailPage() {
       actionDisabled = true;
       cancelNotice = `Abmeldung nicht mehr möglich (weniger als ${CANCEL_CUTOFF_HOURS} Std. vor Beginn).`;
     }
+    if (myAllocation?.included) {
+      infoNote = myAllocation.excluded_from_rotation
+        ? "Du hast einen garantierten Platz."
+        : myAllocation.rank_order != null && myAllocation.applicant_count != null
+          ? `Du hast einen Platz bekommen (Rang ${myAllocation.rank_order} von ${myAllocation.applicant_count} Bewerbern).`
+          : "Du hast bei der Zuteilung einen Platz bekommen.";
+    }
     onAction = handleCancel;
   } else if (inWaitlist) {
     actionLabel = `Von Warteliste entfernen (Platz ${wlIdx + 1})`;
@@ -170,17 +182,23 @@ export default function TerminDetailPage() {
     // myAllocation.included === false means the last fair-rotation run
     // actively decided against this player (not just plain FCFS overflow) —
     // give them the concrete reason instead of leaving them guessing.
-    if (myAllocation && !myAllocation.included && myAllocation.quote != null) {
-      // Lower quote = higher priority (fair rotation favors whoever's been
-      // confirmed less often lately) — the wording has to say "niedrigere",
-      // not "höhere", or it claims the exact opposite of how the ranking works.
-      cancelNotice = `Diesmal nicht dabei: Deine Anmeldequote lag zuletzt bei ${Math.round(myAllocation.quote * 100)}% — Spieler, die zuletzt seltener zum Zug kamen, hatten diesmal Vorrang.`;
+    if (myAllocation && !myAllocation.included) {
+      const rankPart =
+        myAllocation.rank_order != null && myAllocation.applicant_count != null
+          ? `Rang ${myAllocation.rank_order} von ${myAllocation.applicant_count} Bewerbern. `
+          : "";
+      const lastPart = myAllocation.last_participation
+        ? myAllocation.never_participated
+          ? `Du warst bisher noch nie dabei (zählt ab ${dateLabel(myAllocation.last_participation)}). `
+          : `Du warst zuletzt am ${dateLabel(myAllocation.last_participation)} dabei. `
+        : "";
+      infoNote = `Diesmal nicht dabei: ${rankPart}${lastPart}Wer länger nicht dran war, hatte Vorrang.`;
     }
     onAction = handleCancel;
   } else if (inPending) {
     actionLabel = "Anmeldung zurückziehen";
     actionVariant = "outline";
-    cancelNotice = closesAt
+    infoNote = closesAt
       ? `Danke für deine Anmeldung — die finale Zuteilung erfolgt in ${formatCountdown(msUntil(closesAt))}. Die Anmeldung schließt in der Regel samstags um 22 Uhr, damit die Zuteilung sonntagfrüh erfolgen kann.`
       : "Danke für deine Anmeldung — die finale Zuteilung folgt in Kürze.";
     onAction = handleCancel;
@@ -309,6 +327,8 @@ export default function TerminDetailPage() {
         )}
 
         {(cancelNotice || actionError) && <div className={styles.cancelNotice}>{actionError || cancelNotice}</div>}
+        {infoNote && <div className={styles.infoNote}>{infoNote}</div>}
+        {termin.registration_closes_date && <div className={styles.ruleNote}>{ROTATION_RULE_TEXT}</div>}
 
         <Button
           variant={actionVariant}

@@ -3,7 +3,7 @@ import webpush from "web-push";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { isApnsConfigured, sendApnsNotification, shouldPruneApnsToken, type ApnsPayload } from "@/lib/apns";
-import { hhmm } from "@/lib/domain";
+import { dateLabel, hhmm } from "@/lib/domain";
 
 // Triggered client-side after an admin clicks "Zuteilung bestätigen" on a
 // termin whose fair-rotation allocation is proposed but not yet applied.
@@ -43,6 +43,14 @@ export async function POST(request: Request) {
   const { data: waitlistRankRows } = await service.rpc("get_waitlist_rank", { p_termin_id: termin_id });
   const waitlistRankByUser = new Map((waitlistRankRows ?? []).map((r) => [r.user_id, r.rank_order]));
 
+  // Rank/last-participation facts stored by the allocation run — what the
+  // waitlist notification quotes as the concrete reason.
+  const { data: allocationRows } = await service
+    .from("registration_allocations")
+    .select("user_id, rank_order, applicant_count, last_participation, never_participated")
+    .eq("termin_id", termin_id);
+  const allocationByUser = new Map((allocationRows ?? []).map((r) => [r.user_id, r]));
+
   let pushSent = 0;
   let apnsSent = 0;
   const vapidPublic = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
@@ -64,16 +72,25 @@ export async function POST(request: Request) {
     return shortCodeCache.get(row.termin_id) ? `${shortCodeCache.get(row.termin_id)} · ${row.title}` : row.title;
   }
 
-  function bodyFor(row: { user_id: string; final_status: string; start_time: string; quote: number | null }, label: string): string {
+  function bodyFor(row: { user_id: string; final_status: string; start_time: string }, label: string): string {
     if (row.final_status === "angemeldet") {
       return `${label} — du bist dabei (${hhmm(row.start_time)} Uhr).`;
     }
     const rank = waitlistRankByUser.get(row.user_id);
     const rankNote = rank ? ` (Platz ${rank})` : "";
-    // row.quote is this player's own fairness quote from the allocation run
-    // (registration_allocations.quote) — the concrete "why", not just "you
-    // didn't make it": other players simply had a higher recent quote.
-    const reasonNote = row.quote != null ? ` Deine Anmeldequote lag zuletzt bei ${Math.round(row.quote * 100)}%.` : "";
+    // The concrete "why": where they ranked and when they were last dabei —
+    // the rotation's first criterion (who's been out longest gets priority).
+    const alloc = allocationByUser.get(row.user_id);
+    const rankPart =
+      alloc?.rank_order != null && alloc.applicant_count != null
+        ? ` Rang ${alloc.rank_order} von ${alloc.applicant_count} Bewerbern.`
+        : "";
+    const lastPart = alloc?.last_participation
+      ? alloc.never_participated
+        ? " Du warst bisher noch nie dabei."
+        : ` Du warst zuletzt am ${dateLabel(alloc.last_participation)} dabei.`
+      : "";
+    const reasonNote = alloc ? `${rankPart}${lastPart} Wer länger nicht dran war, hatte Vorrang.` : "";
     return `${label} — du stehst aktuell auf der Warteliste${rankNote} (${hhmm(row.start_time)} Uhr).${reasonNote}`;
   }
 

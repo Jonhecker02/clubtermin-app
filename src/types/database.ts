@@ -73,6 +73,10 @@ export type RegistrationAllocation = {
   included: boolean;
   excluded_from_rotation: boolean;
   decided_at: string;
+  rank_order: number | null;
+  applicant_count: number | null;
+  last_participation: string | null;
+  never_participated: boolean;
 };
 
 export type PlayerNote = {
