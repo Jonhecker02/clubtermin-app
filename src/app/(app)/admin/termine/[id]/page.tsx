@@ -38,6 +38,7 @@ import {
   registrationClosesAt,
   splitRegistrations,
   withShortCode,
+  displayEmail,
 } from "@/lib/domain";
 import adminStyles from "@/components/admin/AdminList.module.css";
 import styles from "./page.module.css";
@@ -275,7 +276,7 @@ export default function AdminParticipantsPage() {
                   <div className={styles.avatar}>{initials(p.name)}</div>
                   <div className={styles.rowMain}>
                     <div className={styles.rowName}>{p.name}</div>
-                    <div className={styles.rowEmail}>{p.email}</div>
+                    {displayEmail(p.email) && <div className={styles.rowEmail}>{displayEmail(p.email)}</div>}
                   </div>
                 </button>
               ))}
@@ -291,7 +292,7 @@ export default function AdminParticipantsPage() {
                 <div className={styles.avatar}>{initials(p.name)}</div>
                 <div className={styles.rowMain}>
                   <div className={styles.rowName}>{p.name}</div>
-                  <div className={styles.rowEmail}>{p.email}</div>
+                  {displayEmail(p.email) && <div className={styles.rowEmail}>{displayEmail(p.email)}</div>}
                 </div>
                 <IconButton
                   variant={notesOpenId === p.user_id ? "accent" : "ghost"}
@@ -320,7 +321,7 @@ export default function AdminParticipantsPage() {
                   <div className={styles.avatar}>{initials(p.name)}</div>
                   <div className={styles.rowMain}>
                     <div className={styles.rowName}>{p.name}</div>
-                    <div className={styles.rowEmail}>{p.email}</div>
+                    {displayEmail(p.email) && <div className={styles.rowEmail}>{displayEmail(p.email)}</div>}
                   </div>
                 </div>
               ))}

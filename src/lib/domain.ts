@@ -5,6 +5,14 @@ export const CANCEL_CUTOFF_HOURS = 24;
 
 export const WEEKDAY_LABELS = ["MO", "DI", "MI", "DO", "FR", "SA", "SO"] as const;
 
+// Accounts created in the app (self-registration, owner-created) get a
+// technical placeholder address that only exists to satisfy the auth system.
+// It is never shown to people; real addresses (older accounts) still are.
+export function displayEmail(email: string | null | undefined): string | null {
+  if (!email || email.toLowerCase().endsWith("@clubtermin.local")) return null;
+  return email;
+}
+
 export function weekdayLabel(dateISO: string): string {
   const d = new Date(`${dateISO}T00:00:00`);
   return WEEKDAY_LABELS[(d.getDay() + 6) % 7];

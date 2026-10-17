@@ -42,12 +42,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
    - **Site URL**: für lokale Entwicklung `http://localhost:3000`
    - **Redirect URLs**: füge ebenfalls `http://localhost:3000/**` hinzu
    - Sobald die App später live auf einer echten Domain läuft (z. B. über Vercel), trage die Domain hier zusätzlich ein (z. B. `https://trainingsanmeldung.thepadellers.de/**`) und aktualisiere die Site URL entsprechend.
-3. Standardmäßig verlangt Supabase eine E-Mail-Bestätigung nach der Registrierung (**Confirm email** ist an). Das ist die sichere Standardeinstellung — jede:r neue Nutzer:in bekommt eine Bestätigungs-Mail von Supabase und muss den Link klicken, bevor der Login funktioniert. Für einen kleinen Verein reicht das automatische Supabase-Mailsystem (stark ratenlimitiert, aber für wenige Anmeldungen pro Tag ausreichend). Für höheres Volumen später unter **Project Settings → Auth → SMTP Settings** einen eigenen Mailversand (z. B. Resend, Postmark) hinterlegen.
-4. Damit nach dem Klick auf den Bestätigungslink der schöne Erfolgs-Screen der App erscheint (statt einer leeren Supabase-Standardseite): **Authentication** → **Email Templates** → **Confirm signup** öffnen und im Link den Platzhalter `{{ .ConfirmationURL }}` ersetzen durch:
-   ```
-   {{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=signup
-   ```
-   Speichern nicht vergessen. Ohne diesen Schritt funktioniert die Bestätigung trotzdem, landet aber nicht auf dem eigenen Erfolgs-Screen.
+3. Die App verschickt **keine E-Mails**. Konten werden per Name + Passwort angelegt (Selbstregistrierung oder durch den Owner); intern erhält jedes Konto eine technische Platzhalter-Adresse (`…@clubtermin.local`), die sofort als bestätigt gilt. Es ist deshalb **kein SMTP-Versand und keine Bestätigungs-Mail-Vorlage** nötig — Benachrichtigungen laufen ausschließlich per Push.
 
 ## 5. Realtime prüfen
 
@@ -66,14 +61,13 @@ npm run dev
 
 ## 7. Ersten Zugang einrichten
 
-1. Auf **Registrieren** klicken, Name + E-Mail + Passwort eingeben.
-2. Falls E-Mail-Bestätigung aktiv ist: die Bestätigungs-Mail öffnen und den Link klicken, danach einloggen.
-3. **Der erste registrierte Nutzer wird automatisch zum "Owner"** (volle Admin-Rechte, inkl. Gruppen- und Rollenverwaltung — siehe README im Handoff-Ordner für das Rollenmodell). Das passiert automatisch per Datenbank-Trigger, keine weitere Aktion nötig.
-4. Nach dem Login fragt die App nach einem Teamcode. Falls du Schritt 3 in Abschnitt 3 (Seed) ausgeführt hast, funktioniert z. B. `TP-GRUPPEA-26`. Als Owner wirst du sofort freigeschaltet (kein Warten auf Bestätigung).
-5. Ab jetzt: im Profil-Tab auf **Admin-Bereich öffnen**, um Termine, Gruppen, Anfragen und Rollen zu verwalten.
+1. Auf **Registrieren** klicken, Vor- und Nachname + Passwort eingeben.
+2. **Der erste registrierte Nutzer wird automatisch zum "Owner"** (volle Admin-Rechte, inkl. Gruppen- und Rollenverwaltung — siehe README im Handoff-Ordner für das Rollenmodell). Das passiert automatisch per Datenbank-Trigger, keine weitere Aktion nötig.
+3. Als Owner wirst du sofort freigeschaltet (kein Warten auf Freigabe).
+4. Ab jetzt: im Profil-Tab auf **Admin-Bereich öffnen**, um Termine, Gruppen, Anfragen und Rollen zu verwalten.
 
 ## 8. Später live schalten (z. B. Vercel)
 
 1. Projekt zu Vercel deployen (oder Hosting deiner Wahl), `NEXT_PUBLIC_SUPABASE_URL` und `NEXT_PUBLIC_SUPABASE_ANON_KEY` dort als Environment Variables setzen.
-2. Supabase **Site URL** / **Redirect URLs** (Schritt 4) um die echte Domain ergänzen.
+2. Supabase **Site URL** / **Redirect URLs** (Schritt 4, Punkt 2) um die echte Domain ergänzen.
 3. Fertig — die Datenbank ist dieselbe, es ändert sich nur, wo die App gehostet ist.

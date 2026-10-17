@@ -4,10 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { isApnsConfigured, sendApnsNotification, shouldPruneApnsToken } from "@/lib/apns";
 import { pushText } from "@/lib/pushText";
 
-// Triggered client-side right after an admin posts an announcement. Push-only
-// (no email) — announcements are meant to be quick, and email delivery is
-// deprioritized until the club has a verified sending domain. Both RPCs it
-// calls are admin-gated server-side, so this can't be abused to spam
+// Triggered client-side right after an admin posts an announcement. Push-only.
+// Both RPCs it calls are admin-gated server-side, so this can't be abused to spam
 // arbitrary recipients even though it only forwards the caller's own cookies.
 export async function POST(request: Request) {
   const { announcement_id } = (await request.json()) as { announcement_id?: string };

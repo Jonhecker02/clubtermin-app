@@ -7,6 +7,7 @@ import { Tabs } from "@/components/ui/Tabs";
 import { AdminTabs } from "@/components/admin/AdminTabs";
 import { useProfiles } from "@/lib/queries/useProfiles";
 import { useGroups } from "@/lib/queries/useGroups";
+import { displayEmail } from "@/lib/domain";
 import { queryKeys } from "@/lib/queries/keys";
 import { createClient } from "@/lib/supabase/client";
 import adminStyles from "@/components/admin/AdminList.module.css";
@@ -50,7 +51,7 @@ export default function AdminRollenPage() {
               <div className={styles.info}>
                 <div className={styles.name}>{m.name}</div>
                 <div className={styles.meta}>
-                  {m.email} · {groups.find((g) => g.id === m.group_id)?.name ?? "—"}
+                  {[displayEmail(m.email), groups.find((g) => g.id === m.group_id)?.name ?? "—"].filter(Boolean).join(" · ")}
                 </div>
               </div>
               <div className={styles.toggle}>

@@ -7,7 +7,7 @@ const PUBLIC_PATHS = ["/login", "/registrieren", "/privacy"];
 // it authenticates itself via the CRON_SECRET header instead, checked inside
 // the route handler. "/anleitung" is prefix-matched so both the player-only
 // page and "/anleitung/admin" are public without needing a session.
-const PUBLIC_PREFIXES = ["/auth/", "/api/ical/", "/api/cron/", "/api/debug/", "/api/auth/", "/anleitung"];
+const PUBLIC_PREFIXES = ["/api/ical/", "/api/cron/", "/api/debug/", "/api/auth/", "/anleitung"];
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });

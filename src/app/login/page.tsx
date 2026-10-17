@@ -1,35 +1,15 @@
 "use client";
 
-import { Suspense, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2 } from "lucide-react";
 import { IntroShell, introStyles as styles } from "@/components/layout/IntroShell";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 
-function ConfirmedNotice({ onDismiss }: { onDismiss: () => void }) {
-  return (
-    <>
-      <div className={styles.iconCircle}>
-        <CheckCircle2 size={26} color="var(--tp-pink-deep)" strokeWidth={2} />
-      </div>
-      <div className={styles.title}>E-Mail bestätigt!</div>
-      <div className={styles.subtitle}>Dein Konto ist aktiv. Du kannst dich jetzt einloggen.</div>
-      <Button variant="accent" size="lg" full onClick={onDismiss}>
-        Weiter zum Login
-      </Button>
-    </>
-  );
-}
-
-function LoginPageInner() {
+export default function LoginPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
-
-  const [dismissedConfirm, setDismissedConfirm] = useState(false);
-  const showConfirmed = searchParams.get("confirmed") === "1" && !dismissedConfirm;
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -79,48 +59,29 @@ function LoginPageInner() {
         <div className={styles.tagline}>Trainingsanmeldung</div>
       </div>
 
-      {showConfirmed ? (
-        <ConfirmedNotice
-          onDismiss={() => {
-            setDismissedConfirm(true);
-            router.replace("/login");
-          }}
+      <form className={styles.card} onSubmit={handleSubmit}>
+        <Input label="Vorname" placeholder="Max" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+        <Input label="Nachname" placeholder="Mustermann" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+        <Input
+          label="Passwort"
+          type="password"
+          placeholder="Mind. 6 Zeichen"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
         />
-      ) : (
-        <>
-          <form className={styles.card} onSubmit={handleSubmit}>
-            <Input label="Vorname" placeholder="Max" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
-            <Input label="Nachname" placeholder="Mustermann" value={lastName} onChange={(e) => setLastName(e.target.value)} />
-            <Input
-              label="Passwort"
-              type="password"
-              placeholder="Mind. 6 Zeichen"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
 
-            {error && <div className={styles.error}>{error}</div>}
+        {error && <div className={styles.error}>{error}</div>}
 
-            <Button variant="accent" size="lg" full type="submit" disabled={loading}>
-              Anmelden
-            </Button>
-          </form>
+        <Button variant="accent" size="lg" full type="submit" disabled={loading}>
+          Anmelden
+        </Button>
+      </form>
 
-          <div className={styles.spacer}>
-            <Button variant="ghost" size="sm" onClick={() => router.push("/registrieren")}>
-              Neu hier? Jetzt registrieren
-            </Button>
-          </div>
-        </>
-      )}
+      <div className={styles.spacer}>
+        <Button variant="ghost" size="sm" onClick={() => router.push("/registrieren")}>
+          Neu hier? Jetzt registrieren
+        </Button>
+      </div>
     </IntroShell>
-  );
-}
-
-export default function LoginPage() {
-  return (
-    <Suspense fallback={null}>
-      <LoginPageInner />
-    </Suspense>
   );
 }

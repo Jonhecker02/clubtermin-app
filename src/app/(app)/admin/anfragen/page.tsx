@@ -11,7 +11,7 @@ import { useProfiles } from "@/lib/queries/useProfiles";
 import { useGroups } from "@/lib/queries/useGroups";
 import { queryKeys } from "@/lib/queries/keys";
 import { createClient } from "@/lib/supabase/client";
-import { groupLabel } from "@/lib/domain";
+import { displayEmail, groupLabel } from "@/lib/domain";
 import adminStyles from "@/components/admin/AdminList.module.css";
 import styles from "./page.module.css";
 
@@ -59,7 +59,7 @@ export default function AdminAnfragenPage() {
             <div key={r.id} className={styles.card}>
               <div>
                 <div className={styles.name}>{r.name}</div>
-                <div className={styles.email}>{r.email}</div>
+                {displayEmail(r.email) && <div className={styles.email}>{displayEmail(r.email)}</div>}
               </div>
               <Select
                 label="Gruppe"

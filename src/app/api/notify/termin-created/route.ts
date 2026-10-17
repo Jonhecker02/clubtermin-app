@@ -5,9 +5,7 @@ import { isApnsConfigured, sendApnsNotification, shouldPruneApnsToken } from "@/
 import { pushText } from "@/lib/pushText";
 
 // Triggered client-side right after an admin creates a termin with "notify"
-// checked. Push-only — email was dropped (Resend's sandbox mode without a
-// verified domain only ever delivered to the account owner's own address
-// anyway, so every termin was silently emailing just that one inbox).
+// checked. Push-only.
 export async function POST(request: Request) {
   const { termin_id } = (await request.json()) as { termin_id?: string };
   if (!termin_id) {

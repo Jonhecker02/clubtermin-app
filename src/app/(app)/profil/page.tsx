@@ -19,7 +19,7 @@ import { useIcalToken } from "@/lib/queries/useIcalToken";
 import { usePush } from "@/lib/queries/usePush";
 import { createClient } from "@/lib/supabase/client";
 import { queryKeys } from "@/lib/queries/keys";
-import { dateLabel, groupLabel, hhmm, isUpcoming, terminDateTime, weekdayLabel } from "@/lib/domain";
+import { dateLabel, displayEmail, groupLabel, hhmm, isUpcoming, terminDateTime, weekdayLabel } from "@/lib/domain";
 import styles from "./page.module.css";
 
 const ROLE_LABEL: Record<string, string> = { owner: "Clubmanager", trainer: "Trainer", captain: "Kapitän" };
@@ -152,7 +152,7 @@ export default function ProfilPage() {
               </div>
             </div>
           )}
-          <div className={styles.email}>{profile?.email}</div>
+          {displayEmail(profile?.email) && <div className={styles.email}>{displayEmail(profile?.email)}</div>}
           <div className={styles.groupBadge}>
             <Badge tone="soft">{groupName}</Badge>
           </div>

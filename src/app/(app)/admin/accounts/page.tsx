@@ -16,7 +16,7 @@ import { useProfiles } from "@/lib/queries/useProfiles";
 import { useGroups } from "@/lib/queries/useGroups";
 import { queryKeys } from "@/lib/queries/keys";
 import { createClient } from "@/lib/supabase/client";
-import { groupLabel } from "@/lib/domain";
+import { displayEmail, groupLabel } from "@/lib/domain";
 import type { UserRole, UserStatus } from "@/types/database";
 import adminStyles from "@/components/admin/AdminList.module.css";
 import styles from "./page.module.css";
@@ -290,7 +290,7 @@ export default function AdminAccountsPage() {
                             </Badge>
                           )}
                         </div>
-                        <div className={styles.meta}>{p.email}</div>
+                        {displayEmail(p.email) && <div className={styles.meta}>{displayEmail(p.email)}</div>}
                         <div className={styles.meta}>
                           {ROLE_LABELS[p.role]} · {groups.find((g) => g.id === p.group_id)?.name ?? "—"}
                         </div>

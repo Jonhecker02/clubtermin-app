@@ -30,7 +30,7 @@ export default function PrivacyPage() {
         <div className={styles.section}>
           <h2>Welche Daten wir verarbeiten</h2>
           <ul>
-            <li>Name und E-Mail-Adresse (bei der Registrierung)</li>
+            <li>Vor- und Nachname (bei der Registrierung); es wird keine E-Mail-Adresse erhoben</li>
             <li>Mannschafts- und Rollenzugehörigkeit</li>
             <li>Anmeldungen zu Trainings, Events und Spieltagen</li>
             <li>Nachrichten und Ankündigungen im Chat der App</li>
