@@ -1,0 +1,130 @@
+.search {
+  margin-bottom: 12px;
+}
+
+.hint {
+  margin: 0 0 12px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--color-ink-muted);
+}
+
+.count {
+  margin-bottom: 10px;
+  font-size: 13.5px;
+  color: var(--color-ink-muted);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px 10px 10px;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.person {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0;
+  border: none;
+  background: none;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.avatar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--tp-pink-tint);
+  color: var(--tp-pink-deep);
+  font-size: 12.5px;
+  font-weight: var(--fw-black);
+}
+
+.personText {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.name {
+  font-size: 14.5px;
+  font-weight: var(--fw-bold);
+  color: var(--color-ink);
+  overflow-wrap: anywhere;
+}
+
+.meta {
+  font-size: 12px;
+  color: var(--color-ink-muted);
+}
+
+.preview {
+  font-size: 12px;
+  color: var(--color-ink-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.noteBtn {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-surface-alt);
+  color: var(--color-ink-muted);
+  cursor: pointer;
+  transition: transform 320ms var(--ease-spring);
+}
+
+.noteBtn:active {
+  transform: scale(0.9);
+  transition-duration: 90ms;
+}
+
+.noteBtnFilled {
+  background: var(--tp-pink);
+  color: var(--tp-navy);
+}
+
+.noteCount {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--tp-navy);
+  color: var(--tp-cream);
+  font-size: 10.5px;
+  font-weight: var(--fw-bold);
+  line-height: 17px;
+  text-align: center;
+}
+
+.levelInput {
+  width: 78px;
+  flex-shrink: 0;
+}

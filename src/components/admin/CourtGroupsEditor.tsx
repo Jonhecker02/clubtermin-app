@@ -6,6 +6,7 @@ import { Copy, ImageDown, Minus, Plus, Shuffle, Trash2, WandSparkles } from "luc
 import { Input, Select } from "@/components/ui/Input";
 import { useUnsavedChanges } from "@/lib/useUnsavedChanges";
 import { Tabs } from "@/components/ui/Tabs";
+import { Switch } from "@/components/ui/Switch";
 import { Button } from "@/components/ui/Button";
 import { createClient } from "@/lib/supabase/client";
 import { queryKeys } from "@/lib/queries/keys";
@@ -380,6 +381,12 @@ export function CourtGroupsEditor({
     await queryClient.invalidateQueries({ queryKey: queryKeys.courtGroups(terminId) });
   }
 
+  async function setShowMembers(show: boolean) {
+    const supabase = createClient();
+    await supabase.from("termine").update({ court_groups_show_members: show }).eq("id", terminId);
+    await queryClient.invalidateQueries({ queryKey: queryKeys.termine });
+  }
+
   async function togglePublish() {
     setPublishing(true);
     const supabase = createClient();
@@ -634,6 +641,17 @@ export function CourtGroupsEditor({
         </Button>
       )}
       {publishedAt && <div className={styles.saved}>Sichtbar für die Teilnehmer dieses Termins.</div>}
+      {groups.length > 0 && (
+        <div className={styles.membersToggle}>
+          <div className={styles.membersToggleText}>
+            <span className={styles.membersToggleTitle}>Mitspieler anzeigen</span>
+            <span className={styles.autoHint}>
+              Spieler sehen, mit wem sie in ihrem Court trainieren. Aus: sie sehen nur ihren Court und ihre Zeiten.
+            </span>
+          </div>
+          <Switch checked={termin.court_groups_show_members} onChange={setShowMembers} label="" />
+        </div>
+      )}
 
       {groups.some((g) => g.memberIds.length > 0) && (
         <>

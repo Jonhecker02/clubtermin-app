@@ -54,7 +54,7 @@ export default function RegistrierenPage() {
   }
 
   return (
-    <IntroShell mood="pink">
+    <IntroShell mood="navy">
       <div className={styles.iconCircle}>
         <UserPlus size={26} color="var(--tp-pink-deep)" strokeWidth={2} />
       </div>
@@ -80,7 +80,7 @@ export default function RegistrierenPage() {
       </form>
 
       <div className={styles.spacer}>
-        <Button variant="ghost" size="sm" onClick={() => router.push("/login")}>
+        <Button variant="ghost" size="sm" onClick={() => router.push("/login")} style={{ color: "var(--tp-pink)" }}>
           Schon einen Account? Anmelden
         </Button>
       </div>

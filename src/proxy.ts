@@ -106,6 +106,8 @@ function resolveTarget(
       const ownerOnly =
         pathname.startsWith("/admin/gruppen") || pathname.startsWith("/admin/rollen") || pathname.startsWith("/admin/accounts");
       if (ownerOnly && profile.role !== "owner") return "/admin/termine";
+      // Registration requests are not a trainer's job.
+      if (profile.role === "trainer" && pathname.startsWith("/admin/anfragen")) return "/admin/termine";
     }
   }
 

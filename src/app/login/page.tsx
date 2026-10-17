@@ -6,6 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { IntroShell, introStyles as styles } from "@/components/layout/IntroShell";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { AppLogo } from "@/components/AppLogo";
 import { clearAllCaches } from "@/lib/queryPersist";
 
 export default function LoginPage() {
@@ -58,21 +59,25 @@ export default function LoginPage() {
   }
 
   return (
-    <IntroShell mood="pink">
+    <IntroShell mood="navy">
       <div className={styles.hero}>
-        <div className={styles.wordmark}>The Padellers</div>
-        <div className={styles.tagline}>Trainingsanmeldung</div>
+        <div className={styles.logoWrap}>
+          <AppLogo size={92} className={styles.logo} />
+        </div>
+        <h1 className={styles.appName}>ClubTermine</h1>
+        <div className={styles.appTagline}>Trainings · Events · Spieltage</div>
       </div>
 
       <form className={styles.card} onSubmit={handleSubmit}>
-        <Input label="Vorname" placeholder="Max" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
-        <Input label="Nachname" placeholder="Mustermann" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+        <Input label="Vorname" placeholder="Max" value={firstName} onChange={(e) => setFirstName(e.target.value)} autoComplete="given-name" />
+        <Input label="Nachname" placeholder="Mustermann" value={lastName} onChange={(e) => setLastName(e.target.value)} autoComplete="family-name" />
         <Input
           label="Passwort"
           type="password"
           placeholder="Mind. 6 Zeichen"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          autoComplete="current-password"
         />
 
         {error && <div className={styles.error}>{error}</div>}
@@ -83,9 +88,13 @@ export default function LoginPage() {
       </form>
 
       <div className={styles.spacer}>
-        <Button variant="ghost" size="sm" onClick={() => router.push("/registrieren")}>
+        <Button variant="ghost" size="sm" onClick={() => router.push("/registrieren")} style={{ color: "var(--tp-pink)" }}>
           Neu hier? Jetzt registrieren
         </Button>
+        <div className={styles.legal}>
+          <a href="/anleitung">Anleitung</a>
+          <a href="/privacy">Datenschutz</a>
+        </div>
       </div>
     </IntroShell>
   );

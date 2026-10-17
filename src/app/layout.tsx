@@ -51,12 +51,12 @@ const SPLASH: [number, number, number][] = [
 ];
 
 export const metadata: Metadata = {
-  title: "The Padellers — Trainingsanmeldung",
-  description: "Trainingsanmeldung für den Padel-Club The Padellers Essen",
+  title: "ClubTermine",
+  description: "Trainings, Events und Spieltage deines Padel-Clubs",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
-    title: "The Padellers",
+    title: "ClubTermine",
     // Content runs under the status bar; headers already pad for the safe area.
     statusBarStyle: "black-translucent",
     startupImage: SPLASH.map(([w, h, dpr]) => ({

@@ -9,6 +9,7 @@ import { Tabs } from "@/components/ui/Tabs";
 import { Switch } from "@/components/ui/Switch";
 import { EventRow } from "@/components/ui/EventRow";
 import { SkeletonEventList } from "@/components/ui/Skeleton";
+import { LiveBanner } from "@/components/admin/LiveBanner";
 import { useProfile } from "@/lib/queries/useProfile";
 import { useTermine } from "@/lib/queries/useTermine";
 import { useGroups } from "@/lib/queries/useGroups";
@@ -164,6 +165,7 @@ export default function TerminePage() {
         }
       />
       <PageBody>
+        {isAdmin && <LiveBanner termine={termine} />}
         {trainerFilter.scoped && (
           <Tabs
             items={TRAINER_SCOPE_ITEMS}

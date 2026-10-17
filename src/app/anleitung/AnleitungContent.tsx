@@ -444,7 +444,7 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
             <section className={styles.card} id="a-wechsel">
               <Eyebrow icon={<Settings size={20} strokeWidth={2} />} label="Navigation" />
               <h2>In den Admin-Bereich wechseln</h2>
-              <p className={styles.lede}>Zwei Wege dorthin:</p>
+              <p className={styles.lede}>Drei Wege dorthin:</p>
               <ul className={styles.featureList}>
                 <li>
                   <span className={styles.dot} />
@@ -458,10 +458,17 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                     In deinem <b>Profil</b> ganz unten auf <b>„Admin-Bereich öffnen“</b> tippen.
                   </span>
                 </li>
+                <li>
+                  <span className={styles.dot} />
+                  <span>
+                    <b>Direkt im Termin:</b> Hast du einen Termin als Spieler geöffnet, wechselt der Schalter
+                    „Admin“ oben rechts zur Verwaltung genau dieses Termins — und umgekehrt zurück.
+                  </span>
+                </li>
               </ul>
               <p className={styles.lede} style={{ marginTop: 14 }}>
-                Im Admin-Bereich findest du oben eine eigene Unternavigation mit <b>Termine</b> und{" "}
-                <b>Anfragen</b>. Über denselben Schalter geht&rsquo;s zurück zur normalen Spieler-Ansicht.
+                Im Admin-Bereich findest du oben eine eigene Unternavigation mit <b>Termine</b>,{" "}
+                <b>Anfragen</b> (nur Clubmanager &amp; Kapitän) und (für Trainer &amp; Clubmanager) <b>Spieler</b>. Über denselben Schalter geht&rsquo;s zurück zur normalen Spieler-Ansicht.
               </p>
             </section>
 
@@ -599,6 +606,24 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                     In <b>Accounts</b> (Clubmanager) — Notiz-Symbol neben jedem Account.
                   </span>
                 </li>
+                <li>
+                  <span className={styles.dot} />
+                  <span>
+                    Im Admin-Reiter <b>„Spieler“</b> (Trainer &amp; Clubmanager): alle Spieler mit Suche und
+                    Gruppenfilter, die Spielstärke direkt in der Zeile eintragen, Notiz-Symbol mit Anzahl und
+                    Vorschau der letzten Notiz — ein Tipp öffnet Spielstärke und Notizen.
+                  </span>
+                </li>
+                <li>
+                  <span className={styles.dot} />
+                  <span>
+                    <b>Live-Ansicht:</b> Läuft gerade ein Training (von 15 Min vor bis 15 Min nach dem Termin),
+                    erscheint oben in der Terminliste eine Karte „Live“. Sie öffnet die Spieler nach Courts —
+                    mit Hinweis, welcher Court gerade trainiert und welcher spielt. Spieler antippen: Das Notizfeld
+                    ist sofort aktiv (für die Pause), darunter die Spielstärke und frühere Notizen. Jederzeit
+                    auch über „Live-Ansicht“ im Termin erreichbar.
+                  </span>
+                </li>
               </ul>
             </section>
 
@@ -640,7 +665,9 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                   <>
                     Mit <b>„Trainingsgruppen speichern“</b> sichern, dann über{" "}
                     <b>„Für Spieler veröffentlichen“</b> freigeben — erst dann sehen die Teilnehmer ihre
-                    Gruppe, ihren Trainer und ob sie zuerst trainieren oder spielen, auf der Termin-Seite.
+                    Gruppe, ihren Trainer und ob sie zuerst trainieren oder spielen, auf der Termin-Seite. Mit dem
+                    Schalter <b>„Mitspieler anzeigen“</b> (standardmäßig an) sehen sie außerdem, mit wem sie
+                    auf dem Court stehen — ausgeschaltet nur ihren Court und ihre Zeiten.
                   </>,
                   <>
                     Für die Weitergabe gibt es zwei Exporte, jeweils als Bild oder Text: die{" "}
@@ -705,7 +732,7 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                       <td>Anfragen bestätigen</td>
                       <td className={styles.no}>—</td>
                       <td className={styles.yes}>✓</td>
-                      <td className={styles.yes}>✓</td>
+                      <td className={styles.no}>—</td>
                       <td className={styles.yes}>✓</td>
                     </tr>
                     <tr>

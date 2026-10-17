@@ -53,6 +53,7 @@ export type Termin = {
   court_groups_published_at: string | null;
   court_groups_switch_time: string | null;
   session_format: SessionFormat;
+  court_groups_show_members: boolean;
   allocation_proposed_at: string | null;
   allocation_run_at: string | null;
   created_by: string | null;
@@ -284,7 +285,7 @@ type TerminInsert = Pick<
 > &
   // Optional — only ever set later, via the Trainingsgruppen editor, never
   // at creation, so it can't be a required field here like the rest.
-  Partial<Pick<Termin, "court_groups_switch_time" | "session_format">>;
+  Partial<Pick<Termin, "court_groups_switch_time" | "session_format" | "court_groups_show_members">>;
 
 export interface Database {
   __InternalSupabase: {

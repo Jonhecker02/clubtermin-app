@@ -16,7 +16,21 @@ function formatNoteDate(iso: string): string {
   return new Date(iso).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
-export function PlayerNotesPanel({ userId, profiles }: { userId: string; profiles: Pick<Profile, "id" | "name">[] }) {
+export function PlayerNotesPanel({
+  userId,
+  profiles,
+  composerFirst = false,
+  autoFocus = false,
+  bare = false,
+}: {
+  userId: string;
+  profiles: Pick<Profile, "id" | "name">[];
+  // Sheet layout: write a new note first, earlier notes below.
+  composerFirst?: boolean;
+  autoFocus?: boolean;
+  // No top border/margin (used inside a sheet).
+  bare?: boolean;
+}) {
   const queryClient = useQueryClient();
   const { data: notes = [], isLoading } = usePlayerNotes(userId);
   const [draft, setDraft] = useState("");
@@ -51,8 +65,30 @@ export function PlayerNotesPanel({ userId, profiles }: { userId: string; profile
     await queryClient.invalidateQueries({ queryKey: queryKeys.playerNotes(userId) });
   }
 
+  const composer = (
+    <div className={styles.addRow}>
+      <Textarea
+        autoFocus={autoFocus}
+        placeholder="z. B. Arbeitet aktuell an der Rückhand …"
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+      />
+      {error && <div className={styles.error}>{error}</div>}
+      <Button
+        variant={composerFirst ? "accent" : "outline"}
+        size={composerFirst ? "md" : "sm"}
+        full={composerFirst}
+        onClick={addNote}
+        disabled={saving || !draft.trim()}
+      >
+        {composerFirst ? "Notiz speichern" : "Notiz hinzufügen"}
+      </Button>
+    </div>
+  );
+
   return (
-    <div className={styles.panel}>
+    <div className={`${styles.panel} ${bare ? styles.bare : ""}`}>
+      {composerFirst && composer}
       {isLoading && <div className={styles.empty}>Notizen werden geladen…</div>}
       {!isLoading && notes.length === 0 && <div className={styles.empty}>Noch keine Notizen.</div>}
       {notes.length > 0 && (
@@ -72,17 +108,7 @@ export function PlayerNotesPanel({ userId, profiles }: { userId: string; profile
           ))}
         </ul>
       )}
-      <div className={styles.addRow}>
-        <Textarea
-          placeholder="z. B. Arbeitet aktuell an der Rückhand …"
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-        />
-        {error && <div className={styles.error}>{error}</div>}
-        <Button variant="outline" size="sm" onClick={addNote} disabled={saving || !draft.trim()}>
-          Notiz hinzufügen
-        </Button>
-      </div>
+      {!composerFirst && composer}
     </div>
   );
 }

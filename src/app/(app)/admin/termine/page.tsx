@@ -10,6 +10,7 @@ import { PageBody } from "@/components/layout/PageBody";
 import { IconButton } from "@/components/ui/IconButton";
 import { EventRow } from "@/components/ui/EventRow";
 import { SkeletonEventList } from "@/components/ui/Skeleton";
+import { LiveBanner } from "@/components/admin/LiveBanner";
 import { SwipeRow } from "@/components/ui/SwipeRow";
 import { Switch } from "@/components/ui/Switch";
 import { Tabs } from "@/components/ui/Tabs";
@@ -117,6 +118,8 @@ export default function AdminTerminePage() {
       />
       <PageBody>
         <AdminTabs current="termine" />
+
+        <LiveBanner termine={termine} />
 
         <Suspense fallback={null}>
           <CreatedNotice />

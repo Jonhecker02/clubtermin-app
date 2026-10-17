@@ -2,12 +2,12 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "The Padellers — Trainingsanmeldung",
-    short_name: "The Padellers",
-    description: "Trainingsanmeldung für den Padel-Club The Padellers Essen",
+    name: "ClubTermine",
+    short_name: "ClubTermine",
+    description: "Trainings, Events und Spieltage deines Padel-Clubs",
     start_url: "/",
     display: "standalone",
-    background_color: "#FDFCFB",
+    background_color: "#14223F",
     theme_color: "#14223F",
     icons: [
       {

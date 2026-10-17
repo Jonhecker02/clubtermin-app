@@ -6,3 +6,4 @@ export { Badge } from "./Badge";
 export { IconButton } from "./IconButton";
 export { EventRow } from "./EventRow";
 export { Skeleton, SkeletonEventList, SkeletonPage, SkeletonDetail } from "./Skeleton";
+export { BottomSheet } from "./BottomSheet";

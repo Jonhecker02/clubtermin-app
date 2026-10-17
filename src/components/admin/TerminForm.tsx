@@ -87,7 +87,10 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
   const [sessionFormat, setSessionFormat] = useState<SessionFormat>(sessionFormatOf(initial ?? {}));
   const [anmeldungOpen, setAnmeldungOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
-  const [maxTn, setMaxTn] = useState(initial ? String(initial.max_tn) : "8");
+  // Until the admin types a number, max. participants follow the courts: a
+  // court seats 4 (1 court = 4, 2 = 8, ...). Typing a number overrides that.
+  const [maxTnTouched, setMaxTnTouched] = useState(!!initial);
+  const [maxTnManual, setMaxTnManual] = useState(initial ? String(initial.max_tn) : "8");
   const [price, setPrice] = useState(initial?.price != null ? String(initial.price) : "");
   const [visMode, setVisMode] = useState<"alle" | "ausgewaehlt">(
     !initial || initial.visible_groups.includes("all") ? "alle" : "ausgewaehlt",
@@ -121,6 +124,8 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
   const regClosesAt = regClosesTouched ? regClosesManual : date ? suggestedRegistrationCloses(date) : "";
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const courtSeats = courts.length * 4;
+  const maxTn = maxTnTouched ? maxTnManual : courts.length > 0 ? String(courtSeats) : maxTnManual;
 
   // Warn before leaving with edits that were never saved. The first render's
   // values are the baseline, so an untouched form never nags.
@@ -299,7 +304,29 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
           ))}
         </Select>
         {showCourts && <CourtPicker value={courts} onChange={setCourts} optional={!needsCourts} />}
-        <Input label="Max. TN" type="number" value={maxTn} onChange={(e) => setMaxTn(e.target.value)} />
+        <div className={styles.fieldGroup}>
+          <Input
+            label="Max. TN"
+            type="number"
+            value={maxTn}
+            onChange={(e) => {
+              setMaxTnTouched(true);
+              setMaxTnManual(e.target.value);
+            }}
+            helper={showCourts && courts.length > 0 ? `Standard: 4 pro Court — ${courts.length} ${courts.length === 1 ? "Court" : "Courts"} = ${courtSeats}. Frei änderbar.` : undefined}
+          />
+          {showCourts && courts.length > 0 && maxTn !== String(courtSeats) && (
+            <button
+              type="button"
+              className={styles.suggestion}
+              onClick={() => {
+                setMaxTnTouched(false);
+              }}
+            >
+              Zurück auf {courtSeats} (4 pro Court)
+            </button>
+          )}
+        </div>
       </FormSection>
 
       <FormSection

@@ -22,8 +22,9 @@ export function AdminTabs({ current }: AdminTabsProps) {
   const items = [
     { id: "termine", label: "Termine" },
     ...(isOwner ? [{ id: "gruppen", label: "Gruppen" }] : []),
-    { id: "anfragen", label: `Anfragen (${pendingCount})` },
-    ...(isTrainerOrOwner ? [{ id: "spielstaerke", label: "Spielstärke" }] : []),
+    // Registration requests: Clubmanager and Kapitän only, not trainers.
+    ...(profile?.role !== "trainer" ? [{ id: "anfragen", label: `Anfragen (${pendingCount})` }] : []),
+    ...(isTrainerOrOwner ? [{ id: "spielstaerke", label: "Spieler" }] : []),
     ...(isOwner ? [{ id: "rollen", label: "Rollen" }] : []),
     ...(isOwner ? [{ id: "accounts", label: "Accounts" }] : []),
     ...(isOwner ? [{ id: "statistik", label: "Statistik" }] : []),

@@ -9,6 +9,7 @@ export const queryKeys = {
   registrationCounts: ["registrations", "counts"] as const,
   allocations: (terminId: string) => ["allocations", terminId] as const,
   playerNotes: (userId: string) => ["playerNotes", userId] as const,
+  playerNotesOverview: ["playerNotes", "overview"] as const,
   courtGroups: (terminId: string) => ["courtGroups", terminId] as const,
   waitlistRank: (terminId: string) => ["waitlistRank", terminId] as const,
   attendanceStats: ["attendanceStats"] as const,

@@ -4,7 +4,7 @@ import { useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { useRouter } from "@/lib/useGuardedRouter";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Copy, ImageDown, Pencil, Plus, StickyNote, X } from "lucide-react";
+import { ArrowLeft, Copy, ImageDown, NotebookPen, Pencil, Plus, StickyNote, X } from "lucide-react";
 import { PlayerNotesPanel } from "@/components/admin/PlayerNotesPanel";
 import { CourtGroupsEditor } from "@/components/admin/CourtGroupsEditor";
 import { AppHeader } from "@/components/layout/AppHeader";
@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Tabs } from "@/components/ui/Tabs";
+import { Switch } from "@/components/ui/Switch";
 import { TerminExportCard } from "@/components/admin/TerminExportCard";
 import { useTermine } from "@/lib/queries/useTermine";
 import { useGroups } from "@/lib/queries/useGroups";
@@ -238,7 +239,10 @@ export default function AdminParticipantsPage() {
 
   return (
     <>
-      <AppHeader title="Teilnehmer" />
+      <AppHeader
+        title="Teilnehmer"
+        right={<Switch checked onChange={() => router.push(`/termine/${terminId}`)} label="Admin" onDark />}
+      />
       <PageBody>
         <div className={adminStyles.backRow}>
           <IconButton variant="soft" label="Zurück" size="sm" onClick={() => router.push("/admin/termine")}>
@@ -273,6 +277,19 @@ export default function AdminParticipantsPage() {
           </div>
           {termin.reminder_enabled && <Badge tone="soft">Erinnerung 2 Std. vorher aktiv</Badge>}
         </div>
+
+        {termin.type === "training" && participants.length > 0 && (
+          <Button
+            variant="outline"
+            size="sm"
+            full
+            onClick={() => router.push(`/admin/termine/${terminId}/live`)}
+            style={{ marginBottom: 14 }}
+          >
+            <NotebookPen size={15} strokeWidth={2.2} style={{ marginRight: 4 }} />
+            Live-Ansicht · Level &amp; Notizen
+          </Button>
+        )}
 
         {tabItems.length > 1 && (
           <Tabs

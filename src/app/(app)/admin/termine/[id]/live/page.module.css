@@ -1,0 +1,227 @@
+.status {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 14px;
+  padding: 16px 18px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, var(--tp-navy) 0%, var(--tp-navy-700) 100%);
+  color: var(--tp-cream);
+  box-shadow: var(--shadow-sm);
+}
+
+.statusTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.liveDot {
+  position: relative;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--tp-danger);
+}
+
+.liveDot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--tp-danger);
+  animation: ping 1.6s ease-out infinite;
+}
+
+@keyframes ping {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(2.8);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .liveDot::after {
+    animation: none;
+  }
+}
+
+.statusEyebrow {
+  font-size: 11.5px;
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tp-pink);
+}
+
+.statusTitle {
+  font-family: var(--font-condensed);
+  font-weight: var(--fw-black);
+  font-size: 24px;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+.statusMeta {
+  font-size: 13px;
+  color: var(--tp-grey-300);
+}
+
+.search {
+  margin-bottom: 14px;
+}
+
+.court {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 14px 14px 10px;
+  margin-bottom: 12px;
+}
+
+.courtHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 4px 6px;
+}
+
+.courtLabel {
+  font-family: var(--font-condensed);
+  font-weight: var(--fw-black);
+  font-size: 19px;
+  text-transform: uppercase;
+  color: var(--color-ink);
+}
+
+.courtActivity {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--tp-pink);
+  color: var(--tp-navy);
+  font-size: 11.5px;
+  font-weight: var(--fw-bold);
+}
+
+.courtTrainer {
+  padding: 0 4px 6px;
+  font-size: 12.5px;
+  color: var(--color-ink-muted);
+}
+
+.players {
+  display: flex;
+  flex-direction: column;
+}
+
+.player {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 4px;
+  border: none;
+  border-top: 1px solid var(--color-border);
+  background: none;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: background 160ms var(--ease-out), transform 320ms var(--ease-spring);
+}
+
+.player:first-child {
+  border-top: none;
+}
+
+.player:active {
+  transform: scale(0.98);
+  transition-duration: 90ms;
+}
+
+.avatar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--tp-pink-tint);
+  color: var(--tp-pink-deep);
+  font-size: 12px;
+  font-weight: var(--fw-black);
+}
+
+.playerText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.playerName {
+  font-size: 15px;
+  font-weight: var(--fw-bold);
+  color: var(--color-ink);
+}
+
+.playerNote {
+  font-size: 12px;
+  color: var(--color-ink-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.level {
+  flex-shrink: 0;
+  min-width: 34px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--color-surface-alt);
+  color: var(--color-ink);
+  font-size: 12.5px;
+  font-weight: var(--fw-bold);
+  text-align: center;
+}
+
+.noteBtn {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--color-surface-alt);
+  color: var(--color-ink-muted);
+}
+
+.noteBtnFilled {
+  background: var(--tp-pink);
+  color: var(--tp-navy);
+}
+
+.noteCount {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--tp-navy);
+  color: var(--tp-cream);
+  font-size: 10.5px;
+  font-weight: var(--fw-bold);
+  line-height: 17px;
+  text-align: center;
+}

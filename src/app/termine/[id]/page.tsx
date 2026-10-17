@@ -9,6 +9,7 @@ import { AppHeader } from "@/components/layout/AppHeader";
 import { IconButton } from "@/components/ui/IconButton";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { Switch } from "@/components/ui/Switch";
 import { useProfile } from "@/lib/queries/useProfile";
 import { useTermine } from "@/lib/queries/useTermine";
 import { useGroups } from "@/lib/queries/useGroups";
@@ -167,6 +168,15 @@ export default function TerminDetailPage() {
   const myCourtGroup =
     termin.court_groups_published_at && userId ? courtGroups.find((g) => g.member_ids.includes(userId)) : undefined;
 
+  // Names of the others on the player's court (the database only hands them
+  // out while the admin has "Mitspieler anzeigen" on).
+  const mates = myCourtGroup
+    ? myCourtGroup.member_ids
+        .filter((id) => id !== userId)
+        .map((id) => ({ user_id: id, name: registrations.find((r) => r.user_id === id)?.name ?? "" }))
+        .filter((m) => m.name)
+    : [];
+
   let actionLabel = "Anmelden";
   let actionVariant: "accent" | "outline" = "accent";
   let actionDisabled = false;
@@ -260,6 +270,12 @@ export default function TerminDetailPage() {
             <ArrowLeft size={16} color="var(--tp-cream)" strokeWidth={2.5} />
           </IconButton>
         }
+        // Admins who opened the termin as a player can jump to its admin view.
+        right={
+          profile && ["owner", "trainer", "captain"].includes(profile.role) ? (
+            <Switch checked={false} onChange={() => router.push(`/admin/termine/${terminId}`)} label="Admin" onDark />
+          ) : undefined
+        }
       />
       <div className={styles.content}>
         <div className={styles.badgeRow}>
@@ -310,6 +326,19 @@ export default function TerminDetailPage() {
             <div className={styles.infoRow}>
               <span>{playerPlanSentence(myCourtGroup.trains_in_round, termin)}</span>
             </div>
+            {mates.length > 0 && (
+              <div className={styles.matesBlock}>
+                <div className={styles.matesLabel}>Mit dir auf dem Court</div>
+                <div className={styles.matesList}>
+                  {mates.map((m) => (
+                    <span key={m.user_id} className={styles.mate}>
+                      <span className={styles.mateAvatar}>{initials(m.name)}</span>
+                      {m.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 

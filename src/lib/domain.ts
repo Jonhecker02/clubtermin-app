@@ -528,3 +528,35 @@ export function registrationMeta(confirmed: number, pending: number, maxTn: numb
   if (pending > 0) return confirmed > 0 ? `${confirmed}/${maxTn} · ${pending} warten` : `${pending} warten`;
   return `${confirmed}/${maxTn}`;
 }
+
+// ---- Live -------------------------------------------------------------
+// A training counts as "live" from a quarter hour before the start until a
+// quarter hour after the end, so the trainers' live view is there while
+// people arrive and for the last notes after the session.
+
+const LIVE_MARGIN_MS = 15 * 60 * 1000;
+
+export function isTerminLive(t: { type: string; date: string; start_time: string; end_time: string }, nowMs: number): boolean {
+  if (t.type !== "training") return false;
+  const start = terminDateTime(t.date, t.start_time).getTime();
+  const end = terminDateTime(t.date, t.end_time).getTime();
+  return nowMs >= start - LIVE_MARGIN_MS && nowMs <= end + LIVE_MARGIN_MS;
+}
+
+// "startet in 8 Min" / "noch 42 Min" / "beendet"
+export function liveStatusText(t: { date: string; start_time: string; end_time: string }, nowMs: number): string {
+  const start = terminDateTime(t.date, t.start_time).getTime();
+  const end = terminDateTime(t.date, t.end_time).getTime();
+  const minutes = (ms: number) => Math.max(1, Math.round(ms / 60000));
+  if (nowMs < start) return `startet in ${minutes(start - nowMs)} Min`;
+  if (nowMs <= end) return `noch ${minutes(end - nowMs)} Min`;
+  return "gerade beendet";
+}
+
+// Which half of a "Training & Spiel" session it is right now (1 = before the
+// changeover). Only meaningful during the session.
+export function livePhase(t: CourtGroupTiming, nowMs: number): 1 | 2 {
+  const now = new Date(nowMs);
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  return nowMinutes < courtGroupSwitchMinutes(t) ? 1 : 2;
+}

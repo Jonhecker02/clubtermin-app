@@ -195,3 +195,51 @@
   margin-bottom: 10px;
   line-height: 1.5;
 }
+
+.matesBlock {
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.matesLabel {
+  font-size: 11.5px;
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+.matesList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mate {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px 4px 4px;
+  border-radius: 999px;
+  background: var(--tp-pink-tint);
+  font-size: 13.5px;
+  font-weight: var(--fw-semibold);
+  color: var(--color-ink);
+}
+
+.mateAvatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--tp-pink);
+  color: var(--tp-navy);
+  font-size: 10.5px;
+  font-weight: var(--fw-black);
+}

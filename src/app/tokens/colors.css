@@ -95,7 +95,7 @@
    are remapped too. Brand navy/pink themselves never change — headers, nav
    and pink buttons look the same in both appearances.
    ============================================================ */
-:root[data-theme="dark"] {
+[data-theme="dark"] {
   color-scheme: dark;
   --tp-grey-100:    #060B18;
   --tp-pink-tint:   rgba(241,140,190,0.14);
