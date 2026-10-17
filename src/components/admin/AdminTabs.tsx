@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/lib/useGuardedRouter";
 import { Tabs } from "@/components/ui/Tabs";
 import { useProfile } from "@/lib/queries/useProfile";
 import { useProfiles } from "@/lib/queries/useProfiles";

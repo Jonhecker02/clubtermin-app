@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/lib/useGuardedRouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";
@@ -18,6 +18,7 @@ import { queryKeys } from "@/lib/queries/keys";
 import { createClient } from "@/lib/supabase/client";
 import adminStyles from "@/components/admin/AdminList.module.css";
 import styles from "./page.module.css";
+import { useUnsavedChanges } from "@/lib/useUnsavedChanges";
 
 export default function AdminGruppenPage() {
   const router = useRouter();
@@ -30,6 +31,8 @@ export default function AdminGruppenPage() {
   const [editName, setEditName] = useState("");
   const [editShortCode, setEditShortCode] = useState("");
   const [editError, setEditError] = useState("");
+  const [editBaseline, setEditBaseline] = useState("");
+  useUnsavedChanges(editingId !== null && JSON.stringify([editName.trim(), editShortCode.trim()]) !== editBaseline);
   const [confirmKick, setConfirmKick] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState("");
@@ -39,6 +42,7 @@ export default function AdminGruppenPage() {
     setEditingId(id);
     setEditName(name);
     setEditShortCode(shortCode ?? "");
+    setEditBaseline(JSON.stringify([name.trim(), (shortCode ?? "").trim()]));
     setEditError("");
   }
 

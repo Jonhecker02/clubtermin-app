@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Input, Select, Textarea } from "@/components/ui/Input";
 import { Tabs } from "@/components/ui/Tabs";
 import { FormSection } from "./FormSection";
+import { useUnsavedChanges } from "@/lib/useUnsavedChanges";
 import { Button } from "@/components/ui/Button";
 import { useGroups } from "@/lib/queries/useGroups";
 import { useProfiles } from "@/lib/queries/useProfiles";
@@ -120,6 +121,15 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
   const regClosesAt = regClosesTouched ? regClosesManual : date ? suggestedRegistrationCloses(date) : "";
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+
+  // Warn before leaving with edits that were never saved. The first render's
+  // values are the baseline, so an untouched form never nags.
+  const snapshot = JSON.stringify([
+    type, title, trainerId, date, startTime, endTime, location, description, courts, sessionFormat, maxTn, price,
+    visMode, visGroups, regMode, regGroups, notifyCreate, reminderEnabled, regOpenMode, regOpensAt, regOpensHidden, regClosesAt,
+  ]);
+  const [baseline] = useState(snapshot);
+  useUnsavedChanges(snapshot !== baseline && !saving);
 
   // Trainings always happen on booked courts (required); events may use some
   // (optional); Spieltage (often away matches) have none to name.

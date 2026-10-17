@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Copy, ImageDown, Minus, Plus, Shuffle, Trash2, WandSparkles } from "lucide-react";
 import { Input, Select } from "@/components/ui/Input";
+import { useUnsavedChanges } from "@/lib/useUnsavedChanges";
 import { Tabs } from "@/components/ui/Tabs";
 import { Button } from "@/components/ui/Button";
 import { createClient } from "@/lib/supabase/client";
@@ -43,6 +44,16 @@ interface Participant {
   name: string;
 }
 
+// What actually gets saved (empty groups are dropped on save): used to tell
+// whether the draft differs from what is stored.
+function normalizeDraft(groups: DraftGroup[]): string {
+  return JSON.stringify(
+    groups
+      .filter((g) => g.memberIds.length > 0)
+      .map((g) => [g.label.trim(), g.trainerName.trim(), g.round, [...g.memberIds].sort()]),
+  );
+}
+
 function draftFromSaved(saved: ReturnType<typeof useTerminCourtGroups>["data"]): DraftGroup[] {
   return (saved ?? []).map((g) => ({
     key: g.id,
@@ -59,12 +70,15 @@ export function CourtGroupsEditor({
   participants,
   publishedAt,
   termin,
+  lateIds = [],
 }: {
   terminId: string;
   clubGroupId: string | null;
   participants: Participant[];
   publishedAt: string | null;
   termin: Termin;
+  // Players who joined after the deadline (Nachrücker), marked in the lists.
+  lateIds?: string[];
 }) {
   const queryClient = useQueryClient();
   const { data: saved, isLoading } = useTerminCourtGroups(terminId);
@@ -123,11 +137,19 @@ export function CourtGroupsEditor({
   // since this only needs to seed once when async data first shows up, not
   // re-run on every change to it.
   const [seededFrom, setSeededFrom] = useState<typeof saved>(undefined);
+  const [baseline, setBaseline] = useState("");
   const loadedOnce = seededFrom !== undefined;
-  if (saved !== undefined && seededFrom === undefined) {
+  const dirty = loadedOnce && normalizeDraft(groups) !== baseline;
+  // Seeds once, and again whenever the stored groups change underneath an
+  // untouched draft (the server puts Nachrücker into a court by itself) — a
+  // draft with unsaved edits is never overwritten.
+  if (saved !== undefined && (seededFrom === undefined || (saved !== seededFrom && !dirty))) {
+    const draft = draftFromSaved(saved);
     setSeededFrom(saved);
-    setGroups(draftFromSaved(saved));
+    setGroups(draft);
+    setBaseline(normalizeDraft(draft));
   }
+  useUnsavedChanges(dirty);
 
   useEffect(() => {
     if (!clubGroupId || participants.length === 0) return;
@@ -354,6 +376,7 @@ export function CourtGroupsEditor({
       return;
     }
     setSavedNotice(true);
+    setBaseline(normalizeDraft(groups));
     await queryClient.invalidateQueries({ queryKey: queryKeys.courtGroups(terminId) });
   }
 
@@ -470,6 +493,7 @@ export function CourtGroupsEditor({
                 <div key={p.user_id} className={styles.unassignedRow}>
                   <span>
                     {p.name}
+                    {lateIds.includes(p.user_id) && <span className={styles.lateTag}>Nachrücker</span>}
                     {levelOf(p.user_id) !== null && <span className={styles.levelTag}>{formatLevel(levelOf(p.user_id)!)}</span>}
                   </span>
                   {target && (
@@ -493,7 +517,7 @@ export function CourtGroupsEditor({
               </Button>
               <div className={styles.autoHint}>
                 Gleiche Logik wie die automatische Einteilung (Spielstärke, wer zuletzt mit wem gespielt hat). Von Hand
-                änderbar — gilt erst, wenn du unten speicherst.
+                änderbar — gilt erst, wenn du unten speicherst. (Neue Nachrücker teilt die App normalerweise selbst ein.)
               </div>
             </>
           )}
@@ -567,6 +591,7 @@ export function CourtGroupsEditor({
                 {g.memberIds.map((id) => (
                   <span key={id} className={styles.chip}>
                     {nameFor(id)}
+                    {lateIds.includes(id) && <span className={styles.lateTag}>N</span>}
                     {levelOf(id) !== null && <span className={styles.levelTag}>{formatLevel(levelOf(id)!)}</span>}
                     <button type="button" onClick={() => removeMember(g.key, id)} title="Entfernen">
                       ×

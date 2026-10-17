@@ -14,10 +14,12 @@ export type PartnerCounts = Record<string, Record<string, number>>;
 
 export const COURT_SIZE = 4;
 
-// Weight of level differences vs. repeated pairings. Levels dominate (a pair
-// that played together once never outweighs a one-level mismatch), but a
-// pair that has shared a court many times can pull in a neighbouring level.
-const LEVEL_WEIGHT = 10;
+// Level always comes first, partner history second: the weight is so large
+// that no number of recent shared courts can ever justify putting players of
+// different level together. Partner history only decides between groupings
+// that are equally good by level (typically: several players of the SAME
+// level, who can then be shuffled around to meet new partners).
+const LEVEL_WEIGHT = 1e9;
 const RESTARTS = 40;
 
 // 16 players -> 4 courts of 4. Anything that doesn't divide evenly gets the

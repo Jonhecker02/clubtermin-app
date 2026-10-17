@@ -9,6 +9,7 @@ import { Capacitor } from "@capacitor/core";
 import { PushNotifications } from "@capacitor/push-notifications";
 import { CACHE_KEY, shouldPersistQuery } from "@/lib/queryPersist";
 import { ThemeWatcher } from "@/components/ThemeWatcher";
+import { UnsavedChangesGuard } from "@/components/UnsavedChangesGuard";
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -69,6 +70,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       }}
     >
       <ThemeWatcher />
+      <UnsavedChangesGuard />
       {children}
     </PersistQueryClientProvider>
   );

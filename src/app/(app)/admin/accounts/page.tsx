@@ -22,6 +22,7 @@ import { displayEmail, groupLabel } from "@/lib/domain";
 import type { UserRole, UserStatus } from "@/types/database";
 import adminStyles from "@/components/admin/AdminList.module.css";
 import styles from "./page.module.css";
+import { useUnsavedChanges } from "@/lib/useUnsavedChanges";
 
 const ROLE_LABELS: Record<UserRole, string> = {
   owner: "Clubmanager",
@@ -50,6 +51,7 @@ export default function AdminAccountsPage() {
   const [editGroupId, setEditGroupId] = useState("");
   const [editRotationExcluded, setEditRotationExcluded] = useState(false);
   const [editTrainerGroupIds, setEditTrainerGroupIds] = useState<string[]>([]);
+  const [editBaseline, setEditBaseline] = useState("");
   const [editError, setEditError] = useState("");
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState("");
@@ -71,6 +73,16 @@ export default function AdminAccountsPage() {
   const [createLoading, setCreateLoading] = useState(false);
   const [createdCredentials, setCreatedCredentials] = useState<{ name: string; password: string } | null>(null);
   const [copied, setCopied] = useState(false);
+
+  // An open edit/create form with values that differ from where it started.
+  const editSnapshot = JSON.stringify([
+    editFirstName.trim(), editLastName.trim(), editGroupId, editRotationExcluded, [...editTrainerGroupIds].sort(),
+  ]);
+  const createDirty =
+    showCreate &&
+    !createdCredentials &&
+    (createFirstName.trim() !== "" || createLastName.trim() !== "" || createGroupId !== "" || createRole !== "member" || createTrainerGroupIds.length > 0);
+  useUnsavedChanges((editingId !== null && editSnapshot !== editBaseline) || createDirty);
 
   const sorted = [...profiles].sort((a, b) => a.name.localeCompare(b.name));
 
@@ -144,7 +156,11 @@ export default function AdminAccountsPage() {
     setEditLastName(rest.join(" "));
     setEditGroupId(groupId ?? "");
     setEditRotationExcluded(rotationExcluded);
-    setEditTrainerGroupIds(trainerGroups.filter((t) => t.user_id === id).map((t) => t.group_id));
+    const initialTrainerGroups = trainerGroups.filter((t) => t.user_id === id).map((t) => t.group_id);
+    setEditTrainerGroupIds(initialTrainerGroups);
+    setEditBaseline(
+      JSON.stringify([first ?? "", rest.join(" "), groupId ?? "", rotationExcluded, [...initialTrainerGroups].sort()]),
+    );
     setEditError("");
   }
 

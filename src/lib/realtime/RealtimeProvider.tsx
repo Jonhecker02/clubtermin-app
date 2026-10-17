@@ -35,6 +35,9 @@ export function RealtimeProvider() {
       .on("postgres_changes", { event: "*", schema: "public", table: "registrations" }, () => {
         invalidateUnlessFresh(queryClient, ["registrations"]);
         invalidateUnlessFresh(queryClient, ["waitlistRank"]);
+        // A newcomer is put into a court group by the server a moment after the
+        // registration lands (the group tables themselves aren't broadcast).
+        setTimeout(() => queryClient.invalidateQueries({ queryKey: ["courtGroups"], refetchType: "active" }), 3000);
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, () => {
         invalidateUnlessFresh(queryClient, queryKeys.profile);

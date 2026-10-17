@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
+import { useRouter } from "@/lib/useGuardedRouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Calendar, Clock, Euro, MapPin, Users } from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";
@@ -46,6 +47,7 @@ import { pushWhen } from "@/lib/pushText";
 import { RealtimeProvider } from "@/lib/realtime/RealtimeProvider";
 import styles from "./page.module.css";
 import { haptic } from "@/lib/haptics";
+import { triggerPlacement } from "@/lib/placement";
 
 export default function TerminDetailPage() {
   const params = useParams<{ id: string }>();
@@ -106,6 +108,7 @@ export default function TerminDetailPage() {
       return;
     }
     haptic("success");
+    triggerPlacement(terminId);
     await invalidateAll();
   }
 
@@ -127,6 +130,7 @@ export default function TerminDetailPage() {
     }
     // Fire-and-forget: notifies whoever just moved up from the waitlist.
     fetch("/api/notify/waitlist-promoted", { method: "POST" }).catch(() => {});
+    triggerPlacement(terminId);
     await invalidateAll();
   }
 

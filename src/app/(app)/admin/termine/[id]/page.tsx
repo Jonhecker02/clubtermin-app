@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
+import { useRouter } from "@/lib/useGuardedRouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Copy, ImageDown, Pencil, Plus, StickyNote, X } from "lucide-react";
 import { PlayerNotesPanel } from "@/components/admin/PlayerNotesPanel";
@@ -48,6 +49,7 @@ import {
 } from "@/lib/domain";
 import adminStyles from "@/components/admin/AdminList.module.css";
 import styles from "./page.module.css";
+import { triggerPlacement } from "@/lib/placement";
 
 export default function AdminParticipantsPage() {
   const params = useParams<{ id: string }>();
@@ -127,6 +129,7 @@ export default function AdminParticipantsPage() {
     const supabase = createClient();
     await supabase.rpc("admin_remove_participant", { p_termin_id: terminId, p_user_id: userId });
     fetch("/api/notify/waitlist-promoted", { method: "POST" }).catch(() => {});
+    triggerPlacement(terminId);
     // termine itself never changes here — only registrations does.
     await queryClient.invalidateQueries({ queryKey: queryKeys.registrations(terminId) });
   }
@@ -141,6 +144,7 @@ export default function AdminParticipantsPage() {
     }
     setPickerOpen(false);
     setSearch("");
+    triggerPlacement(terminId);
     await queryClient.invalidateQueries({ queryKey: queryKeys.registrations(terminId) });
   }
 
@@ -472,6 +476,7 @@ export default function AdminParticipantsPage() {
             participants={participants.map((p) => ({ user_id: p.user_id, name: p.name }))}
             publishedAt={termin.court_groups_published_at}
             termin={termin}
+            lateIds={participants.filter((p) => isNachruecker(p.created_at, termin)).map((p) => p.user_id)}
           />
         )}
       </PageBody>

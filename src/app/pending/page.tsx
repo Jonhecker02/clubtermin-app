@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/lib/useGuardedRouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { Clock, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";

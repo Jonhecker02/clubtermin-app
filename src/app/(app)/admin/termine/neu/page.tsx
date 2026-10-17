@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/lib/useGuardedRouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";

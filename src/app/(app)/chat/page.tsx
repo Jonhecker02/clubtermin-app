@@ -20,6 +20,7 @@ import { groupLabel, initials } from "@/lib/domain";
 import type { UserRole } from "@/types/database";
 import adminStyles from "@/components/admin/AdminList.module.css";
 import styles from "./page.module.css";
+import { useUnsavedChanges } from "@/lib/useUnsavedChanges";
 
 const MODE_ITEMS = [
   { id: "chat", label: "Chat" },
@@ -123,6 +124,8 @@ export default function ChatPage() {
   const { data: announcements = [] } = useAnnouncements();
   const [composing, setComposing] = useState(false);
   const [announceText, setAnnounceText] = useState("");
+  // An announcement being written but not posted yet.
+  useUnsavedChanges(composing && announceText.trim() !== "");
   const [visMode, setVisMode] = useState<"alle" | "ausgewaehlt">("alle");
   const [visGroups, setVisGroups] = useState<string[]>([]);
   const [announceError, setAnnounceError] = useState("");

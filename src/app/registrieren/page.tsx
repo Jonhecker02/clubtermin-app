@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/lib/useGuardedRouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { UserPlus } from "lucide-react";
 import { IntroShell, introStyles as styles } from "@/components/layout/IntroShell";

@@ -298,3 +298,17 @@
   font-weight: var(--fw-bold);
   cursor: pointer;
 }
+
+.lateTag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: var(--tp-pink);
+  color: var(--tp-navy);
+  font-size: 10px;
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/lib/useGuardedRouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";
@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/Button";
 import { queryKeys } from "@/lib/queries/keys";
 import { createClient } from "@/lib/supabase/client";
 import adminStyles from "@/components/admin/AdminList.module.css";
+import { useUnsavedChanges } from "@/lib/useUnsavedChanges";
 
 export default function NeueGruppePage() {
   const router = useRouter();
@@ -20,6 +21,7 @@ export default function NeueGruppePage() {
   const [shortCode, setShortCode] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  useUnsavedChanges((name.trim() !== "" || shortCode.trim() !== "") && !saving);
 
   async function submit() {
     if (!name.trim()) {

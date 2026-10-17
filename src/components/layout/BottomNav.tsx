@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { useRouter } from "@/lib/useGuardedRouter";
 import { Calendar, MessageCircle, User } from "lucide-react";
 import { haptic } from "@/lib/haptics";
 import styles from "./BottomNav.module.css";

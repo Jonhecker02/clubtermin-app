@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/lib/useGuardedRouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { Bell, CalendarPlus, ChevronDown, ChevronUp, Copy, Info, Pencil } from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";
@@ -24,6 +24,7 @@ import styles from "./page.module.css";
 import { clearAllCaches } from "@/lib/queryPersist";
 import { applyTheme, getStoredTheme, type ThemeChoice } from "@/lib/theme";
 import { Tabs } from "@/components/ui/Tabs";
+import { useUnsavedChanges } from "@/lib/useUnsavedChanges";
 
 const THEME_ITEMS = [
   { id: "auto", label: "Automatisch" },
@@ -67,6 +68,8 @@ export default function ProfilPage() {
 
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState("");
+  // Name field open with a different name typed than the saved one.
+  useUnsavedChanges(editingName && nameInput.trim() !== (profile?.name ?? ""));
   const [nameError, setNameError] = useState("");
   const [savingName, setSavingName] = useState(false);
 

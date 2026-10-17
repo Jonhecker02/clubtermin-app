@@ -10,6 +10,7 @@ import { queryKeys } from "@/lib/queries/keys";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/types/database";
 import styles from "./PlayerNotesPanel.module.css";
+import { useUnsavedChanges } from "@/lib/useUnsavedChanges";
 
 function formatNoteDate(iso: string): string {
   return new Date(iso).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
@@ -19,6 +20,8 @@ export function PlayerNotesPanel({ userId, profiles }: { userId: string; profile
   const queryClient = useQueryClient();
   const { data: notes = [], isLoading } = usePlayerNotes(userId);
   const [draft, setDraft] = useState("");
+  // A note typed but not saved yet.
+  useUnsavedChanges(draft.trim() !== "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 

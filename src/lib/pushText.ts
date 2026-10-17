@@ -123,4 +123,22 @@ export const pushText = {
       tag: `allocation-${p.terminId}`,
     };
   },
+
+  // To the Clubmanager: newcomers were put into court groups automatically.
+  newcomersPlaced(p: {
+    label: string;
+    date: string;
+    startTime: string;
+    terminId: string;
+    placed: { name: string; groupLabel: string }[];
+    unplacedNames: string[];
+  }): PushMessage {
+    const parts = p.placed.map((x) => `${x.name} → ${x.groupLabel}`);
+    if (p.unplacedNames.length > 0) parts.push(`${p.unplacedNames.join(", ")}: kein freier Court`);
+    return {
+      title: p.placed.length > 0 ? "👥 Nachrücker eingeteilt" : "👥 Nachrücker ohne Court",
+      body: `${p.label} · ${pushWhen(p.date, p.startTime)}\n${truncate(parts.join(", "), 110)}. Bitte prüfen.`,
+      tag: `placement-${p.terminId}`,
+    };
+  },
 };

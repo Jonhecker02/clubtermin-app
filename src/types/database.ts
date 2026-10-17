@@ -374,7 +374,7 @@ export interface Database {
       };
       termin_court_group_members: {
         Row: TerminCourtGroupMember;
-        Insert: never;
+        Insert: TerminCourtGroupMember;
         Update: never;
         Relationships: [];
       };

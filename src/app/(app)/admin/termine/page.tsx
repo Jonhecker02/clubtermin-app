@@ -2,7 +2,8 @@
 
 import { Suspense, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "@/lib/useGuardedRouter";
 import { Plus } from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { PageBody } from "@/components/layout/PageBody";

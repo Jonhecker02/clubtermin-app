@@ -14,6 +14,7 @@ import { createClient } from "@/lib/supabase/client";
 import { formatLevel, groupLabel, parseLevel } from "@/lib/domain";
 import adminStyles from "@/components/admin/AdminList.module.css";
 import styles from "../statistik/page.module.css";
+import { useUnsavedChanges } from "@/lib/useUnsavedChanges";
 
 export default function AdminSpielstaerkePage() {
   const queryClient = useQueryClient();
@@ -33,6 +34,9 @@ export default function AdminSpielstaerkePage() {
   // it's validated and saved when the field loses focus (or on Enter).
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
+  // Valid entries save themselves when the field loses focus; only a value
+  // that was rejected (invalid / failed to save) is still unsaved.
+  useUnsavedChanges(Object.entries(errors).some(([id, msg]) => msg && drafts[id] !== undefined));
 
   function shown(userId: string): string {
     if (drafts[userId] !== undefined) return drafts[userId];

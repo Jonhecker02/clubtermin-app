@@ -557,12 +557,18 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                 <b>„Zuteilung bestätigen“</b> antippen — erst dann sehen die Spieler ihr Ergebnis.
               </Callout>
               <Callout mark="Nachrücker">
-                Nach dem Anmeldeschluss können sich Spieler bei freien Plätzen noch als Nachrücker anmelden.
-                Sie sind sofort dabei und erscheinen mit dem Hinweis „Nachrücker“. Gibt es schon Gruppen, schlägt
-                die App im Reiter „Gruppen“ pro Nachrücker einen Court vor (gleiche Logik wie die automatische
-                Einteilung). Du kannst den Vorschlag übernehmen oder von Hand ändern — gültig wird er mit{" "}
-                <b>„Speichern“</b>. In den kopierten Listen (Text und Bild) steht bei freien Plätzen der
-                Hinweis, dass man sich als Nachrücker in der App anmelden kann.
+                Nach dem Anmeldeschluss können sich Spieler bei freien Plätzen noch als Nachrücker anmelden
+                (ebenso rücken Wartelisten-Spieler nach, wenn jemand absagt). Gibt es schon Gruppen, teilt die App
+                sie <b>automatisch</b> in den passenden Court ein — zuerst nach Spielstärke, dann danach, mit wem
+                sie zuletzt gespielt haben — und schickt dem Clubmanager eine Benachrichtigung zum Prüfen. Die
+                Zuteilung ist sofort gespeichert und bleibt bestehen; du kannst sie im Reiter „Gruppen“ ändern
+                (Nachrücker sind dort markiert). Wer abgesagt hat, wird automatisch aus seinem Court genommen. In
+                den kopierten Listen (Text und Bild) steht bei freien Plätzen der Hinweis, dass man sich als
+                Nachrücker in der App anmelden kann.
+              </Callout>
+              <Callout mark="Speichern">
+                Wer die Seite mit ungespeicherten Änderungen verlassen will (Zurück, Tab wechseln, Neu laden),
+                bekommt eine Warnung und kann weiter bearbeiten oder die Änderungen verwerfen.
               </Callout>
               <Callout mark="Nachvollziehen">
                 Im Termin selbst zeigt der Abschnitt <b>„Zuteilung erklären“</b> nach Ablauf der Frist für

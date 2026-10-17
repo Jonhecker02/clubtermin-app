@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/lib/useGuardedRouter";
 import { CalendarPlus, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { PageBody } from "@/components/layout/PageBody";
