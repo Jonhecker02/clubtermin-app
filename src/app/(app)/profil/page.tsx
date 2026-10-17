@@ -19,7 +19,7 @@ import { useIcalToken } from "@/lib/queries/useIcalToken";
 import { usePush } from "@/lib/queries/usePush";
 import { createClient } from "@/lib/supabase/client";
 import { queryKeys } from "@/lib/queries/keys";
-import { dateLabel, displayEmail, groupLabel, hhmm, isUpcoming, terminDateTime, weekdayLabel } from "@/lib/domain";
+import { dateLabel, displayEmail, groupLabel, hhmm, isTerminRunning, isUpcoming, terminDateTime, weekdayLabel } from "@/lib/domain";
 import styles from "./page.module.css";
 import { clearAllCaches } from "@/lib/queryPersist";
 import { applyTheme, getStoredTheme, type ThemeChoice } from "@/lib/theme";
@@ -119,6 +119,7 @@ export default function ProfilPage() {
           time: hhmm(t.start_time),
           sortKey: terminDateTime(t.date, t.start_time).getTime(),
           upcoming: isUpcoming(t),
+          live: isTerminRunning(t),
         };
       })
       .filter((x): x is NonNullable<typeof x> => x !== null)

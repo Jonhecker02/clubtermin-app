@@ -133,8 +133,15 @@ export function msUntil(target: Date): number {
   return target.getTime() - Date.now();
 }
 
-export function isUpcoming(t: { date: string; start_time: string }): boolean {
-  return terminDateTime(t.date, t.start_time).getTime() >= Date.now();
+// "Kommend" until the termin is over — one that is running right now still
+// counts (it only moves to "Vergangen" after its end time).
+export function isUpcoming(t: { date: string; start_time: string; end_time?: string }): boolean {
+  return terminDateTime(t.date, t.end_time ?? t.start_time).getTime() >= Date.now();
+}
+
+// Between start and end right now.
+export function isTerminRunning(t: { date: string; start_time: string; end_time: string }, nowMs = Date.now()): boolean {
+  return terminDateTime(t.date, t.start_time).getTime() <= nowMs && nowMs <= terminDateTime(t.date, t.end_time).getTime();
 }
 
 type RegistrationWindow = {

@@ -23,6 +23,7 @@ import {
   groupShortCode,
   hhmm,
   isRegistrationOpen,
+  isTerminRunning,
   isUpcoming,
   monthLabel,
   registrationMeta,
@@ -32,6 +33,7 @@ import {
 } from "@/lib/domain";
 import type { Group, Termin, TerminType } from "@/types/database";
 import styles from "./page.module.css";
+import { useNow } from "@/lib/useNow";
 
 const FILTER_ITEMS = [
   { id: "alle", label: "Alle" },
@@ -65,6 +67,7 @@ function toRow(t: Termin, counts: Record<string, RegistrationCount>, groups: Gro
     type: t.type,
     notice: registrationOpensLabel(t),
     dimmed: !isRegistrationOpen(t),
+    live: isTerminRunning(t),
   };
 }
 
@@ -101,12 +104,16 @@ export default function TerminePage() {
 
   // Type-only filter: feeds the calendar, which stays unaffected by the
   // Kommend/Vergangen split (browsing past months should still work).
+  // Re-evaluates "Kommend" / "Läuft gerade" every minute while the screen is open.
+  const tick = useNow(60_000);
   const typeFiltered = termine.filter((t) => filter === "alle" || t.type === filter);
 
   const listFiltered = useMemo(() => {
     const base = typeFiltered.filter((t) => (timeFilter === "kommend" ? isUpcoming(t) : !isUpcoming(t)));
     return timeFilter === "vergangen" ? [...base].reverse() : base;
-  }, [typeFiltered, timeFilter]);
+    // tick: the clock moving on is what changes the result
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [typeFiltered, timeFilter, tick]);
 
   const byDate = useMemo(() => {
     const map = new Map<string, Termin[]>();

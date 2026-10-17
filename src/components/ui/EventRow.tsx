@@ -11,6 +11,8 @@ interface EventRowProps {
   time: string;
   meta?: string;
   notice?: string | null;
+  // The termin is running right now.
+  live?: boolean;
   dimmed?: boolean;
   type?: TerminType;
   onClick?: () => void;
@@ -30,6 +32,7 @@ export function EventRow({
   time,
   meta,
   notice,
+  live = false,
   dimmed = false,
   type = "training",
   onClick,
@@ -37,7 +40,7 @@ export function EventRow({
   return (
     <button
       type="button"
-      className={[styles[TYPE_ROW_CLASS[type]], dimmed ? styles.dimmed : ""].join(" ")}
+      className={[styles[TYPE_ROW_CLASS[type]], dimmed ? styles.dimmed : "", live ? styles.live : ""].join(" ")}
       onClick={onClick}
     >
       <div className={styles.mainRow}>
@@ -55,6 +58,12 @@ export function EventRow({
           {meta && <span className={styles.meta}>{meta}</span>}
         </div>
       </div>
+      {live && (
+        <div className={styles.liveRow}>
+          <span className={styles.liveDot} aria-hidden="true" />
+          Läuft gerade
+        </div>
+      )}
       {notice && <div className={styles.noticeRow}>{notice}</div>}
     </button>
   );

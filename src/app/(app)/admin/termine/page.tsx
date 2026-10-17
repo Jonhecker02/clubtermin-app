@@ -27,6 +27,7 @@ import {
   groupShortCode,
   hhmm,
   isRegistrationOpen,
+  isTerminRunning,
   isUpcoming,
   registrationMeta,
   registrationOpensLabel,
@@ -35,6 +36,7 @@ import {
 } from "@/lib/domain";
 import type { Termin } from "@/types/database";
 import styles from "@/components/admin/AdminList.module.css";
+import { useNow } from "@/lib/useNow";
 
 const TIME_ITEMS = [
   { id: "kommend", label: "Kommend" },
@@ -96,10 +98,13 @@ export default function AdminTerminePage() {
     setOpenId(null);
   }
 
+  const tick = useNow(60_000);
   const filtered = useMemo(() => {
     const base = termine.filter((t) => (timeFilter === "kommend" ? isUpcoming(t) : !isUpcoming(t)));
     return timeFilter === "vergangen" ? [...base].reverse() : base;
-  }, [termine, timeFilter]);
+    // tick: the clock moving on is what changes the result
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [termine, timeFilter, tick]);
 
   async function deleteTermin(id: string) {
     const supabase = createClient();
@@ -176,6 +181,7 @@ export default function AdminTerminePage() {
                   type={t.type}
                   notice={registrationOpensLabel(t, { forAdmin: true })}
                   dimmed={!isRegistrationOpen(t)}
+                  live={isTerminRunning(t)}
                   onClick={() => router.push(`/admin/termine/${t.id}`)}
                 />
               </SwipeRow>

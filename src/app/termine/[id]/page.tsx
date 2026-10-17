@@ -43,6 +43,7 @@ import {
   sessionFormatOf,
   isNachruecker,
   registrationDeadlinePassed,
+  isTerminRunning,
 } from "@/lib/domain";
 import { pushWhen } from "@/lib/pushText";
 import { RealtimeProvider } from "@/lib/realtime/RealtimeProvider";
@@ -280,6 +281,7 @@ export default function TerminDetailPage() {
       <div className={styles.content}>
         <div className={styles.badgeRow}>
           <Badge tone={badge.tone}>{badge.label}</Badge>
+          {isTerminRunning(termin) && <Badge tone="soft">● Läuft gerade</Badge>}
         </div>
         <div className={styles.title}>{displayTitle}</div>
         {termin.description && <div className={styles.description}>{termin.description}</div>}
