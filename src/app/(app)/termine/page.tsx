@@ -11,6 +11,7 @@ import { EventRow } from "@/components/ui/EventRow";
 import { useProfile } from "@/lib/queries/useProfile";
 import { useTermine } from "@/lib/queries/useTermine";
 import { useGroups } from "@/lib/queries/useGroups";
+import { TRAINER_SCOPE_ITEMS, useTrainerTermineFilter } from "@/lib/queries/useTrainerGroups";
 import { useRegistrationCounts } from "@/lib/queries/useRegistrations";
 import {
   badgeInfo,
@@ -67,7 +68,10 @@ function toRow(t: Termin, counts: Record<string, number>, groups: Group[]) {
 export default function TerminePage() {
   const router = useRouter();
   const { data: profile } = useProfile();
-  const { data: termine = [], isLoading } = useTermine();
+  const { data: allTermine = [], isLoading } = useTermine();
+  const trainerFilter = useTrainerTermineFilter();
+  const { apply: applyTrainerScope } = trainerFilter;
+  const termine = useMemo(() => applyTrainerScope(allTermine), [applyTrainerScope, allTermine]);
   const { data: groups = [] } = useGroups();
   const { data: counts = {} } = useRegistrationCounts();
   const isAdmin = profile?.role === "owner" || profile?.role === "trainer" || profile?.role === "captain";
@@ -157,6 +161,15 @@ export default function TerminePage() {
         }
       />
       <PageBody>
+        {trainerFilter.scoped && (
+          <Tabs
+            items={TRAINER_SCOPE_ITEMS}
+            value={trainerFilter.mode}
+            onChange={(id) => trainerFilter.setMode(id as "meine" | "alle")}
+            size="sm"
+            className={styles.filterRow}
+          />
+        )}
         <Tabs
           items={FILTER_ITEMS}
           value={filter}

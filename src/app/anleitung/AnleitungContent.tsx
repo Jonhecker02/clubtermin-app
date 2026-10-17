@@ -417,6 +417,11 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
               Spieler-Anleitung gilt weiterhin auch für dich — hier kommt dazu, was du zusätzlich verwalten
               kannst.
             </p>
+            <p className={styles.intro}>
+              <b>Trainer</b> werden vom Clubmanager einer oder mehreren Gruppen zugeordnet („Trainer von“). In
+              Termine und Chat siehst du dann standardmäßig die Gruppen, die du trainierst — mit „Alle Gruppen“
+              schaltest du auf alles um. Neue Termine und Ankündigungen deiner Gruppen bekommst du auch als Push.
+            </p>
 
             <nav className={styles.jumpnav} aria-label="Abschnitte">
               <a href="#a-home">App &amp; Push</a>

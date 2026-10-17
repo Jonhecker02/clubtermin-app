@@ -11,13 +11,15 @@ import { generatePassword, initials } from "@/lib/passwordGen";
 // for the privileged Admin API call.
 
 export async function POST(request: Request) {
-  const { name, group_id, role } = (await request.json()) as {
+  const { name, group_id, role, trainer_group_ids } = (await request.json()) as {
     name?: string;
     group_id?: string | null;
     role?: "member" | "trainer" | "captain";
+    trainer_group_ids?: string[];
   };
-  // Trainer aren't tied to one team's roster (unlike Spieler/Kapitän), so a
-  // Gruppe is optional for them — everyone else still needs one.
+  // Trainer aren't tied to one team's roster (unlike Spieler/Kapitän): they
+  // get any number of "Trainer von" groups instead (trainer_group_ids), so a
+  // single Gruppe is optional for them — everyone else still needs one.
   const groupRequired = role !== "trainer";
   if (!name?.trim() || (groupRequired && !group_id)) {
     return NextResponse.json({ error: "missing_fields" }, { status: 400 });
@@ -80,6 +82,15 @@ export async function POST(request: Request) {
     .eq("id", created.user.id);
   if (patchError) {
     return NextResponse.json({ error: patchError.message }, { status: 500 });
+  }
+
+  if (role === "trainer" && trainer_group_ids?.length) {
+    const { error: trainerGroupsError } = await service
+      .from("trainer_groups")
+      .insert(trainer_group_ids.map((gid) => ({ user_id: created.user.id, group_id: gid })));
+    if (trainerGroupsError) {
+      return NextResponse.json({ error: trainerGroupsError.message }, { status: 500 });
+    }
   }
 
   return NextResponse.json({ name: trimmedName, password });

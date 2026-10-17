@@ -11,6 +11,7 @@ import { IconButton } from "@/components/ui/IconButton";
 import { Badge } from "@/components/ui/Badge";
 import { useProfile } from "@/lib/queries/useProfile";
 import { useGroups } from "@/lib/queries/useGroups";
+import { useTrainerScope } from "@/lib/queries/useTrainerGroups";
 import { useMessages } from "@/lib/queries/useMessages";
 import { useAnnouncements } from "@/lib/queries/useAnnouncements";
 import { queryKeys } from "@/lib/queries/keys";
@@ -69,14 +70,22 @@ export default function ChatPage() {
   const [mode, setMode] = useState<"chat" | "ankuendigungen">("chat");
 
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
-  const groupId = selectedGroupId ?? profile?.group_id ?? null;
+  // A trainer with assigned groups sees the chats of exactly those groups.
+  const trainerScope = useTrainerScope();
+  const groupId = selectedGroupId ?? profile?.group_id ?? (trainerScope.scoped ? trainerScope.groupIds[0] : null) ?? null;
 
   const { data: messages = [] } = useMessages(groupId);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  const groupTabs = useMemo(() => groups.map((g) => ({ id: g.id, label: groupLabel(g) })), [groups]);
+  const groupTabs = useMemo(
+    () =>
+      groups
+        .filter((g) => !trainerScope.scoped || trainerScope.groupIds.includes(g.id))
+        .map((g) => ({ id: g.id, label: groupLabel(g) })),
+    [groups, trainerScope.scoped, trainerScope.groupIds],
+  );
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ block: "end" });

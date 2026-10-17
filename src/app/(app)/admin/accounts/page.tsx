@@ -11,9 +11,11 @@ import { Input, Select } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { AdminTabs } from "@/components/admin/AdminTabs";
 import { PlayerNotesPanel } from "@/components/admin/PlayerNotesPanel";
+import { TrainerGroupsPicker } from "@/components/admin/TrainerGroupsPicker";
 import { useProfile } from "@/lib/queries/useProfile";
 import { useProfiles } from "@/lib/queries/useProfiles";
 import { useGroups } from "@/lib/queries/useGroups";
+import { useTrainerGroups } from "@/lib/queries/useTrainerGroups";
 import { queryKeys } from "@/lib/queries/keys";
 import { createClient } from "@/lib/supabase/client";
 import { displayEmail, groupLabel } from "@/lib/domain";
@@ -32,7 +34,7 @@ function statusInfo(status: UserStatus | null): { label: string; tone: "soft" | 
   if (status === "approved") return { label: "Aktiv", tone: "soft" };
   if (status === "pending") return { label: "Anfrage offen", tone: "amber" };
   if (status === "rejected") return { label: "Abgelehnt", tone: "outline" };
-  return { label: "Kein Teamcode", tone: "outline" };
+  return { label: "Keine Gruppe", tone: "outline" };
 }
 
 export default function AdminAccountsPage() {
@@ -40,12 +42,14 @@ export default function AdminAccountsPage() {
   const { data: profile } = useProfile();
   const { data: profiles = [] } = useProfiles();
   const { data: groups = [] } = useGroups();
+  const { data: trainerGroups = [] } = useTrainerGroups();
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editFirstName, setEditFirstName] = useState("");
   const [editLastName, setEditLastName] = useState("");
   const [editGroupId, setEditGroupId] = useState("");
   const [editRotationExcluded, setEditRotationExcluded] = useState(false);
+  const [editTrainerGroupIds, setEditTrainerGroupIds] = useState<string[]>([]);
   const [editError, setEditError] = useState("");
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState("");
@@ -62,6 +66,7 @@ export default function AdminAccountsPage() {
   const [createLastName, setCreateLastName] = useState("");
   const [createGroupId, setCreateGroupId] = useState("");
   const [createRole, setCreateRole] = useState<UserRole>("member");
+  const [createTrainerGroupIds, setCreateTrainerGroupIds] = useState<string[]>([]);
   const [createError, setCreateError] = useState("");
   const [createLoading, setCreateLoading] = useState(false);
   const [createdCredentials, setCreatedCredentials] = useState<{ name: string; password: string } | null>(null);
@@ -69,12 +74,22 @@ export default function AdminAccountsPage() {
 
   const sorted = [...profiles].sort((a, b) => a.name.localeCompare(b.name));
 
+  function trainerGroupNames(userId: string): string {
+    return trainerGroups
+      .filter((t) => t.user_id === userId)
+      .map((t) => groups.find((g) => g.id === t.group_id))
+      .filter((g): g is NonNullable<typeof g> => !!g)
+      .map((g) => g.short_code || g.name)
+      .join(", ");
+  }
+
   function resetCreateForm() {
     setShowCreate(false);
     setCreateFirstName("");
     setCreateLastName("");
     setCreateGroupId("");
     setCreateRole("member");
+    setCreateTrainerGroupIds([]);
     setCreateError("");
     setCreatedCredentials(null);
     setCopied(false);
@@ -86,7 +101,7 @@ export default function AdminAccountsPage() {
       return;
     }
     // Trainer sind nicht an eine Mannschaft gebunden (anders als Spieler und
-    // Kapitän) — für sie ist die Gruppe optional.
+    // Kapitän) — sie bekommen stattdessen beliebig viele "Trainer von"-Gruppen.
     if (createRole !== "trainer" && !createGroupId) {
       setCreateError("Bitte wähle eine Gruppe.");
       return;
@@ -98,8 +113,9 @@ export default function AdminAccountsPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: `${createFirstName.trim()} ${createLastName.trim()}`,
-        group_id: createGroupId || null,
+        group_id: createRole === "trainer" ? null : createGroupId || null,
         role: createRole,
+        trainer_group_ids: createRole === "trainer" ? createTrainerGroupIds : [],
       }),
     });
     const data = await res.json();
@@ -112,7 +128,10 @@ export default function AdminAccountsPage() {
       return;
     }
     setCreatedCredentials({ name: data.name, password: data.password });
-    await queryClient.invalidateQueries({ queryKey: queryKeys.profiles });
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.profiles }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.trainerGroups }),
+    ]);
   }
 
   function startEdit(id: string, name: string, groupId: string | null, rotationExcluded: boolean) {
@@ -125,6 +144,7 @@ export default function AdminAccountsPage() {
     setEditLastName(rest.join(" "));
     setEditGroupId(groupId ?? "");
     setEditRotationExcluded(rotationExcluded);
+    setEditTrainerGroupIds(trainerGroups.filter((t) => t.user_id === id).map((t) => t.group_id));
     setEditError("");
   }
 
@@ -144,8 +164,12 @@ export default function AdminAccountsPage() {
       return;
     }
     await supabase.rpc("admin_set_rotation_excluded", { p_user_id: editingId!, p_excluded: editRotationExcluded });
+    if (profiles.find((p) => p.id === editingId)?.role === "trainer") {
+      await supabase.rpc("set_trainer_groups", { p_user_id: editingId!, p_group_ids: editTrainerGroupIds });
+    }
     setEditingId(null);
     await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.trainerGroups }),
       queryClient.invalidateQueries({ queryKey: queryKeys.profiles }),
       queryClient.invalidateQueries({ queryKey: ["registrations"] }),
     ]);
@@ -238,23 +262,26 @@ export default function AdminAccountsPage() {
                   value={createLastName}
                   onChange={(e) => setCreateLastName(e.target.value)}
                 />
-                <Select
-                  label={createRole === "trainer" ? "Gruppe (optional)" : "Gruppe"}
-                  value={createGroupId}
-                  onChange={(e) => setCreateGroupId(e.target.value)}
-                >
-                  <option value="">{createRole === "trainer" ? "— keine Gruppe —" : "— Gruppe wählen —"}</option>
-                  {groups.map((g) => (
-                    <option key={g.id} value={g.id}>
-                      {groupLabel(g)}
-                    </option>
-                  ))}
-                </Select>
                 <Select label="Rolle" value={createRole} onChange={(e) => setCreateRole(e.target.value as UserRole)}>
                   <option value="member">Spieler</option>
                   <option value="captain">Kapitän</option>
                   <option value="trainer">Trainer</option>
                 </Select>
+                {createRole === "trainer" ? (
+                  <div>
+                    <div className={styles.hint}>Trainer von (mehrere möglich, optional)</div>
+                    <TrainerGroupsPicker groups={groups} value={createTrainerGroupIds} onChange={setCreateTrainerGroupIds} />
+                  </div>
+                ) : (
+                  <Select label="Gruppe" value={createGroupId} onChange={(e) => setCreateGroupId(e.target.value)}>
+                    <option value="">— Gruppe wählen —</option>
+                    {groups.map((g) => (
+                      <option key={g.id} value={g.id}>
+                        {groupLabel(g)}
+                      </option>
+                    ))}
+                  </Select>
+                )}
                 {createError && <div className={styles.error}>{createError}</div>}
                 <div className={styles.editActions}>
                   <Button variant="accent" size="sm" full onClick={createUser} disabled={createLoading}>
@@ -292,7 +319,10 @@ export default function AdminAccountsPage() {
                         </div>
                         {displayEmail(p.email) && <div className={styles.meta}>{displayEmail(p.email)}</div>}
                         <div className={styles.meta}>
-                          {ROLE_LABELS[p.role]} · {groups.find((g) => g.id === p.group_id)?.name ?? "—"}
+                          {ROLE_LABELS[p.role]} ·{" "}
+                          {p.role === "trainer"
+                            ? trainerGroupNames(p.id) || "keine Gruppe zugeordnet"
+                            : (groups.find((g) => g.id === p.group_id)?.name ?? "—")}
                         </div>
                       </div>
                       <Badge tone={status.tone} size="sm">
@@ -408,7 +438,11 @@ export default function AdminAccountsPage() {
                   <div className={styles.editRow}>
                     <Input label="Vorname" value={editFirstName} onChange={(e) => setEditFirstName(e.target.value)} error={editError} />
                     <Input label="Nachname" value={editLastName} onChange={(e) => setEditLastName(e.target.value)} />
-                    <Select label="Gruppe" value={editGroupId} onChange={(e) => setEditGroupId(e.target.value)}>
+                    <Select
+                      label={p.role === "trainer" ? "Gruppe als Spieler (optional)" : "Gruppe"}
+                      value={editGroupId}
+                      onChange={(e) => setEditGroupId(e.target.value)}
+                    >
                       <option value="">— keine Gruppe —</option>
                       {groups.map((g) => (
                         <option key={g.id} value={g.id}>
@@ -416,6 +450,12 @@ export default function AdminAccountsPage() {
                         </option>
                       ))}
                     </Select>
+                    {p.role === "trainer" && (
+                      <div>
+                        <div className={styles.hint}>Trainer von (mehrere möglich)</div>
+                        <TrainerGroupsPicker groups={groups} value={editTrainerGroupIds} onChange={setEditTrainerGroupIds} />
+                      </div>
+                    )}
                     <label className={adminStyles.checkboxLabel}>
                       <input
                         type="checkbox"

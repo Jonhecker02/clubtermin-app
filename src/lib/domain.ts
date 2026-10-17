@@ -13,6 +13,18 @@ export function displayEmail(email: string | null | undefined): string | null {
   return email;
 }
 
+// Whether a termin belongs to a trainer's scope: it is visible to / open for
+// one of their groups (or everyone), or they are its assigned trainer.
+export function terminInTrainerScope(
+  t: { visible_groups: string[]; register_groups: string[]; trainer_id: string | null },
+  groupIds: string[],
+  userId: string | null,
+): boolean {
+  if (userId && t.trainer_id === userId) return true;
+  const hit = (list: string[]) => list.includes("all") || list.some((g) => groupIds.includes(g));
+  return hit(t.visible_groups) || hit(t.register_groups);
+}
+
 export function weekdayLabel(dateISO: string): string {
   const d = new Date(`${dateISO}T00:00:00`);
   return WEEKDAY_LABELS[(d.getDay() + 6) % 7];

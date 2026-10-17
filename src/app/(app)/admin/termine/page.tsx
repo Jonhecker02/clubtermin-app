@@ -14,6 +14,7 @@ import { Tabs } from "@/components/ui/Tabs";
 import { AdminTabs } from "@/components/admin/AdminTabs";
 import { useTermine } from "@/lib/queries/useTermine";
 import { useGroups } from "@/lib/queries/useGroups";
+import { TRAINER_SCOPE_ITEMS, useTrainerTermineFilter } from "@/lib/queries/useTrainerGroups";
 import { useRegistrationCounts } from "@/lib/queries/useRegistrations";
 import { queryKeys } from "@/lib/queries/keys";
 import { createClient } from "@/lib/supabase/client";
@@ -71,7 +72,10 @@ function CreatedNotice() {
 export default function AdminTerminePage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { data: termine = EMPTY_TERMINE } = useTermine();
+  const { data: allTermine = EMPTY_TERMINE } = useTermine();
+  const trainerFilter = useTrainerTermineFilter();
+  const { apply: applyTrainerScope } = trainerFilter;
+  const termine = useMemo(() => applyTrainerScope(allTermine), [applyTrainerScope, allTermine]);
   const { data: groups = [] } = useGroups();
   const { data: counts = {} } = useRegistrationCounts();
   const [timeFilter, setTimeFilter] = useState<"kommend" | "vergangen">("kommend");
@@ -114,6 +118,16 @@ export default function AdminTerminePage() {
         <Suspense fallback={null}>
           <CreatedNotice />
         </Suspense>
+
+        {trainerFilter.scoped && (
+          <Tabs
+            items={TRAINER_SCOPE_ITEMS}
+            value={trainerFilter.mode}
+            onChange={(id) => trainerFilter.setMode(id as "meine" | "alle")}
+            size="sm"
+            style={{ marginBottom: 10 }}
+          />
+        )}
 
         <Tabs
           items={TIME_ITEMS}

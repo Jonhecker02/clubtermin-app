@@ -2,6 +2,7 @@ export const queryKeys = {
   profile: ["profile"] as const,
   profiles: ["profiles"] as const,
   groups: ["groups"] as const,
+  trainerGroups: ["trainerGroups"] as const,
   termine: ["termine"] as const,
   registrations: (terminId: string) => ["registrations", terminId] as const,
   myRegistrations: ["registrations", "mine"] as const,

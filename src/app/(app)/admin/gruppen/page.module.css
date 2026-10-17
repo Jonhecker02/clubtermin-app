@@ -166,3 +166,9 @@
   font-size: 12.5px;
   color: var(--color-ink-muted);
 }
+
+.trainersLine {
+  font-size: 12.5px;
+  color: var(--color-ink-muted);
+  line-height: 1.4;
+}

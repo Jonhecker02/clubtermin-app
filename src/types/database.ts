@@ -96,6 +96,11 @@ export type TerminCourtGroup = {
   created_at: string;
 };
 
+export type TrainerGroup = {
+  user_id: string;
+  group_id: string;
+};
+
 export type TerminCourtGroupMember = {
   group_id: string;
   user_id: string;
@@ -359,6 +364,12 @@ export interface Database {
         Update: never;
         Relationships: [];
       };
+      trainer_groups: {
+        Row: TrainerGroup;
+        Insert: TrainerGroup;
+        Update: never;
+        Relationships: [];
+      };
       termin_court_groups: {
         Row: TerminCourtGroup;
         Insert: never;
@@ -387,6 +398,7 @@ export interface Database {
       rename_group: { Args: { p_group_id: string; p_name: string; p_short_code?: string | null }; Returns: void };
       remove_group_member: { Args: { p_user_id: string }; Returns: void };
       delete_group: { Args: { p_group_id: string }; Returns: void };
+      set_trainer_groups: { Args: { p_user_id: string; p_group_ids: string[] }; Returns: void };
       set_user_role: { Args: { p_user_id: string; p_role: "member" | "trainer" | "captain" }; Returns: void };
       admin_update_profile: { Args: { p_user_id: string; p_name: string; p_group_id: string | null }; Returns: void };
       delete_message: { Args: { p_message_id: string }; Returns: void };

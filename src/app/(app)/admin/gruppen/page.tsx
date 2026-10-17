@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/Button";
 import { Switch } from "@/components/ui/Switch";
 import { AdminTabs } from "@/components/admin/AdminTabs";
 import { useGroups } from "@/lib/queries/useGroups";
+import { useTrainerGroups } from "@/lib/queries/useTrainerGroups";
 import { useProfiles } from "@/lib/queries/useProfiles";
 import { queryKeys } from "@/lib/queries/keys";
 import { createClient } from "@/lib/supabase/client";
@@ -22,6 +23,7 @@ export default function AdminGruppenPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { data: groups = [] } = useGroups();
+  const { data: trainerGroups = [] } = useTrainerGroups();
   const { data: profiles = [] } = useProfiles();
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -111,6 +113,11 @@ export default function AdminGruppenPage() {
             const members = profiles
               .filter((p) => p.group_id === g.id && p.status === "approved")
               .sort((a, b) => a.name.localeCompare(b.name));
+            const trainers = trainerGroups
+              .filter((t) => t.group_id === g.id)
+              .map((t) => profiles.find((p) => p.id === t.user_id)?.name)
+              .filter((n): n is string => !!n)
+              .sort((a, b) => a.localeCompare(b));
             const isEditing = editingId === g.id;
 
             return (
@@ -184,6 +191,9 @@ export default function AdminGruppenPage() {
                   onChange={(checked) => toggleRotation(g.id, checked)}
                   label="Faire Rotation aktiv"
                 />
+                <div className={styles.trainersLine}>
+                  Trainer: {trainers.length > 0 ? trainers.join(", ") : "noch keiner zugeordnet (Admin → Rollen)"}
+                </div>
                 <div className={styles.memberCount}>{members.length} Teilnehmer</div>
                 <div className={styles.chips}>
                   {members.map((m) =>

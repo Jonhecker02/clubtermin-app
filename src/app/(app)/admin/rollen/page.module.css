@@ -41,3 +41,23 @@
   line-height: 1.5;
   margin-bottom: 16px;
 }
+
+.trainerGroups {
+  flex: 1 0 100%;
+  border-top: 1px solid var(--color-border);
+  padding-top: 10px;
+}
+
+.trainerGroupsTitle {
+  font-size: 12px;
+  font-weight: var(--fw-bold);
+  color: var(--color-ink-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.trainerGroupsHint {
+  font-size: 12px;
+  color: var(--color-ink-muted);
+  line-height: 1.4;
+}
