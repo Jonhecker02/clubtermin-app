@@ -175,3 +175,75 @@
   font-size: 13px;
   font-weight: var(--fw-semibold);
 }
+
+.fieldHint {
+  font-size: 12.5px;
+  color: var(--color-ink-muted);
+  line-height: 1.4;
+}
+
+/* Radio-style option rows: every option fully readable, with its hint. */
+.choiceList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.choice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: inset 0 0 0 1.5px var(--color-border-strong);
+  text-align: left;
+  font-family: inherit;
+  color: var(--color-ink);
+  cursor: pointer;
+  transition: box-shadow 200ms var(--ease-out), background 200ms var(--ease-out), transform 320ms var(--ease-spring);
+}
+
+.choice:active {
+  transform: scale(0.98);
+  transition-duration: 90ms;
+}
+
+.choiceOn {
+  background: var(--tp-pink-tint);
+  box-shadow: inset 0 0 0 2px var(--tp-pink);
+}
+
+.choiceDot {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 2px var(--color-border-strong);
+  transition: box-shadow 200ms var(--ease-out), background 200ms var(--ease-out);
+}
+
+.choiceOn .choiceDot {
+  background: radial-gradient(circle, var(--tp-navy) 0 4px, var(--tp-pink) 5px);
+  box-shadow: none;
+}
+
+.choiceText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.choiceLabel {
+  font-size: 14.5px;
+  font-weight: var(--fw-bold);
+}
+
+.choiceHint {
+  font-size: 12.5px;
+  color: var(--color-ink-muted);
+  line-height: 1.35;
+}

@@ -1,5 +1,5 @@
 import { forwardRef } from "react";
-import { courtGroupRoundRange, fullDateLabel, hhmm } from "@/lib/domain";
+import { courtGroupRoundRange, fullDateLabel, hhmm, sessionFormatOf } from "@/lib/domain";
 import type { Termin } from "@/types/database";
 import styles from "./CourtGroupsExportCard.module.css";
 
@@ -16,9 +16,8 @@ interface CourtGroupsExportCardProps {
 }
 
 // Rendered off-screen purely as a capture target for html-to-image, same
-// pattern as TerminExportCard — the "Runde 1"/"Runde 2" times shown here are
-// real clock times (courtGroupRoundRange), not the abstract round numbers
-// the editor's tabs use.
+// pattern as TerminExportCard — the slots shown here are real clock times
+// (courtGroupRoundRange), not abstract round numbers.
 //
 // Laid out as a grid with at most 4 courts per row so the image keeps a
 // sensible shape and stays readable in a chat no matter how many courts
@@ -36,6 +35,8 @@ const CARD_PADDING = 32;
 export const CourtGroupsExportCard = forwardRef<HTMLDivElement, CourtGroupsExportCardProps>(
   function CourtGroupsExportCard({ termin, groups }, ref) {
     const cols = columnsFor(groups.length);
+    const format = sessionFormatOf(termin);
+    const slotRange = `${hhmm(termin.start_time)}–${hhmm(termin.end_time)}`;
     const playerCount = groups.reduce((sum, g) => sum + g.memberNames.length, 0);
     return (
       <div
@@ -45,7 +46,7 @@ export const CourtGroupsExportCard = forwardRef<HTMLDivElement, CourtGroupsExpor
         style={{ width: Math.max(520, cols * COLUMN_WIDTH + (cols - 1) * GRID_GAP + CARD_PADDING * 2) }}
       >
         <div className={styles.header}>
-          <div className={styles.eyebrow}>Trainingsgruppen</div>
+          <div className={styles.eyebrow}>{format === "nur_spiel" ? "Einteilung" : "Trainingsgruppen"}</div>
           <div className={styles.title}>{termin.title}</div>
           <div className={styles.dateLine}>
             {fullDateLabel(termin.date)} · {hhmm(termin.start_time)}–{hhmm(termin.end_time)} Uhr · {termin.location}
@@ -60,17 +61,26 @@ export const CourtGroupsExportCard = forwardRef<HTMLDivElement, CourtGroupsExpor
             <div key={i} className={styles.column}>
               <div className={styles.columnHead}>
                 <span className={styles.groupLabel}>{g.label}</span>
-                {g.trainerName && <span className={styles.trainerLabel}>Trainer: {g.trainerName}</span>}
+                {g.trainerName && format !== "nur_spiel" && <span className={styles.trainerLabel}>Trainer: {g.trainerName}</span>}
               </div>
 
-              <div className={`${styles.slot} ${g.round === 1 ? styles.slotTraining : styles.slotPlaying}`}>
-                <span className={styles.slotType}>{g.round === 1 ? "Training" : "Spielt"}</span>
-                <span className={styles.slotTime}>{courtGroupRoundRange(1, termin)}</span>
-              </div>
-              <div className={`${styles.slot} ${g.round === 2 ? styles.slotTraining : styles.slotPlaying}`}>
-                <span className={styles.slotType}>{g.round === 2 ? "Training" : "Spielt"}</span>
-                <span className={styles.slotTime}>{courtGroupRoundRange(2, termin)}</span>
-              </div>
+              {format === "training_spiel" ? (
+                <>
+                  <div className={`${styles.slot} ${g.round === 1 ? styles.slotTraining : styles.slotPlaying}`}>
+                    <span className={styles.slotType}>{g.round === 1 ? "Training" : "Spiel"}</span>
+                    <span className={styles.slotTime}>{courtGroupRoundRange(1, termin)}</span>
+                  </div>
+                  <div className={`${styles.slot} ${g.round === 2 ? styles.slotTraining : styles.slotPlaying}`}>
+                    <span className={styles.slotType}>{g.round === 2 ? "Training" : "Spiel"}</span>
+                    <span className={styles.slotTime}>{courtGroupRoundRange(2, termin)}</span>
+                  </div>
+                </>
+              ) : (
+                <div className={`${styles.slot} ${format === "nur_training" ? styles.slotTraining : styles.slotPlaying}`}>
+                  <span className={styles.slotType}>{format === "nur_training" ? "Training" : "Spiel"}</span>
+                  <span className={styles.slotTime}>{slotRange}</span>
+                </div>
+              )}
 
               <div className={styles.namesList}>
                 {g.memberNames.map((name, j) => (

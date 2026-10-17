@@ -12,6 +12,7 @@ import { IconButton } from "@/components/ui/IconButton";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { Tabs } from "@/components/ui/Tabs";
 import { TerminExportCard } from "@/components/admin/TerminExportCard";
 import { useTermine } from "@/lib/queries/useTermine";
 import { useGroups } from "@/lib/queries/useGroups";
@@ -19,12 +20,16 @@ import { useProfiles } from "@/lib/queries/useProfiles";
 import { useRegistrationsForTermin } from "@/lib/queries/useRegistrations";
 import { useAllocationsForTermin } from "@/lib/queries/useAllocations";
 import { useWaitlistRank } from "@/lib/queries/useWaitlistRank";
+import { useTerminCourtGroups } from "@/lib/queries/useTerminCourtGroups";
 import { queryKeys } from "@/lib/queries/keys";
 import { createClient } from "@/lib/supabase/client";
 import {
   ROTATION_RULE_TEXT,
   allocationDetail,
   badgeInfo,
+  courtsInUse,
+  SESSION_FORMAT_LABELS,
+  sessionFormatOf,
   buildTerminShareText,
   formatPrice,
   fullDateLabel,
@@ -54,6 +59,7 @@ export default function AdminParticipantsPage() {
   const { data: registrations = [] } = useRegistrationsForTermin(terminId);
   const { data: allocations = [] } = useAllocationsForTermin(terminId);
   const { data: waitlistRanks } = useWaitlistRank(terminId);
+  const { data: savedCourtGroups } = useTerminCourtGroups(terminId);
 
   const termin = termine.find((t) => t.id === terminId);
   const { confirmed: participants, waitlist: waitlistUnordered, pending: pendingRegistrations } = useMemo(
@@ -73,6 +79,7 @@ export default function AdminParticipantsPage() {
   const [copied, setCopied] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [confirmError, setConfirmError] = useState("");
+  const [tab, setTab] = useState<"teilnehmer" | "zuteilung" | "gruppen" | null>(null);
   const exportRef = useRef<HTMLDivElement>(null);
 
   async function toggleInclusion(allocationId: string, included: boolean) {
@@ -168,8 +175,11 @@ export default function AdminParticipantsPage() {
       dateLabel: fullDateLabel(termin.date),
       timeLabel: `${hhmm(termin.start_time)}–${hhmm(termin.end_time)}`,
       location: termin.location,
-      courts: termin.courts,
+      // The courts actually used (Court 1–3 when only three groups play),
+      // not everything that was booked.
+      courts: courtsInUse((savedCourtGroups ?? []).map((g) => g.label), termin.courts),
       trainer: termin.trainer,
+      showTrainer: sessionFormatOf(termin) !== "nur_spiel",
       price: formatPrice(termin.price),
       maxTn: termin.max_tn,
       participants: participants.map((p) => p.name),
@@ -191,11 +201,22 @@ export default function AdminParticipantsPage() {
     );
   }
 
-  // Trainings with confirmed participants get the Trainingsgruppen section
-  // (and all exports bundled there); other termine keep the plain export row.
   const showCourtGroups = termin.type === "training" && participants.length > 0;
+  const showAllocation = !!termin.registration_closes_date;
+  const proposalReady = allocations.length > 0 && !termin.allocation_run_at;
   const badge = badgeInfo(termin.type);
   const displayTitle = withShortCode(termin.title, groupShortCode(termin.register_groups, groups));
+  const format = sessionFormatOf(termin);
+  const courtsLabel = courtsInUse((savedCourtGroups ?? []).map((g) => g.label), termin.courts);
+
+  const tabItems = [
+    { id: "teilnehmer", label: "Teilnehmer" },
+    ...(showAllocation ? [{ id: "zuteilung", label: proposalReady ? "Zuteilung •" : "Zuteilung" }] : []),
+    ...(showCourtGroups ? [{ id: "gruppen", label: format === "nur_spiel" ? "Courts" : "Gruppen" }] : []),
+  ];
+  // Opens straight on the allocation when a proposal is waiting for approval.
+  const wanted = tab ?? (proposalReady ? "zuteilung" : "teilnehmer");
+  const activeTab = tabItems.some((t) => t.id === wanted) ? wanted : "teilnehmer";
 
   return (
     <>
@@ -220,6 +241,9 @@ export default function AdminParticipantsPage() {
         <div className={styles.summaryCard}>
           <div className={styles.summaryTop}>
             <Badge tone={badge.tone}>{badge.label}</Badge>
+            {termin.type === "training" && format !== "training_spiel" && (
+              <Badge tone="outline">{SESSION_FORMAT_LABELS[format]}</Badge>
+            )}
             <span className={styles.summaryMeta}>
               {weekdayLabel(termin.date)}, {dateLabel(termin.date)}
               {new Date(`${termin.date}T00:00:00`).getFullYear()} · {hhmm(termin.start_time)}–{hhmm(termin.end_time)} Uhr
@@ -232,132 +256,148 @@ export default function AdminParticipantsPage() {
           {termin.reminder_enabled && <Badge tone="soft">Erinnerung 2 Std. vorher aktiv</Badge>}
         </div>
 
-        {/* For trainings with participants the same two buttons live in the
-            Trainingsgruppen section below, next to the trainer exports —
-            showing them twice would just be confusing. */}
-        {!showCourtGroups && (
-          <div className={styles.shareRow}>
-            <Button variant="outline" size="sm" full onClick={exportPng} disabled={exporting}>
-              <ImageDown size={15} strokeWidth={2.2} />
-              {exporting ? "Erstelle Bild…" : "Als Bild"}
-            </Button>
-            <Button variant="outline" size="sm" full onClick={copyText}>
-              <Copy size={15} strokeWidth={2.2} />
-              {copied ? "Kopiert ✓" : "Text kopieren"}
-            </Button>
-          </div>
-        )}
-
-        <div className={styles.sectionHeadRow}>
-          <div className={styles.sectionLabel}>
-            Teilnehmer ({participants.length}/{termin.max_tn})
-          </div>
-          <IconButton
-            variant="soft"
+        {tabItems.length > 1 && (
+          <Tabs
+            items={tabItems}
+            value={activeTab}
+            onChange={(id) => setTab(id as "teilnehmer" | "zuteilung" | "gruppen")}
             size="sm"
-            label={pickerOpen ? "Schließen" : "Teilnehmer hinzufügen"}
-            onClick={() => {
-              setPickerOpen((v) => !v);
-              setAddError("");
-              setSearch("");
-            }}
-          >
-            <Plus size={15} strokeWidth={2.4} style={pickerOpen ? { transform: "rotate(45deg)" } : undefined} />
-          </IconButton>
-        </div>
-
-        {pickerOpen && (
-          <div className={styles.addPicker}>
-            <Input placeholder="Name suchen…" value={search} onChange={(e) => setSearch(e.target.value)} autoFocus />
-            {addError && <div className={styles.addError}>{addError}</div>}
-            <div className={styles.addList}>
-              {addableProfiles.map((p) => (
-                <button key={p.id} type="button" className={styles.addRow} onClick={() => addParticipant(p.id)}>
-                  <div className={styles.avatar}>{initials(p.name)}</div>
-                  <div className={styles.rowMain}>
-                    <div className={styles.rowName}>{p.name}</div>
-                    {displayEmail(p.email) && <div className={styles.rowEmail}>{displayEmail(p.email)}</div>}
-                  </div>
-                </button>
-              ))}
-              {addableProfiles.length === 0 && <div className={styles.empty}>Keine passenden Spieler gefunden.</div>}
-            </div>
-          </div>
+            style={{ marginBottom: 14 }}
+          />
         )}
 
-        <div className={styles.list}>
-          {participants.map((p) => (
-            <div key={p.id}>
-              <div className={styles.row}>
-                <div className={styles.avatar}>{initials(p.name)}</div>
-                <div className={styles.rowMain}>
-                  <div className={styles.rowName}>{p.name}</div>
-                  {displayEmail(p.email) && <div className={styles.rowEmail}>{displayEmail(p.email)}</div>}
-                </div>
-                <IconButton
-                  variant={notesOpenId === p.user_id ? "accent" : "ghost"}
-                  size="sm"
-                  label="Notizen"
-                  onClick={() => setNotesOpenId(notesOpenId === p.user_id ? null : p.user_id)}
-                >
-                  <StickyNote size={15} strokeWidth={2.4} />
-                </IconButton>
-                <IconButton variant="ghost" size="sm" label="Entfernen" onClick={() => removeParticipant(p.user_id)}>
-                  <X size={15} strokeWidth={2.4} />
-                </IconButton>
+        {activeTab === "teilnehmer" && (
+          <>
+            <div className={styles.sectionHeadRow}>
+              <div className={styles.sectionLabel}>
+                Teilnehmer ({participants.length}/{termin.max_tn})
               </div>
-              {notesOpenId === p.user_id && <PlayerNotesPanel userId={p.user_id} profiles={profiles} />}
+              <IconButton
+                variant="soft"
+                size="sm"
+                label={pickerOpen ? "Schließen" : "Teilnehmer hinzufügen"}
+                onClick={() => {
+                  setPickerOpen((v) => !v);
+                  setAddError("");
+                  setSearch("");
+                }}
+              >
+                <Plus size={15} strokeWidth={2.4} style={pickerOpen ? { transform: "rotate(45deg)" } : undefined} />
+              </IconButton>
             </div>
-          ))}
-          {participants.length === 0 && <div className={styles.empty}>Noch keine Anmeldungen.</div>}
-        </div>
 
-        {pendingRegistrations.length > 0 && (
-          <>
-            <div className={styles.sectionLabelPink}>Ausstehend, wartet auf Zuteilung ({pendingRegistrations.length})</div>
+            {pickerOpen && (
+              <div className={styles.addPicker}>
+                <Input placeholder="Name suchen…" value={search} onChange={(e) => setSearch(e.target.value)} autoFocus />
+                {addError && <div className={styles.addError}>{addError}</div>}
+                <div className={styles.addList}>
+                  {addableProfiles.map((p) => (
+                    <button key={p.id} type="button" className={styles.addRow} onClick={() => addParticipant(p.id)}>
+                      <div className={styles.avatar}>{initials(p.name)}</div>
+                      <div className={styles.rowMain}>
+                        <div className={styles.rowName}>{p.name}</div>
+                        {displayEmail(p.email) && <div className={styles.rowEmail}>{displayEmail(p.email)}</div>}
+                      </div>
+                    </button>
+                  ))}
+                  {addableProfiles.length === 0 && <div className={styles.empty}>Keine passenden Spieler gefunden.</div>}
+                </div>
+              </div>
+            )}
+
             <div className={styles.list}>
-              {pendingRegistrations.map((p) => (
-                <div key={p.id} className={styles.row}>
-                  <div className={styles.avatar}>{initials(p.name)}</div>
-                  <div className={styles.rowMain}>
-                    <div className={styles.rowName}>{p.name}</div>
-                    {displayEmail(p.email) && <div className={styles.rowEmail}>{displayEmail(p.email)}</div>}
+              {participants.map((p) => (
+                <div key={p.id}>
+                  <div className={styles.row}>
+                    <div className={styles.avatar}>{initials(p.name)}</div>
+                    <div className={styles.rowMain}>
+                      <div className={styles.rowName}>{p.name}</div>
+                      {displayEmail(p.email) && <div className={styles.rowEmail}>{displayEmail(p.email)}</div>}
+                    </div>
+                    <IconButton
+                      variant={notesOpenId === p.user_id ? "accent" : "ghost"}
+                      size="sm"
+                      label="Notizen"
+                      onClick={() => setNotesOpenId(notesOpenId === p.user_id ? null : p.user_id)}
+                    >
+                      <StickyNote size={15} strokeWidth={2.4} />
+                    </IconButton>
+                    <IconButton variant="ghost" size="sm" label="Entfernen" onClick={() => removeParticipant(p.user_id)}>
+                      <X size={15} strokeWidth={2.4} />
+                    </IconButton>
                   </div>
+                  {notesOpenId === p.user_id && <PlayerNotesPanel userId={p.user_id} profiles={profiles} />}
                 </div>
               ))}
-            </div>
-          </>
-        )}
-
-        {waitlist.length > 0 && (
-          <>
-            <div className={styles.sectionLabelPink}>Warteliste ({waitlist.length})</div>
-            <div className={styles.list}>
-              {waitlist.map((p, i) => (
-                <div key={p.id} className={styles.waitlistRow}>
-                  <div className={styles.pos}>{i + 1}</div>
-                  <div className={styles.rowMain}>
-                    <div className={styles.rowName}>{p.name}</div>
-                  </div>
-                  <IconButton variant="ghost" size="sm" label="Entfernen" onClick={() => removeParticipant(p.user_id)}>
-                    <X size={15} strokeWidth={2.4} />
-                  </IconButton>
+              {participants.length === 0 && (
+                <div className={styles.empty}>
+                  {pendingRegistrations.length > 0 ? "Noch niemand zugeteilt." : "Noch keine Anmeldungen."}
                 </div>
-              ))}
+              )}
             </div>
-          </>
-        )}
 
-        {termin.registration_closes_date && (
-          <>
+            {pendingRegistrations.length > 0 && (
+              <>
+                <div className={styles.sectionLabelPink}>Warten auf Zuteilung ({pendingRegistrations.length})</div>
+                <div className={styles.list}>
+                  {pendingRegistrations.map((p) => (
+                    <div key={p.id} className={styles.row}>
+                      <div className={styles.avatar}>{initials(p.name)}</div>
+                      <div className={styles.rowMain}>
+                        <div className={styles.rowName}>{p.name}</div>
+                        {displayEmail(p.email) && <div className={styles.rowEmail}>{displayEmail(p.email)}</div>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {waitlist.length > 0 && (
+              <>
+                <div className={styles.sectionLabelPink}>Warteliste ({waitlist.length})</div>
+                <div className={styles.list}>
+                  {waitlist.map((p, i) => (
+                    <div key={p.id} className={styles.waitlistRow}>
+                      <div className={styles.pos}>{i + 1}</div>
+                      <div className={styles.rowMain}>
+                        <div className={styles.rowName}>{p.name}</div>
+                      </div>
+                      <IconButton variant="ghost" size="sm" label="Entfernen" onClick={() => removeParticipant(p.user_id)}>
+                        <X size={15} strokeWidth={2.4} />
+                      </IconButton>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
             <div className={styles.sectionLabel} style={{ marginTop: 24 }}>
-              Zuteilung erklären
+              Für die Spielergruppe (WhatsApp)
             </div>
+            <div className={styles.shareHint}>Teilnehmer, freie Plätze und Warteliste dieses Termins.</div>
+            <div className={styles.shareRow}>
+              <Button variant="outline" size="sm" full onClick={exportPng} disabled={exporting}>
+                <ImageDown size={15} strokeWidth={2.2} />
+                {exporting ? "Erstelle Bild…" : "Als Bild"}
+              </Button>
+              <Button variant="outline" size="sm" full onClick={copyText}>
+                <Copy size={15} strokeWidth={2.2} />
+                {copied ? "Kopiert ✓" : "Text kopieren"}
+              </Button>
+            </div>
+          </>
+        )}
+
+        {activeTab === "zuteilung" && termin.registration_closes_date && (
+          <>
             {allocations.length === 0 ? (
               <div className={styles.empty}>
                 {(() => {
                   const closesAt = registrationClosesAt(termin);
-                  return closesAt ? `Zuteilung erfolgt am ${fullDateLabel(termin.registration_closes_date)}, ${hhmm(termin.registration_closes_time ?? "00:00")} Uhr.` : "Noch keine Zuteilung.";
+                  return closesAt
+                    ? `Zuteilung erfolgt am ${fullDateLabel(termin.registration_closes_date)}, ${hhmm(termin.registration_closes_time ?? "00:00")} Uhr.`
+                    : "Noch keine Zuteilung.";
                 })()}
               </div>
             ) : !termin.allocation_run_at ? (
@@ -371,9 +411,7 @@ export default function AdminParticipantsPage() {
                     <div key={a.id} className={styles.row}>
                       <div className={styles.rowMain}>
                         <div className={styles.rowName}>{a.name}</div>
-                        <div className={styles.rowEmail}>
-                          {allocationDetail(a)}
-                        </div>
+                        <div className={styles.rowEmail}>{allocationDetail(a)}</div>
                       </div>
                       <button type="button" onClick={() => toggleInclusion(a.id, !a.included)} title="Tauschen">
                         <Badge tone={a.included ? "soft" : "outline"} size="sm">
@@ -394,9 +432,7 @@ export default function AdminParticipantsPage() {
                   <div key={a.id} className={styles.row}>
                     <div className={styles.rowMain}>
                       <div className={styles.rowName}>{a.name}</div>
-                      <div className={styles.rowEmail}>
-                        {allocationDetail(a)}
-                      </div>
+                      <div className={styles.rowEmail}>{allocationDetail(a)}</div>
                     </div>
                     <Badge tone={a.included ? "soft" : "outline"} size="sm">
                       {a.included ? "Bestätigt" : "Warteliste"}
@@ -408,38 +444,18 @@ export default function AdminParticipantsPage() {
           </>
         )}
 
-        {showCourtGroups && (
-          <>
-            <div className={styles.sectionLabel} style={{ marginTop: 24 }}>
-              Trainingsgruppen
-            </div>
-            <CourtGroupsEditor
-              terminId={termin.id}
-              clubGroupId={
-                termin.register_groups.length === 1 && termin.register_groups[0] !== "all"
-                  ? termin.register_groups[0]
-                  : null
-              }
-              participants={participants.map((p) => ({ user_id: p.user_id, name: p.name }))}
-              publishedAt={termin.court_groups_published_at}
-              termin={termin}
-            />
-
-            <div className={styles.sectionLabel} style={{ marginTop: 24 }}>
-              Für die Spielergruppe (WhatsApp)
-            </div>
-            <div className={styles.shareHint}>Teilnehmer und Warteliste dieses Termins.</div>
-            <div className={styles.shareRow}>
-              <Button variant="outline" size="sm" full onClick={exportPng} disabled={exporting}>
-                <ImageDown size={15} strokeWidth={2.2} />
-                {exporting ? "Erstelle Bild…" : "Als Bild"}
-              </Button>
-              <Button variant="outline" size="sm" full onClick={copyText}>
-                <Copy size={15} strokeWidth={2.2} />
-                {copied ? "Kopiert ✓" : "Text kopieren"}
-              </Button>
-            </div>
-          </>
+        {activeTab === "gruppen" && showCourtGroups && (
+          <CourtGroupsEditor
+            terminId={termin.id}
+            clubGroupId={
+              termin.register_groups.length === 1 && termin.register_groups[0] !== "all"
+                ? termin.register_groups[0]
+                : null
+            }
+            participants={participants.map((p) => ({ user_id: p.user_id, name: p.name }))}
+            publishedAt={termin.court_groups_published_at}
+            termin={termin}
+          />
         )}
       </PageBody>
 
@@ -449,6 +465,7 @@ export default function AdminParticipantsPage() {
           termin={termin}
           shortCode={groupShortCode(termin.register_groups, groups)}
           priceLabel={formatPrice(termin.price)}
+          courtsLabel={courtsLabel}
           participants={participants.map((p) => p.name)}
           waitlist={waitlist.map((p) => p.name)}
         />

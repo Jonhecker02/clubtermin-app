@@ -44,18 +44,31 @@ export function useRegistrationsForTermin(terminId: string | null) {
   });
 }
 
-// Registered ("angemeldet") counts per termin, for the list overview — RLS
-// already scopes the rows to termine the caller may see, same as useTermine().
+export interface RegistrationCount {
+  confirmed: number;
+  // Registered but still waiting for the fair-rotation allocation.
+  pending: number;
+}
+
+// Counts per termin for the list overview — RLS already scopes the rows to
+// termine the caller may see, same as useTermine().
 export function useRegistrationCounts() {
   return useQuery({
     queryKey: queryKeys.registrationCounts,
-    queryFn: async (): Promise<Record<string, number>> => {
+    queryFn: async (): Promise<Record<string, RegistrationCount>> => {
       const supabase = createClient();
-      const { data, error } = await supabase.from("registrations").select("termin_id").eq("status", "angemeldet");
+      const { data, error } = await supabase
+        .from("registrations")
+        .select("termin_id, status")
+        .in("status", ["angemeldet", "ausstehend"]);
       if (error) throw error;
 
-      const counts: Record<string, number> = {};
-      for (const r of data) counts[r.termin_id] = (counts[r.termin_id] ?? 0) + 1;
+      const counts: Record<string, RegistrationCount> = {};
+      for (const r of data) {
+        const entry = (counts[r.termin_id] ??= { confirmed: 0, pending: 0 });
+        if (r.status === "angemeldet") entry.confirmed++;
+        else entry.pending++;
+      }
       return counts;
     },
   });

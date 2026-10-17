@@ -3,18 +3,25 @@
 import { useState } from "react";
 import { Input, Select, Textarea } from "@/components/ui/Input";
 import { Tabs } from "@/components/ui/Tabs";
+import { FormSection } from "./FormSection";
 import { Button } from "@/components/ui/Button";
 import { useGroups } from "@/lib/queries/useGroups";
 import { useProfiles } from "@/lib/queries/useProfiles";
-import { formatCourts, groupLabel, hhmm, parseCourts, suggestedRegistrationCloses } from "@/lib/domain";
+import { dateLabel, formatCourts, groupLabel, hhmm, parseCourts, sessionFormatOf, suggestedRegistrationCloses } from "@/lib/domain";
 import { CourtPicker } from "./CourtPicker";
-import type { Termin, TerminType } from "@/types/database";
+import type { SessionFormat, Termin, TerminType } from "@/types/database";
 import styles from "./AdminList.module.css";
 
 const TYPE_ITEMS = [
   { id: "training", label: "Training" },
   { id: "event", label: "Event" },
   { id: "spieltag", label: "Spieltag" },
+];
+
+const SESSION_FORMAT_OPTIONS: { id: SessionFormat; label: string; hint: string }[] = [
+  { id: "training_spiel", label: "Training & Spiel", hint: "Erst Training, dann Spiel (oder andersherum) — mit Wechsel" },
+  { id: "nur_spiel", label: "Nur Spiel", hint: "Alle spielen die ganze Zeit — kein Trainer, kein Wechsel" },
+  { id: "nur_training", label: "Nur Training", hint: "Alle trainieren die ganze Zeit — kein Wechsel" },
 ];
 
 const GROUP_MODE_ITEMS = [
@@ -34,6 +41,7 @@ export interface TerminFormValues {
   trainer_id: string | null;
   location: string;
   courts: string;
+  session_format: SessionFormat;
   date: string;
   start_time: string;
   end_time: string;
@@ -75,6 +83,9 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
   // Picked as tiles for the club's seven courts; stored as text like
   // "Court 1–3" (every display site just prints termin.courts).
   const [courts, setCourts] = useState<number[]>(() => parseCourts(initial?.courts));
+  const [sessionFormat, setSessionFormat] = useState<SessionFormat>(sessionFormatOf(initial ?? {}));
+  const [anmeldungOpen, setAnmeldungOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const [maxTn, setMaxTn] = useState(initial ? String(initial.max_tn) : "8");
   const [price, setPrice] = useState(initial?.price != null ? String(initial.price) : "");
   const [visMode, setVisMode] = useState<"alle" | "ausgewaehlt">(
@@ -110,10 +121,10 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
-  // Only training happens on booked courts — events and Spieltage (team
-  // meetings, away matches, etc.) don't have a court to name, so the field
-  // is neither shown nor required for those two types.
+  // Trainings always happen on booked courts (required); events may use some
+  // (optional); Spieltage (often away matches) have none to name.
   const needsCourts = type === "training";
+  const showCourts = type !== "spieltag";
 
   // Fair rotation only ever applies to a TRAINING tied to exactly one
   // specific team — with "alle Gruppen" or several groups selected there's
@@ -149,18 +160,22 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
       return;
     }
     if (visMode === "ausgewaehlt" && visGroups.length === 0) {
+      setAnmeldungOpen(true);
       setError("Bitte wähle mindestens eine Gruppe für die Sichtbarkeit.");
       return;
     }
     if (regMode === "ausgewaehlt" && regGroups.length === 0) {
+      setAnmeldungOpen(true);
       setError("Bitte wähle mindestens eine Gruppe für die Anmeldung.");
       return;
     }
     if (regOpenMode === "geplant" && !regOpensAt) {
+      setAnmeldungOpen(true);
       setError("Bitte wähle Datum und Uhrzeit für die Anmeldeöffnung.");
       return;
     }
     if (rotationActive && !regClosesAt) {
+      setAnmeldungOpen(true);
       setError("Bitte wähle einen Anmeldeschluss für die faire Rotation.");
       return;
     }
@@ -181,7 +196,8 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
       trainer: selectedTrainer?.name ?? initial?.trainer ?? "—",
       trainer_id: trainerId || null,
       location: location.trim() || "The Padellers Essen",
-      courts: needsCourts ? formatCourts(courts) : "",
+      courts: showCourts ? formatCourts(courts) : "",
+      session_format: type === "training" ? sessionFormat : "training_spiel",
       date,
       start_time: startTime,
       end_time: endTime,
@@ -202,139 +218,197 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
     if (result) setError(result);
   }
 
+  const groupNames = (ids: string[]) =>
+    ids
+      .map((id) => groups.find((g) => g.id === id))
+      .filter((g): g is NonNullable<typeof g> => !!g)
+      .map((g) => g.short_code || g.name)
+      .join(", ");
+
+  // One line for the collapsed "Anmeldung" card.
+  const anmeldungSummary = [
+    regMode === "alle" ? "Für alle Gruppen" : groupNames(regGroups) || "Gruppen wählen",
+    regOpenMode === "sofort" ? "sofort offen" : regOpensAt ? `offen ab ${dateLabel(regOpensAt.split("T")[0])} ${regOpensAt.split("T")[1]}` : "geplant",
+    rotationActive && regClosesAt ? `Schluss ${dateLabel(regClosesAt.split("T")[0])} ${regClosesAt.split("T")[1]}` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
+  const moreSummary = [
+    location.trim() || null,
+    price.trim() ? `${price.trim()} €` : null,
+    description.trim() ? "Beschreibung" : null,
+    notifyCreate ? "Push beim Erstellen" : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
   return (
     <div className={styles.form}>
       <Tabs items={TYPE_ITEMS} value={type} onChange={(id) => setType(id as TerminType)} />
-      <Input label="Titel" placeholder="z. B. Trainingsgruppe A" value={title} onChange={(e) => setTitle(e.target.value)} />
-      <Select label="Trainer / Verantwortlicher" value={trainerId} onChange={(e) => setTrainerId(e.target.value)}>
-        <option value="">— kein Trainer ausgewählt —</option>
-        {trainerOptions.map((p) => (
-          <option key={p.id} value={p.id}>
-            {p.name}
-          </option>
-        ))}
-      </Select>
-      <Input label="Datum" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-      <div className={styles.timeRow}>
-        <Input label="Startzeit" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
-        <Input label="Endzeit" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
-      </div>
-      <Input
-        label="Location"
-        placeholder="z. B. The Padellers Essen"
-        value={location}
-        onChange={(e) => setLocation(e.target.value)}
-      />
-      <Textarea
-        label="Beschreibung"
-        placeholder="z. B. Eine Stunde Training, danach eine Stunde freies Spiel"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-      />
-      {needsCourts ? (
-        <>
-          <CourtPicker value={courts} onChange={setCourts} />
-          <Input label="Max. TN" type="number" value={maxTn} onChange={(e) => setMaxTn(e.target.value)} />
-        </>
-      ) : (
+
+      <FormSection title="Grunddaten">
+        <Input label="Titel" placeholder="z. B. Trainingsgruppe A" value={title} onChange={(e) => setTitle(e.target.value)} />
+        <Input label="Datum" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+        <div className={styles.timeRow}>
+          <Input label="Startzeit" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+          <Input label="Endzeit" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+        </div>
+      </FormSection>
+
+      <FormSection title="Ablauf & Plätze">
+        {type === "training" && (
+          <div className={styles.fieldGroup}>
+            <span className={styles.fieldGroupLabel}>Ablauf</span>
+            <div className={styles.choiceList} role="radiogroup" aria-label="Ablauf">
+              {SESSION_FORMAT_OPTIONS.map((o) => (
+                <button
+                  key={o.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={sessionFormat === o.id}
+                  className={`${styles.choice} ${sessionFormat === o.id ? styles.choiceOn : ""}`}
+                  onClick={() => setSessionFormat(o.id)}
+                >
+                  <span className={styles.choiceDot} aria-hidden="true" />
+                  <span className={styles.choiceText}>
+                    <span className={styles.choiceLabel}>{o.label}</span>
+                    <span className={styles.choiceHint}>{o.hint}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        <Select label="Trainer / Verantwortlicher" value={trainerId} onChange={(e) => setTrainerId(e.target.value)}>
+          <option value="">— kein Trainer ausgewählt —</option>
+          {trainerOptions.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
+          ))}
+        </Select>
+        {showCourts && <CourtPicker value={courts} onChange={setCourts} optional={!needsCourts} />}
         <Input label="Max. TN" type="number" value={maxTn} onChange={(e) => setMaxTn(e.target.value)} />
-      )}
-      <Input
-        label="Preis (€, optional)"
-        type="number"
-        placeholder="z. B. 5"
-        value={price}
-        onChange={(e) => setPrice(e.target.value)}
-      />
+      </FormSection>
 
-      <div className={styles.fieldGroup}>
-        <span className={styles.fieldGroupLabel}>Sichtbar für</span>
-        <Tabs items={GROUP_MODE_ITEMS} value={visMode} onChange={(id) => handleVisModeChange(id as typeof visMode)} size="sm" />
-        {visMode === "ausgewaehlt" && (
-          <div className={styles.checkboxList}>
-            {groups.map((g) => (
-              <label key={g.id} className={styles.checkboxLabel}>
-                <input type="checkbox" checked={visGroups.includes(g.id)} onChange={() => toggleVisGroup(g.id)} />
-                {groupLabel(g)}
-              </label>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className={styles.fieldGroup}>
-        <span className={styles.fieldGroupLabel}>Anmeldung offen für</span>
-        <Tabs items={GROUP_MODE_ITEMS} value={regMode} onChange={(id) => setRegMode(id as typeof regMode)} size="sm" />
-        {regMode === "ausgewaehlt" && (
-          <div className={styles.checkboxList}>
-            {groups.map((g) => (
-              <label key={g.id} className={styles.checkboxLabel}>
-                <input type="checkbox" checked={regGroups.includes(g.id)} onChange={() => toggle(regGroups, g.id, setRegGroups)} />
-                {groupLabel(g)}
-              </label>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {rotationActive && (
+      <FormSection
+        title="Anmeldung"
+        collapsible
+        open={anmeldungOpen}
+        onToggle={setAnmeldungOpen}
+        summary={anmeldungSummary}
+      >
         <div className={styles.fieldGroup}>
-          <span className={styles.fieldGroupLabel}>Anmeldeschluss (faire Rotation)</span>
-          <Input
-            label="Anmeldeschluss"
-            type="datetime-local"
-            value={regClosesAt}
-            onChange={(e) => {
-              setRegClosesTouched(true);
-              setRegClosesAt(e.target.value);
-            }}
-            helper={`Standard: Samstag vor dem Training, 22:00 Uhr — bei Bedarf änderbar. ${groupLabel(rotationGroup!)} hat faire Rotation: bis dahin sind Anmeldungen ausstehend, danach werden die Plätze fair verteilt.`}
-          />
-          {date && regClosesAt !== suggestedRegistrationCloses(date) && (
-            <button
-              type="button"
-              className={styles.suggestion}
-              onClick={() => {
-                setRegClosesTouched(false);
-                setRegClosesAt("");
-              }}
-            >
-              Zurück auf Standard: Samstag davor, 22:00 Uhr
-            </button>
+          <span className={styles.fieldGroupLabel}>Sichtbar für</span>
+          <Tabs items={GROUP_MODE_ITEMS} value={visMode} onChange={(id) => handleVisModeChange(id as typeof visMode)} size="sm" />
+          {visMode === "ausgewaehlt" && (
+            <div className={styles.checkboxList}>
+              {groups.map((g) => (
+                <label key={g.id} className={styles.checkboxLabel}>
+                  <input type="checkbox" checked={visGroups.includes(g.id)} onChange={() => toggleVisGroup(g.id)} />
+                  {groupLabel(g)}
+                </label>
+              ))}
+            </div>
           )}
         </div>
-      )}
 
-      <div className={styles.fieldGroup}>
-        <span className={styles.fieldGroupLabel}>Anmeldung</span>
-        <Tabs items={REG_OPEN_ITEMS} value={regOpenMode} onChange={(id) => setRegOpenMode(id as typeof regOpenMode)} size="sm" />
-        {regOpenMode === "geplant" && (
-          <>
+        <div className={styles.fieldGroup}>
+          <span className={styles.fieldGroupLabel}>Anmeldung offen für</span>
+          <Tabs items={GROUP_MODE_ITEMS} value={regMode} onChange={(id) => setRegMode(id as typeof regMode)} size="sm" />
+          {regMode === "ausgewaehlt" && (
+            <div className={styles.checkboxList}>
+              {groups.map((g) => (
+                <label key={g.id} className={styles.checkboxLabel}>
+                  <input type="checkbox" checked={regGroups.includes(g.id)} onChange={() => toggle(regGroups, g.id, setRegGroups)} />
+                  {groupLabel(g)}
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {rotationActive && (
+          <div className={styles.fieldGroup}>
+            <span className={styles.fieldGroupLabel}>Anmeldeschluss (faire Rotation)</span>
             <Input
-              label="Anmeldung ab"
+              label="Anmeldeschluss"
               type="datetime-local"
-              value={regOpensAt}
-              onChange={(e) => setRegOpensAt(e.target.value)}
-              helper="Mitglieder können sich erst ab diesem Zeitpunkt anmelden und werden benachrichtigt, sobald es soweit ist."
+              value={regClosesAt}
+              onChange={(e) => {
+                setRegClosesTouched(true);
+                setRegClosesAt(e.target.value);
+              }}
+              helper={`Standard: Samstag vor dem Training, 22:00 Uhr — bei Bedarf änderbar. ${groupLabel(rotationGroup!)} hat faire Rotation: bis dahin sind Anmeldungen ausstehend, danach werden die Plätze fair verteilt.`}
             />
-            <label className={styles.checkboxLabel}>
-              <input type="checkbox" checked={regOpensHidden} onChange={(e) => setRegOpensHidden(e.target.checked)} />
-              Öffnungszeitpunkt vor Mitgliedern verbergen
-            </label>
-          </>
+            {date && regClosesAt !== suggestedRegistrationCloses(date) && (
+              <button
+                type="button"
+                className={styles.suggestion}
+                onClick={() => {
+                  setRegClosesTouched(false);
+                  setRegClosesAt("");
+                }}
+              >
+                Zurück auf Standard: Samstag davor, 22:00 Uhr
+              </button>
+            )}
+          </div>
         )}
-      </div>
 
-      <div className={styles.notifyBox}>
-        <label className={styles.checkboxLabel}>
-          <input type="checkbox" checked={notifyCreate} onChange={(e) => setNotifyCreate(e.target.checked)} />
-          Push-Benachrichtigung beim Erstellen an Teilnehmer senden
-        </label>
-        <label className={styles.checkboxLabel}>
-          <input type="checkbox" checked={reminderEnabled} onChange={(e) => setReminderEnabled(e.target.checked)} />
-          Erinnerung 2 Std. vorher per Push senden
-        </label>
-      </div>
+        <div className={styles.fieldGroup}>
+          <span className={styles.fieldGroupLabel}>Anmeldung öffnet</span>
+          <Tabs items={REG_OPEN_ITEMS} value={regOpenMode} onChange={(id) => setRegOpenMode(id as typeof regOpenMode)} size="sm" />
+          {regOpenMode === "geplant" && (
+            <>
+              <Input
+                label="Anmeldung ab"
+                type="datetime-local"
+                value={regOpensAt}
+                onChange={(e) => setRegOpensAt(e.target.value)}
+                helper="Mitglieder können sich erst ab diesem Zeitpunkt anmelden und werden benachrichtigt, sobald es soweit ist."
+              />
+              <label className={styles.checkboxLabel}>
+                <input type="checkbox" checked={regOpensHidden} onChange={(e) => setRegOpensHidden(e.target.checked)} />
+                Öffnungszeitpunkt vor Mitgliedern verbergen
+              </label>
+            </>
+          )}
+        </div>
+      </FormSection>
+
+      <FormSection title="Weitere Angaben" collapsible open={moreOpen} onToggle={setMoreOpen} summary={moreSummary}>
+        <Input
+          label="Location"
+          placeholder="z. B. The Padellers Essen"
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+        />
+        <Input
+          label="Preis (€, optional)"
+          type="number"
+          placeholder="z. B. 5"
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+        />
+        <Textarea
+          label="Beschreibung"
+          placeholder="z. B. Eine Stunde Training, danach eine Stunde freies Spiel"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+        <div className={styles.notifyBox}>
+          <label className={styles.checkboxLabel}>
+            <input type="checkbox" checked={notifyCreate} onChange={(e) => setNotifyCreate(e.target.checked)} />
+            Push-Benachrichtigung beim Erstellen an Teilnehmer senden
+          </label>
+          <label className={styles.checkboxLabel}>
+            <input type="checkbox" checked={reminderEnabled} onChange={(e) => setReminderEnabled(e.target.checked)} />
+            Erinnerung 2 Std. vorher per Push senden
+          </label>
+        </div>
+      </FormSection>
 
       {error && <div className={styles.error}>{error}</div>}
       <Button variant="accent" size="lg" full onClick={submit} disabled={saving}>

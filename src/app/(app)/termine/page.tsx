@@ -13,7 +13,7 @@ import { useProfile } from "@/lib/queries/useProfile";
 import { useTermine } from "@/lib/queries/useTermine";
 import { useGroups } from "@/lib/queries/useGroups";
 import { TRAINER_SCOPE_ITEMS, useTrainerTermineFilter } from "@/lib/queries/useTrainerGroups";
-import { useRegistrationCounts } from "@/lib/queries/useRegistrations";
+import { useRegistrationCounts, type RegistrationCount } from "@/lib/queries/useRegistrations";
 import {
   badgeInfo,
   buildMonthGrid,
@@ -24,6 +24,7 @@ import {
   isRegistrationOpen,
   isUpcoming,
   monthLabel,
+  registrationMeta,
   registrationOpensLabel,
   weekdayLabel,
   withShortCode,
@@ -50,7 +51,7 @@ const VIEW_ITEMS = [
 
 const CAL_WEEKDAYS = ["MO", "DI", "MI", "DO", "FR", "SA", "SO"];
 
-function toRow(t: Termin, counts: Record<string, number>, groups: Group[]) {
+function toRow(t: Termin, counts: Record<string, RegistrationCount>, groups: Group[]) {
   const price = formatPrice(t.price);
   return {
     id: t.id,
@@ -59,7 +60,7 @@ function toRow(t: Termin, counts: Record<string, number>, groups: Group[]) {
     title: withShortCode(t.title, groupShortCode(t.register_groups, groups)),
     subtitle: t.type === "training" ? t.trainer : t.location,
     time: hhmm(t.start_time),
-    meta: `${counts[t.id] ?? 0}/${t.max_tn}${price ? ` · ${price}` : ""}`,
+    meta: `${registrationMeta(counts[t.id]?.confirmed ?? 0, counts[t.id]?.pending ?? 0, t.max_tn)}${price ? ` · ${price}` : ""}`,
     type: t.type,
     notice: registrationOpensLabel(t),
     dimmed: !isRegistrationOpen(t),

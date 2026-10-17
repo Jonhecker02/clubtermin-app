@@ -157,3 +157,10 @@
   color: var(--tp-ink-60);
   background: var(--tp-pink-tint);
 }
+
+/* Open spot: same row, muted. */
+.freeRow {
+  color: var(--tp-ink-60);
+  letter-spacing: 0.08em;
+  font-weight: var(--fw-semibold);
+}

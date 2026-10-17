@@ -1,5 +1,8 @@
+/* html/body are locked (see globals.css), so this screen must be exactly
+   viewport-tall and scroll inside .content — with min-height the content grew
+   past the screen and the lower part (long participant lists) was cut off. */
 .wrap {
-  min-height: 100dvh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   background: var(--color-bg);
@@ -7,7 +10,10 @@
 
 .content {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
   padding: 18px 18px 32px;
 }
 

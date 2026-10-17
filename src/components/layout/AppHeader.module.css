@@ -38,7 +38,9 @@
 
 .largeTitleWrap {
   background: var(--tp-navy);
-  padding: 0 20px 14px;
+  /* -1px/+1px hides a hairline seam between the sticky bar and this block. */
+  margin-top: -1px;
+  padding: 1px 20px 14px;
 }
 
 .largeTitle {

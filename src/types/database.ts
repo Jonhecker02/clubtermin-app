@@ -1,6 +1,7 @@
 export type UserRole = "owner" | "trainer" | "captain" | "member";
 export type UserStatus = "pending" | "approved" | "rejected";
 export type TerminType = "training" | "event" | "spieltag";
+export type SessionFormat = "training_spiel" | "nur_spiel" | "nur_training";
 export type RegistrationStatus = "angemeldet" | "warteliste" | "ausstehend";
 
 // Plain `type` aliases (not `interface`) so these structurally satisfy the
@@ -51,6 +52,7 @@ export type Termin = {
   registration_closes_time: string | null;
   court_groups_published_at: string | null;
   court_groups_switch_time: string | null;
+  session_format: SessionFormat;
   allocation_proposed_at: string | null;
   allocation_run_at: string | null;
   created_by: string | null;
@@ -282,7 +284,7 @@ type TerminInsert = Pick<
 > &
   // Optional — only ever set later, via the Trainingsgruppen editor, never
   // at creation, so it can't be a required field here like the rest.
-  Partial<Pick<Termin, "court_groups_switch_time">>;
+  Partial<Pick<Termin, "court_groups_switch_time" | "session_format">>;
 
 export interface Database {
   __InternalSupabase: {

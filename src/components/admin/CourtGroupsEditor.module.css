@@ -262,3 +262,28 @@
   color: var(--color-ink-muted);
   white-space: nowrap;
 }
+
+.autoHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.autoHeadText {
+  min-width: 0;
+}
+
+.planLine {
+  font-size: 12.5px;
+  color: var(--color-ink-muted);
+}
+
+.shareLabel {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}

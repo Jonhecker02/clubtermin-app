@@ -37,6 +37,8 @@ import {
   registrationOpensLabel,
   splitRegistrations,
   withShortCode,
+  playerPlanSentence,
+  sessionFormatOf,
 } from "@/lib/domain";
 import { pushWhen } from "@/lib/pushText";
 import { RealtimeProvider } from "@/lib/realtime/RealtimeProvider";
@@ -275,17 +277,15 @@ export default function TerminDetailPage() {
 
         {myCourtGroup && (
           <div className={styles.infoCard}>
-            <div className={styles.sectionLabel}>Deine Trainingsgruppe</div>
+            <div className={styles.sectionLabel}>{sessionFormatOf(termin) === "nur_spiel" ? "Dein Court" : "Deine Gruppe"}</div>
             <div className={styles.infoRow}>
               <span>
-                {myCourtGroup.label} · Trainer: {myCourtGroup.trainer_name || "—"}
+                {myCourtGroup.label}
+                {sessionFormatOf(termin) !== "nur_spiel" && myCourtGroup.trainer_name ? ` · Trainer: ${myCourtGroup.trainer_name}` : ""}
               </span>
             </div>
             <div className={styles.infoRow}>
-              <span>
-                Du trainierst in Runde {myCourtGroup.trains_in_round} — Runde{" "}
-                {myCourtGroup.trains_in_round === 1 ? 2 : 1} spielst du.
-              </span>
+              <span>{playerPlanSentence(myCourtGroup.trains_in_round, termin)}</span>
             </div>
           </div>
         )}

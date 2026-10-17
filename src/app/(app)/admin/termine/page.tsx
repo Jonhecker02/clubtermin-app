@@ -26,6 +26,7 @@ import {
   hhmm,
   isRegistrationOpen,
   isUpcoming,
+  registrationMeta,
   registrationOpensLabel,
   weekdayLabel,
   withShortCode,
@@ -167,7 +168,7 @@ export default function AdminTerminePage() {
                   title={withShortCode(t.title, groupShortCode(t.register_groups, groups))}
                   subtitle={t.type === "training" ? t.trainer : t.location}
                   time={hhmm(t.start_time)}
-                  meta={`${counts[t.id] ?? 0}/${t.max_tn}${price ? ` · ${price}` : ""}`}
+                  meta={`${registrationMeta(counts[t.id]?.confirmed ?? 0, counts[t.id]?.pending ?? 0, t.max_tn)}${price ? ` · ${price}` : ""}`}
                   type={t.type}
                   notice={registrationOpensLabel(t, { forAdmin: true })}
                   dimmed={!isRegistrationOpen(t)}

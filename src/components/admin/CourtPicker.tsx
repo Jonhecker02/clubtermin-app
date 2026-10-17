@@ -8,10 +8,12 @@ import styles from "./CourtPicker.module.css";
 interface CourtPickerProps {
   value: number[];
   onChange: (next: number[]) => void;
+  // Events may use courts but don't have to.
+  optional?: boolean;
 }
 
 // The club's seven courts as tap-to-toggle tiles: ticked = trained on.
-export function CourtPicker({ value, onChange }: CourtPickerProps) {
+export function CourtPicker({ value, onChange, optional = false }: CourtPickerProps) {
   function toggle(n: number) {
     haptic("light");
     onChange(value.includes(n) ? value.filter((c) => c !== n) : [...value, n].sort((a, b) => a - b));
@@ -22,7 +24,7 @@ export function CourtPicker({ value, onChange }: CourtPickerProps) {
   return (
     <div className={styles.field}>
       <div className={styles.header}>
-        <span className={styles.label}>Courts</span>
+        <span className={styles.label}>Courts{optional ? " (optional)" : ""}</span>
         <span className={styles.actions}>
           <button type="button" className={styles.link} onClick={() => onChange(courts)}>
             Alle
@@ -53,7 +55,7 @@ export function CourtPicker({ value, onChange }: CourtPickerProps) {
           );
         })}
       </div>
-      <div className={styles.summary}>{value.length > 0 ? `Gebucht: ${formatCourts(value)}` : "Tippe die Courts an, auf denen trainiert wird."}</div>
+      <div className={styles.summary}>{value.length > 0 ? `Gebucht: ${formatCourts(value)}` : optional ? "Tippe die Courts an, die ihr nutzt — oder lass es leer." : "Tippe die Courts an, auf denen trainiert wird."}</div>
     </div>
   );
 }

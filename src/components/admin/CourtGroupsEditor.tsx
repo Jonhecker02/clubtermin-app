@@ -13,7 +13,15 @@ import { useSkillLevels } from "@/lib/queries/useSkillLevels";
 import { useProfiles } from "@/lib/queries/useProfiles";
 import { assignRounds, autoAssign, courtSizes, hashSeed, minCourts } from "@/lib/courtAssign";
 import { CourtGroupsExportCard } from "./CourtGroupsExportCard";
-import { buildCourtGroupsShareText, courtGroupRoundRange, courtGroupSwitchMinutes, formatLevel } from "@/lib/domain";
+import {
+  buildCourtGroupsShareText,
+  courtGroupLabel,
+  courtGroupPlanText,
+  courtGroupSwitchMinutes,
+  formatLevel,
+  parseCourts,
+  sessionFormatOf,
+} from "@/lib/domain";
 import type { Termin } from "@/types/database";
 import styles from "./CourtGroupsEditor.module.css";
 
@@ -67,9 +75,12 @@ export function CourtGroupsEditor({
   // another admin editing the same switch time is reflected immediately.
   const switchMinutes = courtGroupSwitchMinutes(termin);
   const switchTime = `${String(Math.floor(switchMinutes / 60)).padStart(2, "0")}:${String(switchMinutes % 60).padStart(2, "0")}`;
+  const format = sessionFormatOf(termin);
+  const hasChangeover = format === "training_spiel";
+  const bookedCourts = parseCourts(termin.courts);
   const roundItems = [
-    { id: "1", label: `Trainiert Runde 1 (${courtGroupRoundRange(1, termin)})` },
-    { id: "2", label: `Trainiert Runde 2 (${courtGroupRoundRange(2, termin)})` },
+    { id: "1", label: "Erst Training" },
+    { id: "2", label: "Erst Spiel" },
   ];
 
   async function saveSwitchTime(value: string) {
@@ -149,7 +160,7 @@ export function CourtGroupsEditor({
   function addGroup() {
     setGroups((gs) => [
       ...gs,
-      { key: crypto.randomUUID(), label: `Gruppe ${gs.length + 1}`, trainerName: "", round: 1, memberIds: [] },
+      { key: crypto.randomUUID(), label: courtGroupLabel(gs.length, bookedCourts), trainerName: "", round: 1, memberIds: [] },
     ]);
   }
 
@@ -239,11 +250,13 @@ export function CourtGroupsEditor({
       courts: courtCount,
       seed: hashSeed(terminId) + bump * 104729,
     });
-    const rounds = assignRounds(result.courts, quotes);
+    // Only a coached half + play half needs a fair "who goes first".
+    const rounds = hasChangeover ? assignRounds(result.courts, quotes) : result.courts.map(() => 1 as const);
     setGroups((previous) =>
       result.courts.map((ids, i) => ({
         key: crypto.randomUUID(),
-        label: `Court ${i + 1}`,
+        // Named after the courts that were booked (Court 3, Court 4, ...).
+        label: courtGroupLabel(i, bookedCourts),
         // Trainers were typed in by hand — keep them on the same court number.
         trainerName: previous[i]?.trainerName ?? "",
         round: rounds[i],
@@ -357,13 +370,13 @@ export function CourtGroupsEditor({
   return (
     <div className={styles.wrap}>
       <div className={styles.autoCard}>
-        <div className={styles.autoTitle}>Automatische Einteilung</div>
-        <div className={styles.autoText}>
-          {participants.length} Spieler → <b>{courtCount} Courts</b> ({sizeSummary}). Gleich starke Spieler kommen auf einen
-          Court, wer zuletzt oft zusammen trainiert hat, wird getrennt.
-        </div>
-        <div className={styles.stepperRow}>
-          <span className={styles.stepperLabel}>Anzahl Courts</span>
+        <div className={styles.autoHead}>
+          <div className={styles.autoHeadText}>
+            <div className={styles.autoTitle}>Automatische Einteilung</div>
+            <div className={styles.autoText}>
+              {participants.length} Spieler → <b>{courtCount} Courts</b> ({sizeSummary})
+            </div>
+          </div>
           <div className={styles.stepper}>
             <button type="button" onClick={() => setCourtsWanted(Math.max(courtCount - 1, minCourtCount))} disabled={courtCount <= minCourtCount} title="Weniger Courts">
               <Minus size={15} strokeWidth={2.5} />
@@ -373,6 +386,9 @@ export function CourtGroupsEditor({
               <Plus size={15} strokeWidth={2.5} />
             </button>
           </div>
+        </div>
+        <div className={styles.autoHint}>
+          Gleich starke Spieler kommen auf einen Court, wer zuletzt oft zusammen gespielt hat, wird getrennt.
         </div>
         <Button variant="accent" size="sm" full onClick={startAutoAssign} disabled={!historyLoaded}>
           <WandSparkles size={15} strokeWidth={2.2} style={{ marginRight: 4 }} />
@@ -393,19 +409,21 @@ export function CourtGroupsEditor({
         {autoInfo && (
           <div className={styles.autoHint}>
             {autoInfo.repeats === 0
-              ? "Niemand trainiert mit jemandem zusammen, mit dem er zuletzt schon auf einem Court war."
+              ? "Niemand ist mit jemandem zusammen, mit dem er zuletzt schon auf einem Court war."
               : `Gleich starke Spieler wurden bestmöglich neu gemischt. ${autoInfo.repeats} Paarung${autoInfo.repeats === 1 ? "" : "en"} waren trotzdem zuletzt schon zusammen.`}
           </div>
         )}
       </div>
 
-      <Input
-        label="Wechsel zwischen Training und Spiel"
-        type="time"
-        value={switchTime}
-        onChange={(e) => saveSwitchTime(e.target.value)}
-        helper="Standardmäßig 1 Std. nach Beginn — bei Bedarf anpassen."
-      />
+      {hasChangeover && (
+        <Input
+          label="Wechsel zwischen Training und Spiel"
+          type="time"
+          value={switchTime}
+          onChange={(e) => saveSwitchTime(e.target.value)}
+          helper="Standardmäßig 1 Std. nach Beginn — bei Bedarf anpassen."
+        />
+      )}
 
       {unassigned.length > 0 && (
         <div className={styles.unassigned}>
@@ -452,6 +470,7 @@ export function CourtGroupsEditor({
                 </button>
               </div>
 
+              {format !== "nur_spiel" && (
               <Select
                 label="Trainer"
                 value={g.trainerName}
@@ -468,21 +487,29 @@ export function CourtGroupsEditor({
                   <option value={g.trainerName}>{g.trainerName}</option>
                 )}
               </Select>
+              )}
 
-              <Tabs
-                items={roundItems}
-                value={String(g.round)}
-                onChange={(id) => updateGroup(g.key, { round: Number(id) as 1 | 2 })}
-                size="sm"
-              />
-              {suggestion !== null && suggestion !== g.round && (
-                <button
-                  type="button"
-                  className={styles.suggestion}
-                  onClick={() => updateGroup(g.key, { round: suggestion as 1 | 2 })}
-                >
-                  Faire Empfehlung: Runde {suggestion} übernehmen
-                </button>
+              {hasChangeover ? (
+                <>
+                  <Tabs
+                    items={roundItems}
+                    value={String(g.round)}
+                    onChange={(id) => updateGroup(g.key, { round: Number(id) as 1 | 2 })}
+                    size="sm"
+                  />
+                  <div className={styles.planLine}>{courtGroupPlanText(g.round, termin)}</div>
+                  {suggestion !== null && suggestion !== g.round && (
+                    <button
+                      type="button"
+                      className={styles.suggestion}
+                      onClick={() => updateGroup(g.key, { round: suggestion as 1 | 2 })}
+                    >
+                      Faire Empfehlung: „{suggestion === 1 ? "Erst Training" : "Erst Spiel"}“ übernehmen
+                    </button>
+                  )}
+                </>
+              ) : (
+                <div className={styles.planLine}>{courtGroupPlanText(1, termin)}</div>
               )}
 
               <div className={styles.chips}>
@@ -534,13 +561,14 @@ export function CourtGroupsEditor({
 
       {groups.some((g) => g.memberIds.length > 0) && (
         <>
+          <div className={styles.shareLabel}>Für die Trainer teilen</div>
           <Button variant="outline" size="sm" full onClick={exportPng} disabled={exporting}>
             <ImageDown size={15} strokeWidth={2.2} style={{ marginRight: 4 }} />
-            {exporting ? "Erstelle Bild…" : "Als Bild (für Trainer)"}
+            {exporting ? "Erstelle Bild…" : "Als Bild"}
           </Button>
           <Button variant="outline" size="sm" full onClick={copyText}>
             <Copy size={15} strokeWidth={2.2} style={{ marginRight: 4 }} />
-            {textCopied ? "Kopiert!" : "Als Text kopieren (für Trainer)"}
+            {textCopied ? "Kopiert!" : "Als Text kopieren"}
           </Button>
         </>
       )}

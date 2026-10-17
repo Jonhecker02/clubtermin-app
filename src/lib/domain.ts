@@ -1,4 +1,4 @@
-import type { Group, RegistrationStatus, Termin, TerminType } from "@/types/database";
+import type { Group, RegistrationStatus, Termin, TerminType, SessionFormat } from "@/types/database";
 
 // Keep in sync with cancel_registration()'s v_cutoff_hours in supabase/migrations/0001_init.sql
 export const CANCEL_CUTOFF_HOURS = 24;
@@ -56,6 +56,7 @@ type CourtGroupTiming = {
   start_time: string;
   end_time: string;
   court_groups_switch_time: string | null;
+  session_format?: SessionFormat;
 };
 
 function timeToMinutes(t: string): number {
@@ -87,6 +88,45 @@ export function courtGroupRoundRange(round: 1 | 2, t: CourtGroupTiming): string 
   const switchAt = courtGroupSwitchMinutes(t);
   const [from, to] = round === 1 ? [start, switchAt] : [switchAt, end];
   return `${minutesToHHMM(from)}–${minutesToHHMM(to)}`;
+}
+
+export const SESSION_FORMAT_LABELS: Record<SessionFormat, string> = {
+  training_spiel: "Training & Spiel",
+  nur_spiel: "Nur Spiel",
+  nur_training: "Nur Training",
+};
+
+export function sessionFormatOf(t: { session_format?: SessionFormat | null }): SessionFormat {
+  return t.session_format ?? "training_spiel";
+}
+
+// Whole-slot time range ("18:00–20:00").
+function wholeSlotRange(t: CourtGroupTiming): string {
+  return `${minutesToHHMM(timeToMinutes(t.start_time))}–${minutesToHHMM(timeToMinutes(t.end_time))}`;
+}
+
+// What one group does and when, in plain words. `round` 1 = trains first,
+// 2 = plays first (only meaningful for "Training & Spiel").
+//   "Erst Training 18:00–19:00, dann Spiel 19:00–20:00"
+export function courtGroupPlanText(round: 1 | 2, t: CourtGroupTiming): string {
+  const format = sessionFormatOf(t);
+  if (format === "nur_spiel") return `Spiel ${wholeSlotRange(t)}`;
+  if (format === "nur_training") return `Training ${wholeSlotRange(t)}`;
+  const first = courtGroupRoundRange(1, t);
+  const second = courtGroupRoundRange(2, t);
+  return round === 1 ? `Erst Training ${first}, dann Spiel ${second}` : `Erst Spiel ${first}, dann Training ${second}`;
+}
+
+// What the player sees on their own card.
+export function playerPlanSentence(round: 1 | 2, t: CourtGroupTiming): string {
+  const format = sessionFormatOf(t);
+  if (format === "nur_spiel") return `Du spielst (${wholeSlotRange(t)}).`;
+  if (format === "nur_training") return `Du trainierst (${wholeSlotRange(t)}).`;
+  const first = courtGroupRoundRange(1, t);
+  const second = courtGroupRoundRange(2, t);
+  return round === 1
+    ? `Erst trainierst du (${first}), danach spielst du (${second}).`
+    : `Erst spielst du (${first}), danach trainierst du (${second}).`;
 }
 
 export function msUntil(target: Date): number {
@@ -311,18 +351,22 @@ export function buildTerminShareText(params: {
   maxTn: number;
   participants: string[];
   waitlist: string[];
+  // "Nur Spiel" has no trainer to name.
+  showTrainer?: boolean;
 }): string {
   const { title, shortCode, dateLabel, timeLabel, location, courts, trainer, price, maxTn, participants, waitlist } = params;
   const lines: string[] = [
     shortCode ? `${shortCode} · ${title}` : title,
     `${dateLabel} · ${timeLabel} Uhr`,
     `${location}${courts ? `, ${courts}` : ""}`,
-    `Trainer: ${trainer}`,
   ];
+  if (params.showTrainer !== false && trainer && trainer !== "—") lines.push(`Trainer: ${trainer}`);
   if (price) lines.push(`Preis: ${price}`);
   lines.push("", `Teilnehmer (${participants.length}/${maxTn}):`);
   if (participants.length === 0) lines.push("—");
   participants.forEach((name, i) => lines.push(`${i + 1}. ${name}`));
+  // Open spots up to the maximum set when the termin was created.
+  for (let n = participants.length + 1; n <= maxTn; n++) lines.push(`${n}. FREI`);
   if (waitlist.length > 0) {
     lines.push("", `Warteliste (${waitlist.length}):`);
     waitlist.forEach((name, i) => lines.push(`${i + 1}. ${name}`));
@@ -351,22 +395,24 @@ export function parseLevel(text: string): number | null | undefined {
 // Deliberately carries no Spielstärke — levels are for the planning screen
 // only, a pasted text must not leak them.
 export function buildCourtGroupsShareText(params: {
-  termin: Pick<Termin, "title" | "date" | "start_time" | "end_time" | "location" | "courts" | "court_groups_switch_time">;
+  termin: Pick<
+    Termin,
+    "title" | "date" | "start_time" | "end_time" | "location" | "courts" | "court_groups_switch_time" | "session_format"
+  >;
   groups: { label: string; trainerName: string; round: 1 | 2; memberNames: string[] }[];
 }): string {
   const { termin, groups } = params;
+  const format = sessionFormatOf(termin);
   const lines: string[] = [
-    `*Trainingsgruppen · ${termin.title}*`,
+    `*${format === "nur_spiel" ? "Einteilung" : "Trainingsgruppen"} · ${termin.title}*`,
     `${fullDateLabel(termin.date)} · ${hhmm(termin.start_time)}–${hhmm(termin.end_time)} Uhr`,
     `${termin.location}${termin.courts ? `, ${termin.courts}` : ""}`,
     "",
   ];
-  const r1 = courtGroupRoundRange(1, termin);
-  const r2 = courtGroupRoundRange(2, termin);
   for (const g of groups) {
-    const trainer = g.trainerName ? ` · Trainer: ${g.trainerName}` : "";
+    const trainer = g.trainerName && format !== "nur_spiel" ? ` · Trainer: ${g.trainerName}` : "";
     lines.push(`*${g.label}*${trainer}`);
-    lines.push(g.round === 1 ? `Training ${r1} · Spielen ${r2}` : `Spielen ${r1} · Training ${r2}`);
+    lines.push(courtGroupPlanText(g.round, termin));
     g.memberNames.forEach((name, i) => lines.push(`${i + 1}. ${name}`));
     lines.push("");
   }
@@ -426,4 +472,33 @@ export function formatCourts(selected: number[]): string {
     i = j + 1;
   }
   return `Court ${parts.join(", ")}`;
+}
+
+// "Court 3" -> labels the groups after the courts that were actually booked
+// ("Court 1–4" booked -> group 1 is Court 1, ...). More groups than booked
+// courts fall back to plain numbering.
+export function courtGroupLabel(index: number, booked: number[]): string {
+  return booked[index] !== undefined ? `Court ${booked[index]}` : `Gruppe ${index + 1}`;
+}
+
+// The courts that are really in use: if the groups are named after courts
+// ("Court 1", "Court 2", ...) show exactly those — fewer players than booked
+// courts means fewer courts. Falls back to the booked courts when the group
+// names say nothing usable or name a court that was never booked.
+export function courtsInUse(groupLabels: string[], bookedText: string): string {
+  const used = new Set<number>();
+  for (const label of groupLabels) {
+    if (/^\s*court\s*\d+\s*$/i.test(label)) for (const n of parseCourts(label)) used.add(n);
+  }
+  if (used.size === 0) return bookedText;
+  const booked = parseCourts(bookedText);
+  if (booked.length > 0 && [...used].some((n) => !booked.includes(n))) return bookedText;
+  return formatCourts([...used]);
+}
+
+// Overview line in the Termine list. While people are waiting for the
+// allocation, how many wait matters more than 0/16.
+export function registrationMeta(confirmed: number, pending: number, maxTn: number): string {
+  if (pending > 0) return confirmed > 0 ? `${confirmed}/${maxTn} · ${pending} warten` : `${pending} warten`;
+  return `${confirmed}/${maxTn}`;
 }

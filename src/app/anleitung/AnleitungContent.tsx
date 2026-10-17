@@ -480,8 +480,20 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                   <div className={styles.v}>Pflichtfelder</div>
                 </div>
                 <div className={styles.field}>
-                  <div className={styles.k}>Location &amp; Courts</div>
-                  <div className={styles.v}>z. B. „The Padellers Essen“, Platznummern</div>
+                  <div className={styles.k}>Courts</div>
+                  <div className={styles.v}>
+                    Die sieben Courts antippen, auf denen ihr spielt (bei Events optional)
+                  </div>
+                </div>
+                <div className={styles.field}>
+                  <div className={styles.k}>Ablauf (nur Training)</div>
+                  <div className={styles.v}>
+                    „Training &amp; Spiel“ mit Wechsel, „Nur Spiel“ oder „Nur Training“ — ohne Wechsel
+                  </div>
+                </div>
+                <div className={styles.field}>
+                  <div className={styles.k}>Weitere Angaben</div>
+                  <div className={styles.v}>Location, Preis, Beschreibung und Push-Optionen — aufklappbar</div>
                 </div>
                 <div className={styles.field}>
                   <div className={styles.k}>Max. Teilnehmer &amp; Preis</div>
@@ -577,7 +589,9 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                 Für große Trainings mit mehreren Courts und Trainern: Teilt die bestätigten Teilnehmer in
                 kleine Gruppen ein — z. B. bei 16 Leuten und 2 Trainern vier Gruppen à vier Spieler, je zwei
                 trainieren zuerst mit einem Trainer, während die anderen beiden spielen, danach wird
-                getauscht. Zu finden unten in der Teilnehmerverwaltung eines <b>Training</b>-Termins.
+                getauscht. Zu finden in der Teilnehmerverwaltung eines <b>Training</b>-Termins im Reiter
+                <b> „Gruppen“</b>. Bei einem Training mit dem Ablauf <b>„Nur Spiel“</b> heißt der Reiter
+                „Courts“ — dort gibt es dann weder Trainer noch Wechsel.
               </p>
               <Steps
                 items={[
@@ -595,23 +609,25 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                     anders mischen.
                   </>,
                   <>
-                    Pro Gruppe den <b>Trainer</b> aus der Liste wählen und <b>„Trainiert Runde 1“</b> oder{" "}
-                    <b>„Trainiert Runde 2“</b> wählen (die jeweils andere Runde spielt die Gruppe).
+                    Pro Gruppe den <b>Trainer</b> aus der Liste wählen und festlegen, ob die Gruppe{" "}
+                    <b>„Erst Training“</b> oder <b>„Erst Spiel“</b> hat — danach wird gewechselt. Die Gruppen
+                    heißen wie die gebuchten Courts (Court 1, Court 2, …).
                   </>,
                   <>
                     Erscheint eine <b>faire Empfehlung</b>, hat die Mehrheit der aktuell zugeteilten Spieler
-                    zuletzt öfter die andere Runde trainiert — anklicken übernimmt sie, muss aber nicht.
+                    zuletzt öfter das andere zuerst gemacht — anklicken übernimmt sie, muss aber nicht.
                   </>,
                   <>
                     Mit <b>„Trainingsgruppen speichern“</b> sichern, dann über{" "}
                     <b>„Für Spieler veröffentlichen“</b> freigeben — erst dann sehen die Teilnehmer ihre
-                    Gruppe, ihren Trainer und ihre Runde auf der Termin-Seite.
+                    Gruppe, ihren Trainer und ob sie zuerst trainieren oder spielen, auf der Termin-Seite.
                   </>,
                   <>
-                    Für die Weitergabe gibt es unten im Bereich Trainingsgruppen zwei Exporte, jeweils als
-                    Bild oder Text: die <b>Trainer-Ansicht</b> (alle Courts mit Spielern, ohne
-                    Spielstärken) und <b>„Für die Spielergruppe“</b> mit Teilnehmern und Warteliste, z. B. für
-                    WhatsApp.
+                    Für die Weitergabe gibt es zwei Exporte, jeweils als Bild oder Text: die{" "}
+                    <b>Trainer-Ansicht</b> (alle Courts mit Spielern, ohne Spielstärken, unten im Reiter
+                    „Gruppen“) und <b>„Für die Spielergruppe“</b> (im Reiter „Teilnehmer“) mit Teilnehmern, freien
+                    Plätzen und Warteliste, z. B. für WhatsApp. Dort steht bei den Courts nur, was tatsächlich
+                    genutzt wird.
                   </>,
                 ]}
               />
