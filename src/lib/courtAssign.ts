@@ -187,3 +187,34 @@ export function assignRounds(courts: string[][], quotes: Record<string, number>)
   const firstRound = new Set(order.slice(0, Math.ceil(courts.length / 2)));
   return courts.map((_, i) => (firstRound.has(i) ? 1 : 2));
 }
+
+// Where should one more player go in an existing, already-made grouping?
+// Same logic as the automatic assignment: the court whose average level is
+// closest wins, courts the player recently shared with others cost extra, and
+// full courts (4) are out. Returns the group key, or null when every court is
+// full. Used for Nachrücker, who join after the groups were drawn.
+export function suggestGroupFor(
+  player: AssignPlayer,
+  groups: { key: string; members: AssignPlayer[] }[],
+  partnerCounts: PartnerCounts,
+): string | null {
+  let bestKey: string | null = null;
+  let bestCost = Infinity;
+  for (const g of groups) {
+    if (g.members.length >= COURT_SIZE) continue;
+    let cost = 0;
+    const known = g.members.map((m) => m.level).filter((l): l is number => l !== null);
+    if (player.level !== null && known.length > 0) {
+      const avg = known.reduce((sum, l) => sum + l, 0) / known.length;
+      cost += Math.abs(player.level - avg) * LEVEL_WEIGHT;
+    }
+    for (const m of g.members) cost += pairCount(partnerCounts, player.id, m.id);
+    // Tie-break: keep the courts evenly filled.
+    cost += g.members.length * 0.01;
+    if (cost < bestCost) {
+      bestCost = cost;
+      bestKey = g.key;
+    }
+  }
+  return bestKey;
+}

@@ -39,6 +39,8 @@ import {
   withShortCode,
   playerPlanSentence,
   sessionFormatOf,
+  isNachruecker,
+  registrationDeadlinePassed,
 } from "@/lib/domain";
 import { pushWhen } from "@/lib/pushText";
 import { RealtimeProvider } from "@/lib/realtime/RealtimeProvider";
@@ -177,7 +179,10 @@ export default function TerminDetailPage() {
       actionDisabled = true;
       cancelNotice = `Abmeldung nicht mehr möglich (weniger als ${CANCEL_CUTOFF_HOURS} Std. vor Beginn).`;
     }
-    if (myAllocation?.included) {
+    const myRegistration = registrations.find((r) => r.user_id === userId);
+    if (myRegistration && isNachruecker(myRegistration.created_at, termin)) {
+      infoNote = "Du bist als Nachrücker dabei. Deine Gruppe teilt der Clubmanager noch ein.";
+    } else if (myAllocation?.included) {
       infoNote = myAllocation.excluded_from_rotation
         ? "Du hast einen garantierten Platz."
         : myAllocation.rank_order != null && myAllocation.applicant_count != null
@@ -220,6 +225,20 @@ export default function TerminDetailPage() {
     actionLabel = "Anmeldung noch nicht offen";
     actionDisabled = true;
     cancelNotice = registrationOpensLabel(termin) ?? "";
+  } else if (termin.registration_closes_date && registrationDeadlinePassed(termin)) {
+    // After the deadline of a fair-rotation termin: leftover spots can still
+    // be taken (as a Nachrücker), otherwise it is the waitlist.
+    const free = termin.max_tn - participants.length - pendingRegistrations.length;
+    if (!termin.allocation_proposed_at) {
+      infoNote =
+        "Der Anmeldeschluss ist vorbei, die Zuteilung läuft gerade. Wenn du dich jetzt anmeldest, wirst du noch fair mit berücksichtigt.";
+    } else if (free > 0) {
+      actionLabel = "Als Nachrücker anmelden";
+      infoNote = `Der Anmeldeschluss ist vorbei, aber es ${free === 1 ? "ist noch 1 Platz" : `sind noch ${free} Plätze`} frei. Als Nachrücker bekommst du sofort einen freien Platz — deine Gruppe teilt der Clubmanager danach ein.`;
+    } else {
+      actionLabel = "Auf Warteliste anmelden";
+      infoNote = "Alle Plätze sind vergeben. Auf der Warteliste rückst du bei einer Absage nach.";
+    }
   } else if (participants.length >= termin.max_tn) {
     actionLabel = "Auf Warteliste anmelden";
   }

@@ -164,3 +164,14 @@
   letter-spacing: 0.08em;
   font-weight: var(--fw-semibold);
 }
+
+.freeHint {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--tp-pink-tint);
+  color: var(--tp-navy);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+}

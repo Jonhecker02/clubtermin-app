@@ -172,6 +172,29 @@ export function registrationClosesAt(t: RegistrationCloses): Date | null {
   return terminDateTime(t.registration_closes_date, t.registration_closes_time ?? "00:00");
 }
 
+// Deadline of a fair-rotation termin has passed (false when there is none).
+export function registrationDeadlinePassed(t: RegistrationCloses): boolean {
+  const closes = registrationClosesAt(t);
+  return !!closes && closes.getTime() <= Date.now();
+}
+
+// A registration that came in after the deadline of a fair-rotation termin:
+// someone who stepped in ("Nachrücker") for a spot that was still free.
+export function isNachruecker(createdAt: string, t: RegistrationCloses): boolean {
+  const closes = registrationClosesAt(t);
+  return !!closes && new Date(createdAt).getTime() > closes.getTime();
+}
+
+// Line for copied/exported lists when spots are still open, telling people
+// how to take one.
+export function freeSpotsHint(free: number, lateSignup: boolean): string | null {
+  if (free <= 0) return null;
+  const spots = free === 1 ? "1 Platz" : `${free} Plätze`;
+  return lateSignup
+    ? `Noch ${spots} frei — als Nachrücker in der App anmelden: clubtermine.online`
+    : `Noch ${spots} frei — in der App anmelden: clubtermine.online`;
+}
+
 // Splits a termin's registrations into the three buckets every list/detail
 // page needs — pulled out once here instead of each page re-implementing
 // the same three `.filter(r => r.status === ...)` calls inline.
@@ -353,6 +376,8 @@ export function buildTerminShareText(params: {
   waitlist: string[];
   // "Nur Spiel" has no trainer to name.
   showTrainer?: boolean;
+  // How to take one of the open spots (see freeSpotsHint).
+  freeHint?: string | null;
 }): string {
   const { title, shortCode, dateLabel, timeLabel, location, courts, trainer, price, maxTn, participants, waitlist } = params;
   const lines: string[] = [
@@ -371,6 +396,7 @@ export function buildTerminShareText(params: {
     lines.push("", `Warteliste (${waitlist.length}):`);
     waitlist.forEach((name, i) => lines.push(`${i + 1}. ${name}`));
   }
+  if (params.freeHint) lines.push("", params.freeHint);
   return lines.join("\n");
 }
 

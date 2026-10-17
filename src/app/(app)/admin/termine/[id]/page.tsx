@@ -43,6 +43,8 @@ import {
   splitRegistrations,
   withShortCode,
   displayEmail,
+  freeSpotsHint,
+  isNachruecker,
 } from "@/lib/domain";
 import adminStyles from "@/components/admin/AdminList.module.css";
 import styles from "./page.module.css";
@@ -167,6 +169,11 @@ export default function AdminParticipantsPage() {
     }
   }
 
+  // Open spots after the allocation can be taken as a Nachrücker; otherwise
+  // it is an ordinary open spot. Either way the copied list says how.
+  const freeSpots = termin ? termin.max_tn - participants.length - pendingRegistrations.length : 0;
+  const freeHint = freeSpotsHint(freeSpots, !!termin?.registration_closes_date && !!termin?.allocation_proposed_at);
+
   async function copyText() {
     if (!termin) return;
     const text = buildTerminShareText({
@@ -180,6 +187,7 @@ export default function AdminParticipantsPage() {
       courts: courtsInUse((savedCourtGroups ?? []).map((g) => g.label), termin.courts),
       trainer: termin.trainer,
       showTrainer: sessionFormatOf(termin) !== "nur_spiel",
+      freeHint,
       price: formatPrice(termin.price),
       maxTn: termin.max_tn,
       participants: participants.map((p) => p.name),
@@ -204,6 +212,10 @@ export default function AdminParticipantsPage() {
   const showCourtGroups = termin.type === "training" && participants.length > 0;
   const showAllocation = !!termin.registration_closes_date;
   const proposalReady = allocations.length > 0 && !termin.allocation_run_at;
+  // Groups already exist but some confirmed players are in none of them
+  // (typically Nachrücker) — the Clubmanager still has to place them.
+  const placedIds = new Set((savedCourtGroups ?? []).flatMap((g) => g.member_ids));
+  const needsPlacement = (savedCourtGroups ?? []).length > 0 && participants.some((p) => !placedIds.has(p.user_id));
   const badge = badgeInfo(termin.type);
   const displayTitle = withShortCode(termin.title, groupShortCode(termin.register_groups, groups));
   const format = sessionFormatOf(termin);
@@ -212,7 +224,9 @@ export default function AdminParticipantsPage() {
   const tabItems = [
     { id: "teilnehmer", label: "Teilnehmer" },
     ...(showAllocation ? [{ id: "zuteilung", label: proposalReady ? "Zuteilung •" : "Zuteilung" }] : []),
-    ...(showCourtGroups ? [{ id: "gruppen", label: format === "nur_spiel" ? "Courts" : "Gruppen" }] : []),
+    ...(showCourtGroups
+      ? [{ id: "gruppen", label: `${format === "nur_spiel" ? "Courts" : "Gruppen"}${needsPlacement ? " •" : ""}` }]
+      : []),
   ];
   // Opens straight on the allocation when a proposal is waiting for approval.
   const wanted = tab ?? (proposalReady ? "zuteilung" : "teilnehmer");
@@ -311,7 +325,10 @@ export default function AdminParticipantsPage() {
                   <div className={styles.row}>
                     <div className={styles.avatar}>{initials(p.name)}</div>
                     <div className={styles.rowMain}>
-                      <div className={styles.rowName}>{p.name}</div>
+                      <div className={styles.rowName}>
+                        {p.name}
+                        {isNachruecker(p.created_at, termin) && <span className={styles.lateTag}>Nachrücker</span>}
+                      </div>
                       {displayEmail(p.email) && <div className={styles.rowEmail}>{displayEmail(p.email)}</div>}
                     </div>
                     <IconButton
@@ -466,6 +483,7 @@ export default function AdminParticipantsPage() {
           shortCode={groupShortCode(termin.register_groups, groups)}
           priceLabel={formatPrice(termin.price)}
           courtsLabel={courtsLabel}
+          freeHint={freeHint}
           participants={participants.map((p) => p.name)}
           waitlist={waitlist.map((p) => p.name)}
         />

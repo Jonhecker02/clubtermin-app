@@ -287,3 +287,14 @@
   text-transform: uppercase;
   color: var(--color-ink-muted);
 }
+
+.placeBtn {
+  border: none;
+  background: var(--tp-pink-tint);
+  color: var(--tp-pink-deep);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: var(--fw-bold);
+  cursor: pointer;
+}

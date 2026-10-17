@@ -100,7 +100,7 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
   const [regGroups, setRegGroups] = useState<string[]>(
     initial && !initial.register_groups.includes("all") ? initial.register_groups : [],
   );
-  const [notifyCreate, setNotifyCreate] = useState(initial?.notify_create ?? true);
+  const [notifyCreate, setNotifyCreate] = useState(initial?.notify_create ?? false);
   const [reminderEnabled, setReminderEnabled] = useState(initial?.reminder_enabled ?? true);
   const [regOpenMode, setRegOpenMode] = useState<"sofort" | "geplant">(
     initial?.registration_opens_date ? "geplant" : "sofort",

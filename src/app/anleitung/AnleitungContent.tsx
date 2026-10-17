@@ -307,6 +307,12 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                     Du bekommst eine Benachrichtigung (wenn du sie aktiviert hast): entweder{" "}
                     <b>„Du bist dabei“</b> oder <b>„Warteliste“</b> mit deinem Platz und dem Grund.
                   </>,
+                  <>
+                    <b>Noch Plätze frei?</b> Dann kannst du dich auch nach dem Anmeldeschluss noch als{" "}
+                    <b>Nachrücker</b> anmelden (der Button heißt dann „Als Nachrücker anmelden“). Du bekommst
+                    sofort einen freien Platz; deine Gruppe teilt der Clubmanager danach ein. Sind alle Plätze
+                    vergeben, kommst du auf die Warteliste.
+                  </>,
                 ]}
               />
 
@@ -549,6 +555,14 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                 Nach dem Anmeldeschluss bekommt der Clubmanager die Nachricht „Zuteilung wartet auf dich“.
                 Im Termin den Vorschlag prüfen, bei Bedarf einzelne Personen tauschen und{" "}
                 <b>„Zuteilung bestätigen“</b> antippen — erst dann sehen die Spieler ihr Ergebnis.
+              </Callout>
+              <Callout mark="Nachrücker">
+                Nach dem Anmeldeschluss können sich Spieler bei freien Plätzen noch als Nachrücker anmelden.
+                Sie sind sofort dabei und erscheinen mit dem Hinweis „Nachrücker“. Gibt es schon Gruppen, schlägt
+                die App im Reiter „Gruppen“ pro Nachrücker einen Court vor (gleiche Logik wie die automatische
+                Einteilung). Du kannst den Vorschlag übernehmen oder von Hand ändern — gültig wird er mit{" "}
+                <b>„Speichern“</b>. In den kopierten Listen (Text und Bild) steht bei freien Plätzen der
+                Hinweis, dass man sich als Nachrücker in der App anmelden kann.
               </Callout>
               <Callout mark="Nachvollziehen">
                 Im Termin selbst zeigt der Abschnitt <b>„Zuteilung erklären“</b> nach Ablauf der Frist für

@@ -11,12 +11,14 @@ interface TerminExportCardProps {
   waitlist: string[];
   // Courts actually in use (falls back to the booked ones on the termin).
   courtsLabel?: string;
+  // How to take an open spot (shown under the list when spots are free).
+  freeHint?: string | null;
 }
 
 // Rendered off-screen (see the admin termin page) purely as a capture target
 // for html-to-image — never shown to the user directly.
 export const TerminExportCard = forwardRef<HTMLDivElement, TerminExportCardProps>(function TerminExportCard(
-  { termin, shortCode, priceLabel, participants, waitlist, courtsLabel },
+  { termin, shortCode, priceLabel, participants, waitlist, courtsLabel, freeHint },
   ref,
 ) {
   // Long lists get two columns (filled top to bottom, so 1-8 left and 9-16
@@ -80,6 +82,7 @@ export const TerminExportCard = forwardRef<HTMLDivElement, TerminExportCardProps
             </div>
           ))}
         </div>
+        {freeHint && <div className={styles.freeHint}>{freeHint}</div>}
 
         {waitlist.length > 0 && (
           <>

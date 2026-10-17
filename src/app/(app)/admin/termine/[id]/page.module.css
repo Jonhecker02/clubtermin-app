@@ -185,3 +185,17 @@
   color: var(--color-ink-muted);
   margin: 4px 0 10px;
 }
+
+.lateTag {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--tp-pink-tint);
+  color: var(--tp-pink-deep);
+  font-size: 10.5px;
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}

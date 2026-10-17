@@ -11,7 +11,7 @@ import { queryKeys } from "@/lib/queries/keys";
 import { useTerminCourtGroups } from "@/lib/queries/useTerminCourtGroups";
 import { useSkillLevels } from "@/lib/queries/useSkillLevels";
 import { useProfiles } from "@/lib/queries/useProfiles";
-import { assignRounds, autoAssign, courtSizes, hashSeed, minCourts } from "@/lib/courtAssign";
+import { assignRounds, autoAssign, courtSizes, hashSeed, minCourts, suggestGroupFor } from "@/lib/courtAssign";
 import { CourtGroupsExportCard } from "./CourtGroupsExportCard";
 import {
   buildCourtGroupsShareText,
@@ -237,6 +237,38 @@ export function CourtGroupsEditor({
     return levels?.[userId] ?? null;
   }
 
+  // Who joined after the groups were drawn (Nachrücker, late additions): the
+  // same logic as the automatic assignment proposes a court for each, one
+  // after the other so two newcomers don't both fill the last free seat. The
+  // proposal only counts once the Clubmanager applies it and saves.
+  const placements = useMemo(() => {
+    const plan: Record<string, string> = {};
+    if (!groups.some((g) => g.memberIds.length > 0)) return plan;
+    const working = groups.map((g) => ({ key: g.key, members: g.memberIds.map((id) => ({ id, level: levelOf(id) })) }));
+    for (const p of unassigned) {
+      const key = suggestGroupFor({ id: p.user_id, level: levelOf(p.user_id) }, working, partnerCounts);
+      if (!key) continue;
+      plan[p.user_id] = key;
+      working.find((g) => g.key === key)!.members.push({ id: p.user_id, level: levelOf(p.user_id) });
+    }
+    return plan;
+    // levelOf only reads `levels`
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groups, unassigned, partnerCounts, levels]);
+
+  function applyPlacements(onlyUserId?: string) {
+    setGroups((gs) =>
+      gs.map((g) => {
+        const add = Object.entries(placements)
+          .filter(([uid, key]) => key === g.key && (!onlyUserId || uid === onlyUserId))
+          .map(([uid]) => uid)
+          .filter((uid) => !g.memberIds.includes(uid));
+        return add.length > 0 ? { ...g, memberIds: [...g.memberIds, ...add].slice(0, GROUP_SIZE) } : g;
+      }),
+    );
+    setSavedNotice(false);
+  }
+
   function averageLevel(memberIds: string[]): string | null {
     const known = memberIds.map(levelOf).filter((l): l is number => l !== null);
     if (known.length === 0) return null;
@@ -427,16 +459,24 @@ export function CourtGroupsEditor({
 
       {unassigned.length > 0 && (
         <div className={styles.unassigned}>
-          <span className={styles.unassignedLabel}>Nicht zugeteilt ({unassigned.length})</span>
+          <span className={styles.unassignedLabel}>
+            {Object.keys(placements).length > 0 ? "Nachrücker & Nicht zugeteilt" : "Nicht zugeteilt"} ({unassigned.length})
+          </span>
           <div className={styles.unassignedList}>
             {unassigned.map((p) => {
               const partners = partnersOf(p.user_id);
+              const target = placements[p.user_id] ? groups.find((g) => g.key === placements[p.user_id]) : undefined;
               return (
                 <div key={p.user_id} className={styles.unassignedRow}>
                   <span>
                     {p.name}
                     {levelOf(p.user_id) !== null && <span className={styles.levelTag}>{formatLevel(levelOf(p.user_id)!)}</span>}
                   </span>
+                  {target && (
+                    <button type="button" className={styles.placeBtn} onClick={() => applyPlacements(p.user_id)}>
+                      Vorschlag: {target.label} · übernehmen
+                    </button>
+                  )}
                   {partners.length > 0 && (
                     <span className={styles.partnerHint}>
                       zuletzt mit: {partners.map((x) => `${x.name} (${x.count}×)`).join(", ")}
@@ -446,6 +486,17 @@ export function CourtGroupsEditor({
               );
             })}
           </div>
+          {Object.keys(placements).length > 0 && (
+            <>
+              <Button variant="outline" size="sm" full onClick={() => applyPlacements()}>
+                Alle Vorschläge übernehmen
+              </Button>
+              <div className={styles.autoHint}>
+                Gleiche Logik wie die automatische Einteilung (Spielstärke, wer zuletzt mit wem gespielt hat). Von Hand
+                änderbar — gilt erst, wenn du unten speicherst.
+              </div>
+            </>
+          )}
         </div>
       )}
 
