@@ -1,5 +1,12 @@
+/* html/body are locked site-wide (position: fixed, overflow: hidden), so this
+   page has to be its own scroll container — with min-height the long text was
+   simply cut off at the screen edge. */
 .page {
-  min-height: 100dvh;
+  height: 100dvh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  box-sizing: border-box;
   background: var(--tp-navy);
   display: flex;
   flex-direction: column;

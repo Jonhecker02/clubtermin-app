@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Input";
 import { usePlayerNotes } from "@/lib/queries/usePlayerNotes";
 import { queryKeys } from "@/lib/queries/keys";
+import { haptic } from "@/lib/haptics";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/types/database";
 import styles from "./PlayerNotesPanel.module.css";
@@ -38,10 +39,19 @@ export function PlayerNotesPanel({
   useUnsavedChanges(draft.trim() !== "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [justSaved, setJustSaved] = useState(false);
 
   function authorName(authorId: string | null): string {
     if (!authorId) return "Unbekannt";
     return profiles.find((p) => p.id === authorId)?.name ?? "Ehemaliger Admin";
+  }
+
+  // The player's own list and the overview (badges, previews) both change.
+  async function refreshNotes() {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.playerNotes(userId) }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.playerNotesOverview }),
+    ]);
   }
 
   async function addNote() {
@@ -56,13 +66,16 @@ export function PlayerNotesPanel({
       return;
     }
     setDraft("");
-    await queryClient.invalidateQueries({ queryKey: queryKeys.playerNotes(userId) });
+    haptic("success");
+    setJustSaved(true);
+    setTimeout(() => setJustSaved(false), 1800);
+    await refreshNotes();
   }
 
   async function deleteNote(noteId: string) {
     const supabase = createClient();
     await supabase.from("player_notes").delete().eq("id", noteId);
-    await queryClient.invalidateQueries({ queryKey: queryKeys.playerNotes(userId) });
+    await refreshNotes();
   }
 
   const composer = (
@@ -81,7 +94,7 @@ export function PlayerNotesPanel({
         onClick={addNote}
         disabled={saving || !draft.trim()}
       >
-        {composerFirst ? "Notiz speichern" : "Notiz hinzufügen"}
+        {justSaved ? "Gespeichert ✓" : composerFirst ? "Notiz speichern" : "Notiz hinzufügen"}
       </Button>
     </div>
   );

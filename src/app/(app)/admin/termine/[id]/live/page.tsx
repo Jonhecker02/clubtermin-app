@@ -15,7 +15,7 @@ import { useGroups } from "@/lib/queries/useGroups";
 import { useRegistrationsForTermin } from "@/lib/queries/useRegistrations";
 import { useTerminCourtGroups } from "@/lib/queries/useTerminCourtGroups";
 import { useSkillLevels } from "@/lib/queries/useSkillLevels";
-import { usePlayerNotesOverview } from "@/lib/queries/usePlayerNotesOverview";
+import { usePlayerNotesOverview, type NotesSummary } from "@/lib/queries/usePlayerNotesOverview";
 import {
   courtGroupSwitchMinutes,
   formatLevel,
@@ -31,6 +31,35 @@ import {
 } from "@/lib/domain";
 import adminStyles from "@/components/admin/AdminList.module.css";
 import styles from "./page.module.css";
+
+// One tappable player line. A top-level component (not defined inside the
+// page) so the list keeps its DOM when the page re-renders on the clock tick.
+function PlayerRow({
+  name,
+  level,
+  summary,
+  onOpen,
+}: {
+  name: string;
+  level: number | null;
+  summary: NotesSummary | undefined;
+  onOpen: () => void;
+}) {
+  return (
+    <button type="button" className={styles.player} onClick={onOpen}>
+      <span className={styles.avatar}>{initials(name)}</span>
+      <span className={styles.playerText}>
+        <span className={styles.playerName}>{name}</span>
+        {summary && <span className={styles.playerNote}>{summary.latest}</span>}
+      </span>
+      {level != null && <span className={styles.level}>{formatLevel(level)}</span>}
+      <span className={`${styles.noteBtn} ${summary ? styles.noteBtnFilled : ""}`} aria-hidden="true">
+        <NotebookPen size={16} strokeWidth={2.2} />
+        {summary && <span className={styles.noteCount}>{summary.count}</span>}
+      </span>
+    </button>
+  );
+}
 
 // The trainer's court-side view of a running training: who is on which court
 // and what they are doing right now, each player one tap away from a quick
@@ -80,30 +109,26 @@ export default function LiveTerminPage() {
     return round === phase ? "trainiert jetzt" : "spielt jetzt";
   }
 
-  function PlayerRow({ userId }: { userId: string }) {
+  const renderRow = (userId: string) => {
     const name = nameOf.get(userId) ?? "—";
     if (query && !name.toLowerCase().includes(query)) return null;
-    const level = levels?.[userId];
     const summary = notes[userId];
     return (
-      <button
-        type="button"
-        className={styles.player}
-        onClick={() => setSelected({ id: userId, name, subtitle: summary ? `${summary.count} Notiz${summary.count === 1 ? "" : "en"}` : "Noch keine Notizen" })}
-      >
-        <span className={styles.avatar}>{initials(name)}</span>
-        <span className={styles.playerText}>
-          <span className={styles.playerName}>{name}</span>
-          {summary && <span className={styles.playerNote}>{summary.latest}</span>}
-        </span>
-        {level != null && <span className={styles.level}>{formatLevel(level)}</span>}
-        <span className={`${styles.noteBtn} ${summary ? styles.noteBtnFilled : ""}`} aria-hidden="true">
-          <NotebookPen size={16} strokeWidth={2.2} />
-          {summary && <span className={styles.noteCount}>{summary.count}</span>}
-        </span>
-      </button>
+      <PlayerRow
+        key={userId}
+        name={name}
+        level={levels?.[userId] ?? null}
+        summary={summary}
+        onOpen={() =>
+          setSelected({
+            id: userId,
+            name,
+            subtitle: summary ? `${summary.count} Notiz${summary.count === 1 ? "" : "en"}` : "Noch keine Notizen",
+          })
+        }
+      />
     );
-  }
+  };
 
   const placedIds = new Set(courtGroups.flatMap((g) => g.member_ids));
   const unplaced = confirmed.filter((p) => !placedIds.has(p.user_id));
@@ -114,7 +139,7 @@ export default function LiveTerminPage() {
       <AppHeader
         title="Live"
         back={
-          <IconButton variant="navy" label="Zurück" onClick={() => router.push(`/admin/termine/${terminId}`)}>
+          <IconButton variant="navy" label="Zurück" onClick={() => router.push("/admin/termine")}>
             <ArrowLeft size={16} color="var(--tp-cream)" strokeWidth={2.5} />
           </IconButton>
         }
@@ -148,9 +173,7 @@ export default function LiveTerminPage() {
                   </div>
                   {g.trainer_name && format !== "nur_spiel" && <div className={styles.courtTrainer}>Trainer: {g.trainer_name}</div>}
                   <div className={styles.players}>
-                    {g.member_ids.map((id) => (
-                      <PlayerRow key={id} userId={id} />
-                    ))}
+                    {g.member_ids.map(renderRow)}
                   </div>
                 </section>
               ))}
@@ -160,9 +183,7 @@ export default function LiveTerminPage() {
                   <span className={styles.courtLabel}>Ohne Court</span>
                 </div>
                 <div className={styles.players}>
-                  {unplaced.map((p) => (
-                    <PlayerRow key={p.user_id} userId={p.user_id} />
-                  ))}
+                  {unplaced.map((p) => renderRow(p.user_id))}
                 </div>
               </section>
             )}
@@ -173,9 +194,7 @@ export default function LiveTerminPage() {
               <span className={styles.courtLabel}>Teilnehmer ({confirmed.length})</span>
             </div>
             <div className={styles.players}>
-              {confirmed.map((p) => (
-                <PlayerRow key={p.user_id} userId={p.user_id} />
-              ))}
+              {confirmed.map((p) => renderRow(p.user_id))}
               {confirmed.length === 0 && <div className={adminStyles.empty}>Noch keine Teilnehmer.</div>}
             </div>
           </section>

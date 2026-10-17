@@ -9,12 +9,15 @@
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
   animation: fade 200ms var(--ease-out) both;
+  /* Dragging the dimmed area must not scroll the page underneath. */
+  touch-action: none;
 }
 
 .sheet {
   width: 100%;
   max-width: 480px;
-  max-height: 88dvh;
+  /* Relative to the overlay, which follows the visible area (keyboard open or not). */
+  max-height: calc(100% - 10px);
   display: flex;
   flex-direction: column;
   background: var(--color-surface);
@@ -75,6 +78,7 @@
 }
 
 .body {
+  touch-action: pan-y;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;

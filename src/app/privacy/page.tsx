@@ -2,14 +2,14 @@ import type { Metadata } from "next";
 import styles from "./page.module.css";
 
 export const metadata: Metadata = {
-  title: "Datenschutzerklärung — The Padellers",
+  title: "Datenschutzerklärung — ClubTermine",
 };
 
 export default function PrivacyPage() {
   return (
     <div className={styles.page}>
-      <div className={styles.wordmark}>The Padellers</div>
-      <div className={styles.tagline}>Trainingsanmeldung</div>
+      <div className={styles.wordmark}>ClubTermine</div>
+      <div className={styles.tagline}>Datenschutz</div>
 
       <div className={styles.card}>
         <h1 className={styles.title}>Datenschutzerklärung</h1>
