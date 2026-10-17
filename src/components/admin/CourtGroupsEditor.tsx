@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { toPng } from "html-to-image";
 import { Copy, ImageDown, Minus, Plus, Shuffle, Trash2, WandSparkles } from "lucide-react";
 import { Input, Select } from "@/components/ui/Input";
 import { Tabs } from "@/components/ui/Tabs";
@@ -330,6 +329,7 @@ export function CourtGroupsEditor({
     if (!exportRef.current) return;
     setExporting(true);
     try {
+      const { toPng } = await import("html-to-image");
       const dataUrl = await toPng(exportRef.current, { pixelRatio: 2, cacheBust: true });
       const res = await fetch(dataUrl);
       const blob = await res.blob();

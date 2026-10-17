@@ -39,5 +39,5 @@
 }
 .amber {
   background: rgba(240, 169, 59, 0.18);
-  color: #8a5a00;
+  color: var(--tp-amber-ink);
 }

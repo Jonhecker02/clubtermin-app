@@ -200,12 +200,6 @@ export type ConfirmedApnsTarget = { user_id: string; device_token: string };
 
 export type ApnsTokenForUser = { user_id: string; device_token: string };
 
-export type NotificationRecipient = {
-  user_id: string;
-  name: string;
-  email: string;
-};
-
 export type PushSubscriptionTarget = {
   endpoint: string;
   p256dh: string;
@@ -398,6 +392,8 @@ export interface Database {
       rename_group: { Args: { p_group_id: string; p_name: string; p_short_code?: string | null }; Returns: void };
       remove_group_member: { Args: { p_user_id: string }; Returns: void };
       delete_group: { Args: { p_group_id: string }; Returns: void };
+      rate_limit_blocked: { Args: { p_key: string; p_limit: number; p_window_seconds: number }; Returns: boolean };
+      rate_limit_record: { Args: { p_key: string }; Returns: void };
       set_trainer_groups: { Args: { p_user_id: string; p_group_ids: string[] }; Returns: void };
       set_user_role: { Args: { p_user_id: string; p_role: "member" | "trainer" | "captain" }; Returns: void };
       admin_update_profile: { Args: { p_user_id: string; p_name: string; p_group_id: string | null }; Returns: void };
@@ -406,7 +402,6 @@ export interface Database {
       get_announcement_push_subscriptions: { Args: { p_announcement_id: string }; Returns: PushSubscriptionTarget[] };
       get_my_ical_token: { Args: Record<string, never>; Returns: string };
       get_ical_events: { Args: { p_token: string }; Returns: IcalEvent[] };
-      get_termin_notification_recipients: { Args: { p_termin_id: string }; Returns: NotificationRecipient[] };
       get_termin_push_subscriptions: { Args: { p_termin_id: string }; Returns: PushSubscriptionTarget[] };
       admin_delete_push_subscription: { Args: { p_endpoint: string }; Returns: void };
       claim_waitlist_promotions: { Args: Record<string, never>; Returns: WaitlistPromotionPush[] };

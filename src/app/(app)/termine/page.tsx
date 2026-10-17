@@ -8,6 +8,7 @@ import { PageBody } from "@/components/layout/PageBody";
 import { Tabs } from "@/components/ui/Tabs";
 import { Switch } from "@/components/ui/Switch";
 import { EventRow } from "@/components/ui/EventRow";
+import { SkeletonEventList } from "@/components/ui/Skeleton";
 import { useProfile } from "@/lib/queries/useProfile";
 import { useTermine } from "@/lib/queries/useTermine";
 import { useGroups } from "@/lib/queries/useGroups";
@@ -68,7 +69,8 @@ function toRow(t: Termin, counts: Record<string, number>, groups: Group[]) {
 export default function TerminePage() {
   const router = useRouter();
   const { data: profile } = useProfile();
-  const { data: allTermine = [], isLoading } = useTermine();
+  // isPending (not isLoading): also true during the instant before the saved cache is restored.
+  const { data: allTermine = [], isPending: isLoading } = useTermine();
   const trainerFilter = useTrainerTermineFilter();
   const { apply: applyTrainerScope } = trainerFilter;
   const termine = useMemo(() => applyTrainerScope(allTermine), [applyTrainerScope, allTermine]);
@@ -188,7 +190,7 @@ export default function TerminePage() {
           />
         )}
 
-        {isLoading && <div className={styles.empty}>Lädt…</div>}
+        {isLoading && <SkeletonEventList />}
 
         {!isLoading && viewMode === "liste" && (
           <div className={styles.list}>

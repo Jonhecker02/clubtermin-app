@@ -1,4 +1,3 @@
-@import "./tokens/fonts.css";
 @import "./tokens/colors.css";
 @import "./tokens/typography.css";
 @import "./tokens/spacing.css";
@@ -42,7 +41,7 @@ body {
 }
 
 a {
-  color: var(--tp-navy);
+  color: var(--color-ink);
   text-decoration: none;
 }
 a:hover {
@@ -52,6 +51,22 @@ a:hover {
 button {
   font-family: inherit;
   color: inherit;
+  /* No grey flash on tap, no text selection / callout on long press — controls
+     should feel like native ones. */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 input,

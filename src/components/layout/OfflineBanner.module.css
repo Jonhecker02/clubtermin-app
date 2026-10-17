@@ -1,0 +1,30 @@
+.banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--tp-warning);
+  color: var(--tp-navy-deep);
+  font-size: 12.5px;
+  font-weight: var(--fw-bold);
+  flex-shrink: 0;
+  animation: slideUp 280ms var(--ease-out) both;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@media (min-width: 768px) {
+  .banner {
+    order: 3;
+  }
+}

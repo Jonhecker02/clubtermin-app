@@ -6,6 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { IntroShell, introStyles as styles } from "@/components/layout/IntroShell";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { clearAllCaches } from "@/lib/queryPersist";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -37,6 +38,10 @@ export default function LoginPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: `${firstName.trim()} ${lastName.trim()}`, password }),
       });
+      if (res.status === 429) {
+        setError("Zu viele Versuche. Bitte warte ein paar Minuten und versuche es dann erneut.");
+        return;
+      }
       if (!res.ok) {
         setError("Name oder Passwort ist falsch.");
         return;
@@ -44,7 +49,7 @@ export default function LoginPage() {
       // A shared/reused tab may still hold another account's cached
       // queries (profile, registrations, ...) — drop them so this session
       // starts from a clean slate instead of briefly showing stale data.
-      queryClient.clear();
+      clearAllCaches(queryClient);
       router.push("/");
       router.refresh();
     } finally {

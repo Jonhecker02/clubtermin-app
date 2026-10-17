@@ -7,7 +7,7 @@ const PUBLIC_PATHS = ["/login", "/registrieren", "/privacy"];
 // it authenticates itself via the CRON_SECRET header instead, checked inside
 // the route handler. "/anleitung" is prefix-matched so both the player-only
 // page and "/anleitung/admin" are public without needing a session.
-const PUBLIC_PREFIXES = ["/api/ical/", "/api/cron/", "/api/debug/", "/api/auth/", "/anleitung"];
+const PUBLIC_PREFIXES = ["/api/ical/", "/api/cron/", "/api/auth/", "/anleitung"];
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -35,13 +35,17 @@ export async function proxy(request: NextRequest) {
     },
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // getClaims() verifies the session JWT locally against the project's cached
+  // signing keys (and refreshes it when expired) instead of asking the Auth
+  // server who the user is on every single navigation — one network round
+  // trip less per page. The role/status lookup below still hits the database,
+  // because routing decisions must follow the live profile row.
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const userId = claimsData?.claims?.sub;
 
   const isPublic = PUBLIC_PATHS.includes(pathname);
 
-  if (!user) {
+  if (!userId) {
     if (isPublic) return response;
     return NextResponse.redirect(new URL("/login", request.url));
   }
@@ -49,7 +53,7 @@ export async function proxy(request: NextRequest) {
   const { data: profile } = await supabase
     .from("profiles")
     .select("role, group_id, status")
-    .eq("id", user.id)
+    .eq("id", userId)
     .single();
 
   if (!profile) return response;
@@ -109,5 +113,7 @@ function resolveTarget(
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|apple-icon.*|icon.*).*)"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|robots.txt|sw.js|offline.html|icons/|splash/|apple-icon.*|icon.*).*)",
+  ],
 };

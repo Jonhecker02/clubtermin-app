@@ -41,6 +41,7 @@ import {
 import { pushWhen } from "@/lib/pushText";
 import { RealtimeProvider } from "@/lib/realtime/RealtimeProvider";
 import styles from "./page.module.css";
+import { haptic } from "@/lib/haptics";
 
 export default function TerminDetailPage() {
   const params = useParams<{ id: string }>();
@@ -89,25 +90,30 @@ export default function TerminDetailPage() {
   }
 
   async function handleRegister() {
+    haptic("light");
     setPending(true);
     setActionError("");
     const supabase = createClient();
     const { error } = await supabase.rpc("register_for_termin", { p_termin_id: terminId });
     setPending(false);
     if (error) {
+      haptic("error");
       setActionError("Anmeldung war leider nicht möglich. Bitte lade die Seite neu.");
       return;
     }
+    haptic("success");
     await invalidateAll();
   }
 
   async function handleCancel() {
+    haptic("light");
     setPending(true);
     setActionError("");
     const supabase = createClient();
     const { error } = await supabase.rpc("cancel_registration", { p_termin_id: terminId });
     setPending(false);
     if (error) {
+      haptic("error");
       setActionError(
         error.message.includes("cutoff_passed")
           ? `Abmeldung nicht mehr möglich (weniger als ${CANCEL_CUTOFF_HOURS} Std. vor Beginn).`

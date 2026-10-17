@@ -1,5 +1,5 @@
-import { PageLoading } from "@/components/layout/PageLoading";
+import { SkeletonPage } from "@/components/ui/Skeleton";
 
 export default function Loading() {
-  return <PageLoading />;
+  return <SkeletonPage />;
 }

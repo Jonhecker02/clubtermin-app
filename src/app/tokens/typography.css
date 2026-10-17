@@ -10,9 +10,9 @@
    ============================================================ */
 :root {
   /* ---- families ---- */
-  --font-display:   "Bevan", "Rockwell", Georgia, serif;        /* slab — wordmark / hero */
-  --font-condensed: "Saira Condensed", "Oswald", sans-serif;    /* sporty condensed display */
-  --font-sans:      "Hanken Grotesk", "Helvetica Neue", Arial, sans-serif; /* body & UI */
+  --font-display:   var(--font-bevan), "Bevan", "Rockwell", Georgia, serif;        /* slab — wordmark / hero */
+  --font-condensed: var(--font-saira), "Saira Condensed", "Oswald", sans-serif;    /* sporty condensed display */
+  --font-sans:      var(--font-hanken), "Hanken Grotesk", "Helvetica Neue", Arial, sans-serif; /* body & UI */
 
   /* ---- weights ---- */
   --fw-regular: 400; /* @kind other */

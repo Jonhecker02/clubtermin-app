@@ -3,7 +3,6 @@
 import { useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { toPng } from "html-to-image";
 import { ArrowLeft, Copy, ImageDown, Pencil, Plus, StickyNote, X } from "lucide-react";
 import { PlayerNotesPanel } from "@/components/admin/PlayerNotesPanel";
 import { CourtGroupsEditor } from "@/components/admin/CourtGroupsEditor";
@@ -140,6 +139,7 @@ export default function AdminParticipantsPage() {
     if (!termin || !exportRef.current) return;
     setExporting(true);
     try {
+      const { toPng } = await import("html-to-image");
       const dataUrl = await toPng(exportRef.current, { pixelRatio: 2, cacheBust: true });
       const res = await fetch(dataUrl);
       const blob = await res.blob();

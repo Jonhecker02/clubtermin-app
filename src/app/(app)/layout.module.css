@@ -17,18 +17,6 @@
   background: var(--color-bg);
 }
 
-.content {
-  flex: 1;
-  overflow-x: hidden;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  /* -webkit-overflow-scrolling: touch enables iOS's elastic/rubber-band
-     overscroll on this container — without containing it, dragging down
-     from the very top (e.g. on shorter pages like the forms) reveals empty
-     space above the content, reading as an accidental pull-to-refresh. */
-  overscroll-behavior-y: contain;
-}
-
 /* Desktop web only — the native app is always phone-width, so this never
    applies inside the Capacitor WKWebView. :global(.app-shell) combined with
    the local class raises specificity above globals.css's own .app-shell
@@ -43,7 +31,4 @@
     flex-direction: row;
   }
 
-  .content {
-    order: 2;
-  }
 }

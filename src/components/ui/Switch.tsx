@@ -1,5 +1,6 @@
 "use client";
 
+import { haptic } from "@/lib/haptics";
 import styles from "./Switch.module.css";
 
 interface SwitchProps {
@@ -14,7 +15,10 @@ export function Switch({ checked, onChange, label, onDark = false }: SwitchProps
     <button
       type="button"
       className={[styles.wrap, onDark ? styles.onDark : ""].join(" ")}
-      onClick={() => onChange(!checked)}
+      onClick={() => {
+        haptic("light");
+        onChange(!checked);
+      }}
     >
       <span className={styles.label}>{label}</span>
       <span role="switch" aria-checked={checked} className={[styles.track, checked ? styles.trackOn : ""].join(" ")}>

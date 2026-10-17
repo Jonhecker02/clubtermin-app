@@ -27,7 +27,7 @@ export const TerminExportCard = forwardRef<HTMLDivElement, TerminExportCardProps
       : { className: styles.namesList };
 
   return (
-    <div ref={ref} className={`${styles.card} ${wide ? styles.cardWide : ""}`}>
+    <div ref={ref} data-theme="light" className={`${styles.card} ${wide ? styles.cardWide : ""}`}>
       <div className={styles.header}>
         {shortCode && <span className={styles.shortCode}>{shortCode}</span>}
         <div className={styles.title}>{termin.title}</div>

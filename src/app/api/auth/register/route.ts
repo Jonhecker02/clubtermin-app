@@ -2,6 +2,12 @@ import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/serviceRole";
+import { clientIp, isRateLimited, recordAttempt } from "@/lib/rateLimit";
+
+// New accounts allowed per address per hour (a whole squad registering from
+// the club wifi still fits comfortably).
+const REGISTER_LIMIT = 10;
+const REGISTER_WINDOW_SECONDS = 60 * 60;
 
 // Public self-registration — replaces the old teamcode flow for players.
 // No group is chosen here at all; the new profile lands with status
@@ -19,6 +25,11 @@ export async function POST(request: Request) {
 
   const trimmedName = name.trim();
   const service = createServiceRoleClient();
+  const limitKey = `register:${clientIp(request)}`;
+  if (await isRateLimited(service, limitKey, REGISTER_LIMIT, REGISTER_WINDOW_SECONDS)) {
+    return NextResponse.json({ error: "too_many_attempts" }, { status: 429 });
+  }
+  await recordAttempt(service, limitKey);
 
   const { data: existing } = await service.from("profiles").select("id").ilike("name", trimmedName).maybeSingle();
   if (existing) {

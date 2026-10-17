@@ -40,6 +40,7 @@ export const CourtGroupsExportCard = forwardRef<HTMLDivElement, CourtGroupsExpor
     return (
       <div
         ref={ref}
+        data-theme="light"
         className={styles.card}
         style={{ width: Math.max(520, cols * COLUMN_WIDTH + (cols - 1) * GRID_GAP + CARD_PADDING * 2) }}
       >

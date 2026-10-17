@@ -8,12 +8,13 @@
   font-family: var(--font-sans);
   font-weight: var(--fw-bold);
   cursor: pointer;
-  transition: opacity var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+  transition: opacity var(--dur-fast) var(--ease-out), transform 320ms var(--ease-spring);
   white-space: nowrap;
 }
 
 .btn:active:not(:disabled) {
-  transform: scale(0.98);
+  transform: scale(0.96);
+  transition-duration: 90ms, 90ms;
 }
 
 .btn:disabled {

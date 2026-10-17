@@ -13,17 +13,18 @@ export default function PrivacyPage() {
 
       <div className={styles.card}>
         <h1 className={styles.title}>Datenschutzerklärung</h1>
-        <p className={styles.updated}>Stand: 11. August 2026</p>
+        <p className={styles.updated}>Stand: 17. Oktober 2026</p>
 
         <div className={styles.section}>
           <h2>Verantwortlicher</h2>
           <p>
-            {/* TODO: echten Vereinsnamen, Anschrift und Kontakt-E-Mail des Verantwortlichen eintragen, bevor diese Seite live geht. */}
-            The Padellers Essen
+            Jonas Hecker
             <br />
-            [Anschrift ergänzen]
+            The Padellers Essen GmbH
             <br />
-            E-Mail: [Kontakt-E-Mail ergänzen]
+            Schederhofstr. 59
+            <br />
+            45145 Essen
           </p>
         </div>
 
@@ -58,8 +59,15 @@ export default function PrivacyPage() {
         <div className={styles.section}>
           <h2>Hosting und Auftragsverarbeitung</h2>
           <p>
-            Die App wird über Vercel (Hosting) und Supabase (Datenbank, Authentifizierung) betrieben. Beide Anbieter
-            verarbeiten Daten in unserem Auftrag gemäß Art. 28 DSGVO.
+            Die App wird über Vercel (Hosting, Rechenzentrum Frankfurt) und Supabase (Datenbank, Authentifizierung,
+            Rechenzentrum Irland, EU) betrieben. Beide Anbieter verarbeiten Daten in unserem Auftrag gemäß Art. 28
+            DSGVO. Schriftarten werden von unserem eigenen Server ausgeliefert — es werden keine Daten an Google
+            übertragen.
+          </p>
+          <p>
+            Damit die App schnell startet und auch bei schlechtem Netz funktioniert, speichert dein Gerät zuletzt
+            geladene Termine, Anmeldungen und Nachrichten lokal zwischen. Beim Abmelden wird dieser Zwischenspeicher
+            gelöscht.
           </p>
         </div>
 
@@ -67,8 +75,8 @@ export default function PrivacyPage() {
           <h2>Zugriff und Löschung</h2>
           <p>
             Mitglieder können ihren Namen und ihre Mannschaftszugehörigkeit selbst in der App unter „Profil“
-            bearbeiten. Für Auskunft, Berichtigung oder vollständige Löschung deines Kontos wende dich an die oben
-            genannte Kontakt-E-Mail; ein Admin kann Accounts auf Wunsch auch direkt in der App löschen.
+            bearbeiten. Für Auskunft, Berichtigung oder vollständige Löschung deines Kontos wende dich an den oben
+            genannten Verantwortlichen oder einen Admin; Admins können Accounts auf Wunsch direkt in der App löschen.
           </p>
         </div>
 

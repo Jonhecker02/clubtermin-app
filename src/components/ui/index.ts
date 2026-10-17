@@ -5,3 +5,4 @@ export { Tabs, type TabItem } from "./Tabs";
 export { Badge } from "./Badge";
 export { IconButton } from "./IconButton";
 export { EventRow } from "./EventRow";
+export { Skeleton, SkeletonEventList, SkeletonPage, SkeletonDetail } from "./Skeleton";

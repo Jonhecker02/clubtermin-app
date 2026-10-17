@@ -37,6 +37,15 @@
   color: var(--tp-navy);
 }
 
+.item {
+  transition: background 220ms var(--ease-out), color 220ms var(--ease-out), transform 320ms var(--ease-spring);
+}
+
+.item:active {
+  transform: scale(0.95);
+  transition-duration: 90ms;
+}
+
 .md {
   height: 36px;
   font-size: 13.5px;

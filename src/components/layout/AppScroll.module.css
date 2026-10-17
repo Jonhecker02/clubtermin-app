@@ -1,0 +1,47 @@
+.scroll {
+  position: relative;
+  flex: 1;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  /* Keeps the browser's own pull-to-refresh / bounce away from our own. */
+  overscroll-behavior-y: contain;
+}
+
+.inner {
+  min-height: 100%;
+}
+
+.indicator {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  margin-left: -18px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--tp-pink-deep);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.spin {
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (min-width: 768px) {
+  .scroll {
+    order: 2;
+  }
+}

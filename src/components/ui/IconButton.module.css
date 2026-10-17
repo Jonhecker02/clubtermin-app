@@ -6,11 +6,12 @@
   border-radius: var(--radius-pill);
   cursor: pointer;
   flex-shrink: 0;
-  transition: opacity var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+  transition: opacity var(--dur-fast) var(--ease-out), transform 320ms var(--ease-spring);
 }
 
 .btn:active:not(:disabled) {
-  transform: scale(0.94);
+  transform: scale(0.9);
+  transition-duration: 90ms, 90ms;
 }
 
 .btn:disabled {

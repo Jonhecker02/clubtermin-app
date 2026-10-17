@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { haptic } from "@/lib/haptics";
 import styles from "./Tabs.module.css";
 
 export interface TabItem {
@@ -49,7 +50,10 @@ export function Tabs({ items, value, onChange, size = "md", onDark = false, scro
             type="button"
             role="tab"
             aria-selected={active}
-            onClick={() => onChange(item.id)}
+            onClick={() => {
+              if (!active) haptic("light");
+              onChange(item.id);
+            }}
             className={[styles.item, styles[size], onDark && !active ? styles.itemOnDark : "", active ? styles.itemActive : ""]
               .filter(Boolean)
               .join(" ")}

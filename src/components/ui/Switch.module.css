@@ -46,9 +46,17 @@
   border-radius: 50%;
   background: #fff;
   box-shadow: var(--shadow-xs, 0 1px 2px rgba(0, 0, 0, 0.15));
-  transition: transform var(--dur-fast, 0.2s) var(--ease-out, ease);
+  transition: transform 320ms var(--ease-spring, ease), width 160ms var(--ease-out, ease);
+}
+
+.wrap:active .thumb {
+  width: 22px;
 }
 
 .trackOn .thumb {
   transform: translateX(16px);
+}
+
+.wrap:active .trackOn .thumb {
+  transform: translateX(12px);
 }

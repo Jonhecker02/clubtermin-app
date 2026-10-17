@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { IntroShell, introStyles as styles } from "@/components/layout/IntroShell";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { clearAllCaches } from "@/lib/queryPersist";
 
 export default function TeamcodePage() {
   const router = useRouter();
@@ -31,14 +32,14 @@ export default function TeamcodePage() {
       setError("Code ungültig. Bitte erneut versuchen.");
       return;
     }
-    queryClient.clear();
+    clearAllCaches(queryClient);
     router.push("/");
     router.refresh();
   }
 
   async function logout() {
     await supabase.auth.signOut();
-    queryClient.clear();
+    clearAllCaches(queryClient);
     router.push("/login");
     router.refresh();
   }

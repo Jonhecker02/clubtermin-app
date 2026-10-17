@@ -31,10 +31,23 @@
   background: none;
   border: none;
   color: var(--tp-grey-300);
+  transition: color 200ms var(--ease-out);
+}
+
+.item svg {
+  transition: transform 380ms var(--ease-spring);
+}
+
+.item:active svg {
+  transform: scale(0.88);
 }
 
 .itemActive {
   color: var(--tp-pink);
+}
+
+.itemActive svg {
+  transform: translateY(-1px) scale(1.1);
 }
 
 .label {

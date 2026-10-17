@@ -7,6 +7,7 @@ import { UserPlus } from "lucide-react";
 import { IntroShell, introStyles as styles } from "@/components/layout/IntroShell";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { clearAllCaches } from "@/lib/queryPersist";
 
 export default function RegistrierenPage() {
   const router = useRouter();
@@ -38,10 +39,16 @@ export default function RegistrierenPage() {
     const data = await res.json();
     setLoading(false);
     if (!res.ok) {
-      setError(data.error === "name_taken" ? "Dieser Name ist schon vergeben — bitte eindeutig machen." : "Registrierung fehlgeschlagen. Bitte versuche es erneut.");
+      setError(
+        data.error === "name_taken"
+          ? "Dieser Name ist schon vergeben — bitte eindeutig machen."
+          : data.error === "too_many_attempts"
+            ? "Zu viele Registrierungen von diesem Anschluss. Bitte versuche es später erneut."
+            : "Registrierung fehlgeschlagen. Bitte versuche es erneut.",
+      );
       return;
     }
-    queryClient.clear();
+    clearAllCaches(queryClient);
     router.push("/");
     router.refresh();
   }

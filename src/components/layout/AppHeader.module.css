@@ -9,6 +9,48 @@
   position: sticky;
   top: 0;
   z-index: 5;
+  transition: background 220ms var(--ease-out), box-shadow 220ms var(--ease-out);
+}
+
+/* Once the page has scrolled, the bar turns into frosted glass so content
+   slides underneath it — like a native navigation bar. */
+:global([data-scrolled="true"]) .header {
+  background: rgba(20, 34, 63, 0.74);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.headerLarge {
+  padding-bottom: 4px;
+}
+
+.compactTitle {
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 200ms var(--ease-out), transform 260ms var(--ease-out);
+}
+
+:global([data-scrolled="true"]) .compactTitle {
+  opacity: 1;
+  transform: none;
+}
+
+.largeTitleWrap {
+  background: var(--tp-navy);
+  padding: 0 20px 14px;
+}
+
+.largeTitle {
+  margin: 0;
+  font-family: var(--font-condensed);
+  font-weight: var(--fw-black);
+  font-size: 34px;
+  line-height: 1.05;
+  text-transform: uppercase;
+  color: var(--tp-cream);
+  letter-spacing: 0.01em;
+  overflow-wrap: anywhere;
 }
 
 .title {

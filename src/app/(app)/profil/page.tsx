@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { Bell, CalendarPlus, ChevronDown, ChevronUp, Copy, Info, Pencil } from "lucide-react";
@@ -21,6 +21,15 @@ import { createClient } from "@/lib/supabase/client";
 import { queryKeys } from "@/lib/queries/keys";
 import { dateLabel, displayEmail, groupLabel, hhmm, isUpcoming, terminDateTime, weekdayLabel } from "@/lib/domain";
 import styles from "./page.module.css";
+import { clearAllCaches } from "@/lib/queryPersist";
+import { applyTheme, getStoredTheme, type ThemeChoice } from "@/lib/theme";
+import { Tabs } from "@/components/ui/Tabs";
+
+const THEME_ITEMS = [
+  { id: "auto", label: "Automatisch" },
+  { id: "light", label: "Hell" },
+  { id: "dark", label: "Dunkel" },
+];
 
 const ROLE_LABEL: Record<string, string> = { owner: "Clubmanager", trainer: "Trainer", captain: "Kapitän" };
 const ROLE_BADGE_TONE: Record<string, "navy" | "amber"> = { owner: "navy", trainer: "navy", captain: "amber" };
@@ -34,6 +43,12 @@ export default function ProfilPage() {
   const { data: myRegs = [] } = useMyRegistrations(profile?.id);
   const { data: icalToken } = useIcalToken(!!profile);
   const push = usePush(profile?.id);
+  // Read after mount: the saved choice lives in localStorage, which the server render cannot see.
+  const [theme, setTheme] = useState<ThemeChoice>("auto");
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setTheme(getStoredTheme());
+  }, []);
 
   const [host] = useState(() => (typeof window !== "undefined" ? window.location.host : ""));
   const icalUrl = host && icalToken ? `webcal://${host}/api/ical/${icalToken}` : null;
@@ -119,7 +134,7 @@ export default function ProfilPage() {
     // showing the previous account's cached profile/role-gated UI (RLS
     // still enforces the real permissions server-side — this is purely a
     // stale-display issue) until something forces a full reload.
-    queryClient.clear();
+    clearAllCaches(queryClient);
     router.push("/login");
     router.refresh();
   }
@@ -261,6 +276,22 @@ export default function ProfilPage() {
             )}
           </div>
         )}
+
+        <div className={styles.icalBox}>
+          <div className={styles.sectionLabel} style={{ margin: 0 }}>
+            Darstellung
+          </div>
+          <Tabs
+            items={THEME_ITEMS}
+            value={theme}
+            onChange={(id) => {
+              const choice = id as ThemeChoice;
+              setTheme(choice);
+              applyTheme(choice);
+            }}
+            size="sm"
+          />
+        </div>
 
         <div className={styles.actions}>
           {isAdmin && (

@@ -8,6 +8,7 @@ import { AppHeader } from "@/components/layout/AppHeader";
 import { PageBody } from "@/components/layout/PageBody";
 import { IconButton } from "@/components/ui/IconButton";
 import { EventRow } from "@/components/ui/EventRow";
+import { SkeletonEventList } from "@/components/ui/Skeleton";
 import { SwipeRow } from "@/components/ui/SwipeRow";
 import { Switch } from "@/components/ui/Switch";
 import { Tabs } from "@/components/ui/Tabs";
@@ -72,7 +73,7 @@ function CreatedNotice() {
 export default function AdminTerminePage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { data: allTermine = EMPTY_TERMINE } = useTermine();
+  const { data: allTermine = EMPTY_TERMINE, isPending: isLoading } = useTermine();
   const trainerFilter = useTrainerTermineFilter();
   const { apply: applyTrainerScope } = trainerFilter;
   const termine = useMemo(() => applyTrainerScope(allTermine), [applyTrainerScope, allTermine]);
@@ -147,6 +148,8 @@ export default function AdminTerminePage() {
           </IconButton>
         </div>
 
+        {isLoading && <SkeletonEventList />}
+
         <div className={styles.list}>
           {filtered.map((t) => {
             const price = formatPrice(t.price);
@@ -173,7 +176,7 @@ export default function AdminTerminePage() {
               </SwipeRow>
             );
           })}
-          {filtered.length === 0 && (
+          {!isLoading && filtered.length === 0 && (
             <div className={styles.empty}>
               {timeFilter === "vergangen" ? "Keine vergangenen Termine." : "Noch keine Termine angelegt."}
             </div>
