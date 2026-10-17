@@ -104,6 +104,17 @@
   }
 }
 
+/* Start/Ende: two short values that fit side by side even on a phone. */
+.timeRow {
+  display: flex;
+  gap: 12px;
+}
+
+.timeRow > * {
+  flex: 1;
+  min-width: 0;
+}
+
 .fieldGroup {
   display: flex;
   flex-direction: column;

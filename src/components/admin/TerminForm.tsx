@@ -215,7 +215,7 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
         ))}
       </Select>
       <Input label="Datum" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-      <div className={styles.fieldRow}>
+      <div className={styles.timeRow}>
         <Input label="Startzeit" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
         <Input label="Endzeit" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
       </div>
