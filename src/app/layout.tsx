@@ -1,23 +1,36 @@
 import type { Metadata, Viewport } from "next";
-import { Bevan, Hanken_Grotesk, Saira_Condensed } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { Providers } from "./providers";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
 
-// Self-hosted by next/font: downloaded at build time and served from our own
-// domain — no request to Google at runtime (privacy), no render-blocking CSS
-// @import, and the files are preloaded.
-const bevan = Bevan({ subsets: ["latin"], weight: "400", variable: "--font-bevan", display: "swap" });
-const saira = Saira_Condensed({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800", "900"],
+// Fonts live in the repository (src/app/fonts, all SIL Open Font License) and
+// are served from our own domain: no request to Google at runtime and none at
+// build time either, so a Google outage can never break a deploy. Latin
+// subset only — covers German text, umlauts, ß and €. Hanken Grotesk is a
+// variable font (one file for every weight).
+const bevan = localFont({
+  src: [{ path: "./fonts/Bevan-400.woff2", weight: "400", style: "normal" }],
+  variable: "--font-bevan",
+  display: "swap",
+});
+const saira = localFont({
+  src: [
+    { path: "./fonts/SairaCondensed-400.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/SairaCondensed-500.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/SairaCondensed-600.woff2", weight: "600", style: "normal" },
+    { path: "./fonts/SairaCondensed-700.woff2", weight: "700", style: "normal" },
+    { path: "./fonts/SairaCondensed-800.woff2", weight: "800", style: "normal" },
+    { path: "./fonts/SairaCondensed-900.woff2", weight: "900", style: "normal" },
+  ],
   variable: "--font-saira",
   display: "swap",
 });
-const hanken = Hanken_Grotesk({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-  style: ["normal", "italic"],
+const hanken = localFont({
+  src: [
+    { path: "./fonts/HankenGrotesk-Variable.woff2", weight: "400 800", style: "normal" },
+    { path: "./fonts/HankenGrotesk-Italic-Variable.woff2", weight: "400 800", style: "italic" },
+  ],
   variable: "--font-hanken",
   display: "swap",
 });

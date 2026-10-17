@@ -387,3 +387,43 @@ export function buildMonthGrid(year: number, month: number): (CalendarCell | nul
   }
   return cells;
 }
+
+// ---- Courts -----------------------------------------------------------
+// The club has seven courts. A termin stores the booked ones as text
+// ("Court 1–3", "Court 2, 5") because every display site just prints it.
+
+export const COURT_COUNT = 7;
+
+// Reads the stored text (also older free-typed values like "1-3" or "Court 2,4")
+// back into court numbers. Anything outside 1..COURT_COUNT is ignored.
+export function parseCourts(text: string | null | undefined): number[] {
+  if (!text) return [];
+  const found = new Set<number>();
+  for (const part of text.replace(/courts?/gi, "").split(/[,;&+/]|\bund\b/i)) {
+    const range = part.match(/(\d+)\s*[-–—]\s*(\d+)/);
+    if (range) {
+      const [from, to] = [Number(range[1]), Number(range[2])].sort((a, b) => a - b);
+      for (let n = from; n <= to; n++) found.add(n);
+      continue;
+    }
+    const single = part.match(/\d+/);
+    if (single) found.add(Number(single[0]));
+  }
+  return [...found].filter((n) => n >= 1 && n <= COURT_COUNT).sort((a, b) => a - b);
+}
+
+// 3+ consecutive courts collapse to a range: [1,2,3,5] -> "Court 1–3, 5".
+export function formatCourts(selected: number[]): string {
+  const nums = [...new Set(selected)].sort((a, b) => a - b);
+  if (nums.length === 0) return "";
+  const parts: string[] = [];
+  let i = 0;
+  while (i < nums.length) {
+    let j = i;
+    while (j + 1 < nums.length && nums[j + 1] === nums[j] + 1) j++;
+    if (j - i >= 2) parts.push(`${nums[i]}–${nums[j]}`);
+    else for (let k = i; k <= j; k++) parts.push(String(nums[k]));
+    i = j + 1;
+  }
+  return `Court ${parts.join(", ")}`;
+}

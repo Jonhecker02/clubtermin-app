@@ -6,7 +6,8 @@ import { Tabs } from "@/components/ui/Tabs";
 import { Button } from "@/components/ui/Button";
 import { useGroups } from "@/lib/queries/useGroups";
 import { useProfiles } from "@/lib/queries/useProfiles";
-import { groupLabel, hhmm, suggestedRegistrationCloses } from "@/lib/domain";
+import { formatCourts, groupLabel, hhmm, parseCourts, suggestedRegistrationCloses } from "@/lib/domain";
+import { CourtPicker } from "./CourtPicker";
 import type { Termin, TerminType } from "@/types/database";
 import styles from "./AdminList.module.css";
 
@@ -71,10 +72,9 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
   const [endTime, setEndTime] = useState(initial ? hhmm(initial.end_time) : "");
   const [location, setLocation] = useState(initial?.location ?? "The Padellers Essen");
   const [description, setDescription] = useState(initial?.description ?? "");
-  // Stored as "Court 1–3" (matches every display site that just prints
-  // termin.courts after the location), but the admin only ever needs to
-  // type the number(s) — "Court " gets re-added on submit.
-  const [courts, setCourts] = useState(initial?.courts?.replace(/^court\s*/i, "") ?? "");
+  // Picked as tiles for the club's seven courts; stored as text like
+  // "Court 1–3" (every display site just prints termin.courts).
+  const [courts, setCourts] = useState<number[]>(() => parseCourts(initial?.courts));
   const [maxTn, setMaxTn] = useState(initial ? String(initial.max_tn) : "8");
   const [price, setPrice] = useState(initial?.price != null ? String(initial.price) : "");
   const [visMode, setVisMode] = useState<"alle" | "ausgewaehlt">(
@@ -144,7 +144,7 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
   }
 
   async function submit() {
-    if (!title.trim() || !date || !startTime || !endTime || !maxTn || (needsCourts && !courts.trim())) {
+    if (!title.trim() || !date || !startTime || !endTime || !maxTn || (needsCourts && courts.length === 0)) {
       setError("Bitte fülle alle Pflichtfelder aus.");
       return;
     }
@@ -181,7 +181,7 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
       trainer: selectedTrainer?.name ?? initial?.trainer ?? "—",
       trainer_id: trainerId || null,
       location: location.trim() || "The Padellers Essen",
-      courts: needsCourts && courts.trim() ? `Court ${courts.trim().replace(/^court\s*/i, "")}` : "",
+      courts: needsCourts ? formatCourts(courts) : "",
       date,
       start_time: startTime,
       end_time: endTime,
@@ -232,16 +232,10 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
         onChange={(e) => setDescription(e.target.value)}
       />
       {needsCourts ? (
-        <div className={styles.fieldRow}>
-          <Input
-            label="Courts"
-            placeholder="z. B. 1–3"
-            helper="Nur die Nummer eintragen — „Court“ wird automatisch ergänzt."
-            value={courts}
-            onChange={(e) => setCourts(e.target.value)}
-          />
+        <>
+          <CourtPicker value={courts} onChange={setCourts} />
           <Input label="Max. TN" type="number" value={maxTn} onChange={(e) => setMaxTn(e.target.value)} />
-        </div>
+        </>
       ) : (
         <Input label="Max. TN" type="number" value={maxTn} onChange={(e) => setMaxTn(e.target.value)} />
       )}
