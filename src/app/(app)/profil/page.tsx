@@ -27,6 +27,7 @@ import { Tabs } from "@/components/ui/Tabs";
 import { useUnsavedChanges } from "@/lib/useUnsavedChanges";
 import { useMyPersonalDetails } from "@/lib/queries/useMyPersonalDetails";
 import { isPlausibleBirthDate } from "@/lib/domain";
+import { MyParticipationCard } from "@/components/MyParticipationCard";
 
 const THEME_ITEMS = [
   { id: "auto", label: "Automatisch" },
@@ -214,6 +215,8 @@ export default function ProfilPage() {
             <Badge tone="soft">{groupName}</Badge>
           </div>
         </div>
+
+        <MyParticipationCard />
 
         <div className={styles.sectionLabel}>Meine Anmeldungen</div>
         <div className={styles.list}>

@@ -390,6 +390,14 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                 <li>
                   <span className={styles.dot} />
                   <span>
+                    <b>Meine Teilnahme</b> — wie oft du dich bei möglichen Trainings angemeldet hast und wie oft du
+                    einen Platz hattest (3, 6 oder 12 Monate), mit Balken und den letzten 10 Terminen. Wer sich
+                    anmeldet, aber keinen Platz bekommt, zählt trotzdem voll als angemeldet.
+                  </span>
+                </li>
+                <li>
+                  <span className={styles.dot} />
+                  <span>
                     <b>Meine Anmeldungen</b> — alle kommenden Termine mit Status (angemeldet, Warteliste,
                     Zuteilung folgt); vergangene lassen sich einklappen.
                   </span>
@@ -619,12 +627,13 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                 <li>
                   <span className={styles.dot} />
                   <span>
-                    <b>Reiter „Teilnahme“</b> (Clubmanager &amp; Trainer): Wer kommt wie oft? Pro Spieler siehst du,
-                    bei wie vielen möglichen Terminen er angemeldet war und wie oft er einen bestätigten Platz hatte
-                    („dabei“) — als Zahl, Balken und Punktreihe der letzten 10 Termine (grün dabei, gelb Warteliste, leer
-                    nicht angemeldet). Zeitraum (4 Wochen bis 12 Monate), Trainings oder alle Termine und Gruppe sind
-                    wählbar; sortieren kannst du nach Teilnahmequote, Teilnahmen, Anmeldungen, „am längsten nicht dabei“
-                    oder Name. Die Reiter „Selten“, „Gelegentlich“, „Stamm“, „Neu“ und „Nie angemeldet“ filtern auf
+                    <b>Reiter „Teilnahme“</b> (Clubmanager, Trainer; Kapitäne sehen ihre Mannschaft): Wer kommt wie oft?
+                    Bewertet wird die <b>Bereitschaft</b>: bei wie vielen möglichen Terminen sich jemand angemeldet
+                    hat — auch wer wegen der Platzvergabe auf der Warteliste landete, zählt voll (das ist nicht seine
+                    Schuld). Daneben steht, wie oft er einen bestätigten Platz hatte („dabei“) — als Zahl, Balken und
+                    Punktreihe der letzten 10 Termine (grün dabei, gelb angemeldet ohne Platz, leer nicht angemeldet). Zeitraum (4 Wochen bis 12 Monate), Trainings oder alle Termine und Gruppe sind
+                    wählbar; sortieren kannst du nach Anmeldequote, Anmeldungen, Platz („dabei“), „länger nicht dabei“
+                    oder Name. Die Reiter „Selten angemeldet“, „Gelegentlich“, „Stamm“, „Neu“ und „Nie angemeldet“ filtern auf
                     einen Blick; ein Tipp auf einen Spieler zeigt den Verlauf der einzelnen Termine.
                   </span>
                 </li>

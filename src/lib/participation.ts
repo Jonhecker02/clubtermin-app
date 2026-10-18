@@ -1,8 +1,10 @@
 import type { Profile, RegistrationStatus, Termin } from "@/types/database";
 
 // Participation overview: for every player, out of the termine they could
-// have joined in a period — how often they registered, how often they got a
-// confirmed spot ("dabei"), how often they only ended up on the waitlist.
+// have joined in a period — how often they registered (their willingness),
+// how often they got a confirmed spot ("dabei"), how often they registered but
+// only ended up on the waitlist. The willingness is what is rated; being on
+// the waitlist is not their fault.
 // "Dabei" means a confirmed spot, not a recorded attendance, and cancellations
 // leave no trace (a cancelled registration is deleted).
 
@@ -38,14 +40,17 @@ export interface ParticipationInput {
 export const TIER_LABELS: Record<Tier, string> = {
   stamm: "Stammspieler",
   mittel: "Gelegentlich",
-  selten: "Selten dabei",
+  selten: "Selten angemeldet",
   neu: "Neu",
 };
 
-function tierOf(eligible: number, confirmedRate: number | null): Tier {
-  if (eligible < 3 || confirmedRate === null) return "neu";
-  if (confirmedRate >= 0.6) return "stamm";
-  if (confirmedRate >= 0.3) return "mittel";
+// Willingness counts, not luck: how often someone REGISTERED decides the
+// tier. A player who applied but was not allocated (waitlist) showed up
+// willing, so that must never count against them.
+function tierOf(eligible: number, registeredRate: number | null): Tier {
+  if (eligible < 3 || registeredRate === null) return "neu";
+  if (registeredRate >= 0.6) return "stamm";
+  if (registeredRate >= 0.3) return "mittel";
   return "selten";
 }
 
@@ -97,7 +102,7 @@ export function computeParticipation(input: ParticipationInput): PlayerParticipa
       registeredRate: eligible > 0 ? registered / eligible : null,
       lastConfirmed,
       history,
-      tier: tierOf(eligible, confirmedRate),
+      tier: tierOf(eligible, eligible > 0 ? registered / eligible : null),
     };
   });
 }

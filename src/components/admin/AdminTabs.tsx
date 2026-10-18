@@ -27,8 +27,8 @@ export function AdminTabs({ current }: AdminTabsProps) {
     ...(isTrainerOrOwner ? [{ id: "spielstaerke", label: "Spieler" }] : []),
     ...(isOwner ? [{ id: "rollen", label: "Rollen" }] : []),
     ...(isOwner ? [{ id: "accounts", label: "Accounts" }] : []),
-    // Participation overview: owner and trainers.
-    ...(isTrainerOrOwner ? [{ id: "statistik", label: "Teilnahme" }] : []),
+    // Participation overview: every admin role (captains only see their own team).
+    { id: "statistik", label: "Teilnahme" },
   ];
 
   return (

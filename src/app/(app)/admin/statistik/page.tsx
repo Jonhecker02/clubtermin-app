@@ -7,6 +7,7 @@ import { Input, Select } from "@/components/ui/Input";
 import { Tabs } from "@/components/ui/Tabs";
 import { AdminTabs } from "@/components/admin/AdminTabs";
 import { PersonName } from "@/components/PersonName";
+import { useProfile } from "@/lib/queries/useProfile";
 import { useProfiles } from "@/lib/queries/useProfiles";
 import { useGroups } from "@/lib/queries/useGroups";
 import { useTermine } from "@/lib/queries/useTermine";
@@ -27,18 +28,22 @@ const PERIODS = [
 ];
 
 const SORTS = [
-  { id: "quote_asc", label: "Selten zuerst" },
-  { id: "quote_desc", label: "Zuverlässig zuerst" },
-  { id: "confirmed_desc", label: "Meiste Teilnahmen" },
-  { id: "confirmed_asc", label: "Wenigste Teilnahmen" },
+  { id: "quote_asc", label: "Selten angemeldet zuerst" },
+  { id: "quote_desc", label: "Oft angemeldet zuerst" },
   { id: "registered_desc", label: "Meiste Anmeldungen" },
   { id: "registered_asc", label: "Wenigste Anmeldungen" },
+  { id: "confirmed_desc", label: "Meist dabei" },
+  { id: "confirmed_asc", label: "Selten dabei" },
   { id: "last_asc", label: "Länger nicht dabei" },
   { id: "name", label: "Name" },
 ] as const;
 type SortId = (typeof SORTS)[number]["id"];
 
-const OUTCOME_LABEL: Record<Outcome, string> = { dabei: "dabei", warteliste: "Warteliste", nicht: "nicht angemeldet" };
+const OUTCOME_LABEL: Record<Outcome, string> = {
+  dabei: "dabei",
+  warteliste: "angemeldet, kein Platz",
+  nicht: "nicht angemeldet",
+};
 
 function percent(rate: number | null): string {
   return rate === null ? "–" : `${Math.round(rate * 100)} %`;
@@ -58,9 +63,9 @@ function sortRows(rows: PlayerParticipation[], sort: SortId): PlayerParticipatio
   const sorted = [...rows];
   switch (sort) {
     case "quote_asc":
-      return sorted.sort(withNulls((r) => r.confirmedRate, 1));
+      return sorted.sort(withNulls((r) => r.registeredRate, 1));
     case "quote_desc":
-      return sorted.sort(withNulls((r) => r.confirmedRate, -1));
+      return sorted.sort(withNulls((r) => r.registeredRate, -1));
     case "confirmed_desc":
       return sorted.sort((a, b) => b.confirmed - a.confirmed || byName(a, b));
     case "confirmed_asc":
@@ -88,6 +93,7 @@ function PlayerCard({
 }) {
   const [open, setOpen] = useState(false);
   const total = row.eligible;
+  // Together the two segments are the willingness (everything they registered for).
   const confirmedPct = total > 0 ? (row.confirmed / total) * 100 : 0;
   const waitPct = total > 0 ? (row.waitlist / total) * 100 : 0;
   // Last 10 possible termine, oldest on the left, newest on the right.
@@ -108,10 +114,10 @@ function PlayerCard({
             {total > 0 ? (
               <>
                 <span className={styles.bigNum}>
-                  {row.confirmed}
+                  {row.registered}
                   <span className={styles.bigOf}>/{total}</span>
                 </span>
-                <span className={styles.bigLabel}>{percent(row.confirmedRate)} dabei</span>
+                <span className={styles.bigLabel}>{percent(row.registeredRate)} angemeldet</span>
               </>
             ) : (
               <span className={styles.bigLabel}>Noch keine Termine</span>
@@ -127,8 +133,8 @@ function PlayerCard({
             </div>
             <div className={styles.cardBottom}>
               <span className={styles.facts}>
-                {row.registered}× angemeldet · {row.confirmed}× dabei
-                {row.waitlist > 0 ? ` · ${row.waitlist}× Warteliste` : ""}
+                {row.confirmed}× dabei
+                {row.waitlist > 0 ? ` · ${row.waitlist}× angemeldet ohne Platz` : ""}
               </span>
               <span className={`${styles.tier} ${styles[`tier_${row.tier}`]}`}>{TIER_LABELS[row.tier]}</span>
             </div>
@@ -171,6 +177,7 @@ function PlayerCard({
 // and registrations the admin may read anyway.
 export default function AdminTeilnahmePage() {
   const now = useNow(5 * 60_000);
+  const { data: me } = useProfile();
   const { data: profiles = [] } = useProfiles();
   const { data: groups = [] } = useGroups();
   const { data: termine = [] } = useTermine();
@@ -187,9 +194,17 @@ export default function AdminTeilnahmePage() {
   const sinceISO = new Date(now - Number(period) * 86400000).toISOString().slice(0, 10);
   const types: Termin["type"][] = kind === "training" ? ["training"] : ["training", "event", "spieltag"];
 
+  // A captain sees the players of their own team only.
+  const isCaptain = me?.role === "captain";
+  const ownGroupId = me?.group_id ?? null;
   const players = useMemo(
-    () => profiles.filter((p) => p.status === "approved" && p.group_id && (groupId === "alle" || p.group_id === groupId)),
-    [profiles, groupId],
+    () =>
+      profiles.filter((p) => {
+        if (p.status !== "approved" || !p.group_id) return false;
+        if (isCaptain) return p.group_id === ownGroupId;
+        return groupId === "alle" || p.group_id === groupId;
+      }),
+    [profiles, groupId, isCaptain, ownGroupId],
   );
 
   const all = useMemo(
@@ -216,8 +231,8 @@ export default function AdminTeilnahmePage() {
   }, [all]);
 
   const average = useMemo(() => {
-    const rated = all.filter((r) => r.confirmedRate !== null);
-    return rated.length ? rated.reduce((s, r) => s + (r.confirmedRate as number), 0) / rated.length : null;
+    const rated = all.filter((r) => r.registeredRate !== null);
+    return rated.length ? rated.reduce((s, r) => s + (r.registeredRate as number), 0) / rated.length : null;
   }, [all]);
 
   const rows = useMemo(() => {
@@ -240,7 +255,7 @@ export default function AdminTeilnahmePage() {
 
   const tierItems = [
     { id: "alle", label: `Alle (${counts.alle})` },
-    { id: "selten", label: `Selten (${counts.selten})` },
+    { id: "selten", label: `Selten angemeldet (${counts.selten})` },
     { id: "mittel", label: `Gelegentlich (${counts.mittel})` },
     { id: "stamm", label: `Stamm (${counts.stamm})` },
     { id: "neu", label: `Neu (${counts.neu})` },
@@ -260,11 +275,11 @@ export default function AdminTeilnahmePage() {
           </div>
           <div className={styles.sumCard}>
             <span className={styles.sumNum}>{percent(average)}</span>
-            <span className={styles.sumLabel}>Ø dabei</span>
+            <span className={styles.sumLabel}>Ø angemeldet</span>
           </div>
           <button type="button" className={`${styles.sumCard} ${styles.sumAlert}`} onClick={() => setTier("selten")}>
             <span className={styles.sumNum}>{counts.selten}</span>
-            <span className={styles.sumLabel}>Selten dabei</span>
+            <span className={styles.sumLabel}>Selten angemeldet</span>
           </button>
         </div>
 
@@ -281,14 +296,26 @@ export default function AdminTeilnahmePage() {
         />
 
         <div className={styles.filters}>
-          <Select label="Gruppe" value={groupId} onChange={(e) => setGroupId(e.target.value)}>
-            <option value="alle">Alle Gruppen</option>
-            {groups.map((g) => (
-              <option key={g.id} value={g.id}>
-                {groupLabel(g)}
-              </option>
-            ))}
-          </Select>
+          {isCaptain ? (
+            <div className={styles.teamBox}>
+              <span className={styles.teamLabel}>Deine Mannschaft</span>
+              <span className={styles.teamName}>
+                {(() => {
+                  const g = groups.find((x) => x.id === ownGroupId);
+                  return g ? groupLabel(g) : "—";
+                })()}
+              </span>
+            </div>
+          ) : (
+            <Select label="Gruppe" value={groupId} onChange={(e) => setGroupId(e.target.value)}>
+              <option value="alle">Alle Gruppen</option>
+              {groups.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {groupLabel(g)}
+                </option>
+              ))}
+            </Select>
+          )}
           <Select label="Sortieren nach" value={sort} onChange={(e) => setSort(e.target.value as SortId)}>
             {SORTS.map((s) => (
               <option key={s.id} value={s.id}>
@@ -303,7 +330,7 @@ export default function AdminTeilnahmePage() {
 
         <div className={styles.legend}>
           <span><span className={`${styles.dot} ${styles.dot_dabei}`} /> dabei</span>
-          <span><span className={`${styles.dot} ${styles.dot_warteliste}`} /> Warteliste</span>
+          <span><span className={`${styles.dot} ${styles.dot_warteliste}`} /> angemeldet, kein Platz</span>
           <span><span className={`${styles.dot} ${styles.dot_nicht}`} /> nicht angemeldet</span>
         </div>
 
@@ -324,10 +351,12 @@ export default function AdminTeilnahmePage() {
         </div>
 
         <p className={styles.note}>
-          „Dabei“ heißt: ein bestätigter Platz bei einem vergangenen Termin — nicht, ob die Person wirklich da war.
-          Gezählt werden nur Termine, für die der Spieler zugelassen war und die nach seinem Beitritt stattfanden.
-          Abmeldungen werden nicht gespeichert, sie tauchen hier also als „nicht angemeldet“ auf. Stammspieler: ab 60 %
-          dabei, gelegentlich: 30–59 %, selten: unter 30 % (mindestens 3 mögliche Termine).
+          <b>Bewertet wird die Bereitschaft:</b> wie oft sich jemand angemeldet hat. Wer sich angemeldet hat, aber
+          wegen der Platzvergabe auf der Warteliste gelandet ist (gelb), zählt voll mit — das ist nicht seine Schuld.
+          „Dabei“ (grün) heißt: ein bestätigter Platz, nicht, ob die Person wirklich da war. Gezählt werden nur
+          Termine, für die der Spieler zugelassen war und die nach seinem Beitritt stattfanden. Abmeldungen werden
+          nicht gespeichert und erscheinen als „nicht angemeldet“. Stammspieler: ab 60 % angemeldet, gelegentlich:
+          30–59 %, selten: unter 30 % (mindestens 3 mögliche Termine).
         </p>
       </PageBody>
     </>
