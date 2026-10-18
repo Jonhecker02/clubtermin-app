@@ -224,15 +224,17 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
               <h2>Login</h2>
               <p className={styles.lede}>
                 Du registrierst dich selbst über den Link, den du von deinem Trainer oder Clubmanager
-                bekommst — nur mit <b>Vorname, Nachname und einem Passwort</b>. Danach ordnet
+                bekommst — mit <b>Vorname, Nachname, Geburtsdatum, Herren/Damen und einem Passwort</b>. Danach ordnet
                 dich dein Trainer oder Clubmanager deiner Mannschaft zu; sobald das geschehen ist, kommst du
                 in die App.
               </p>
               <Steps
                 items={[
                   <>
-                    Öffne den Registrierungs-Link, trage <b>Vorname</b>, <b>Nachname</b> und ein{" "}
-                    <b>Passwort</b> (mindestens 6 Zeichen) ein und tippe auf <b>„Registrieren“</b>. Du siehst
+                    Öffne den Registrierungs-Link, trage <b>Vorname</b>, <b>Nachname</b>, dein <b>Geburtsdatum</b>{" "}
+                    und ein <b>Passwort</b> (mindestens 6 Zeichen) ein, wähle <b>Herren</b> oder <b>Damen</b> und
+                    tippe auf <b>„Registrieren“</b>. Geburtsdatum und Auswahl sehen nur Trainer und Admins — für die
+                    Mannschaftsplanung. Du siehst
                     dann „Anfrage wird geprüft“ — das ist normal, bis du zugeordnet bist.
                   </>,
                   <>
@@ -612,6 +614,30 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                     Im Admin-Reiter <b>„Spieler“</b> (Trainer &amp; Clubmanager): alle Spieler mit Suche und
                     Gruppenfilter, die Spielstärke direkt in der Zeile eintragen, Notiz-Symbol mit Anzahl und
                     Vorschau der letzten Notiz — ein Tipp öffnet Spielstärke und Notizen.
+                  </span>
+                </li>
+                <li>
+                  <span className={styles.dot} />
+                  <span>
+                    <b>Reiter „Teilnahme“</b> (Clubmanager &amp; Trainer): Wer kommt wie oft? Pro Spieler siehst du,
+                    bei wie vielen möglichen Terminen er angemeldet war und wie oft er einen bestätigten Platz hatte
+                    („dabei“) — als Zahl, Balken und Punktreihe der letzten 10 Termine (grün dabei, gelb Warteliste, leer
+                    nicht angemeldet). Zeitraum (4 Wochen bis 12 Monate), Trainings oder alle Termine und Gruppe sind
+                    wählbar; sortieren kannst du nach Teilnahmequote, Teilnahmen, Anmeldungen, „am längsten nicht dabei“
+                    oder Name. Die Reiter „Selten“, „Gelegentlich“, „Stamm“, „Neu“ und „Nie angemeldet“ filtern auf
+                    einen Blick; ein Tipp auf einen Spieler zeigt den Verlauf der einzelnen Termine.
+                  </span>
+                </li>
+                <li>
+                  <span className={styles.dot} />
+                  <span>
+                    <b>Altersklassen</b> (für die Mannschaftsmeldung): Oben auf „Altersklassen“ tippen, die Saison
+                    wählen und dann Herren/Damen Offen, 35, 40, 45, 50, 55 oder 60. Jeder Reiter zeigt, wie viele
+                    spielberechtigt sind (nach Jahrgang — wer in der Saison mindestens so alt wird; ältere zählen
+                    auch in den jüngeren Klassen mit) und wie viele genau in dieser Altersgruppe liegen. „Angaben
+                    fehlen“ listet, wer noch Geburtsdatum oder Herr/Dame nachtragen muss. Geburtsdatum steht bei
+                    jedem Namen (Trainer &amp; Admins) und lässt sich im Fenster eines Spielers oder in Accounts
+                    ändern. In geteilten Texten und Bildern kommt es nie vor.
                   </span>
                 </li>
                 <li>

@@ -34,6 +34,7 @@ import {
 import type { Group, Termin, TerminType } from "@/types/database";
 import styles from "./page.module.css";
 import { useNow } from "@/lib/useNow";
+import { MissingDetailsBanner } from "@/components/MissingDetailsBanner";
 
 const FILTER_ITEMS = [
   { id: "alle", label: "Alle" },
@@ -172,6 +173,7 @@ export default function TerminePage() {
         }
       />
       <PageBody>
+        <MissingDetailsBanner />
         {isAdmin && <LiveBanner termine={termine} />}
         {trainerFilter.scoped && (
           <Tabs

@@ -14,6 +14,7 @@ import { queryKeys } from "@/lib/queries/keys";
 import { createClient } from "@/lib/supabase/client";
 import adminStyles from "@/components/admin/AdminList.module.css";
 import styles from "./page.module.css";
+import { PersonName } from "@/components/PersonName";
 
 const ROLE_ITEMS = [
   { id: "member", label: "Spieler" },
@@ -62,7 +63,9 @@ export default function AdminRollenPage() {
           {members.map((m) => (
             <div key={m.id} className={styles.card}>
               <div className={styles.info}>
-                <div className={styles.name}>{m.name}</div>
+                <div className={styles.name}>
+                  <PersonName name={m.name} userId={m.id} />
+                </div>
                 <div className={styles.meta}>
                   {[displayEmail(m.email), groups.find((g) => g.id === m.group_id)?.name ?? "—"].filter(Boolean).join(" · ")}
                 </div>

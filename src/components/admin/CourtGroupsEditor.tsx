@@ -26,6 +26,7 @@ import {
 } from "@/lib/domain";
 import type { Termin } from "@/types/database";
 import styles from "./CourtGroupsEditor.module.css";
+import { PersonName } from "@/components/PersonName";
 
 // A court always seats 4 — caps each group at that so nobody accidentally
 // overfills one, though nothing blocks saving an intentionally smaller
@@ -499,7 +500,7 @@ export function CourtGroupsEditor({
               return (
                 <div key={p.user_id} className={styles.unassignedRow}>
                   <span>
-                    {p.name}
+                    <PersonName name={p.name} userId={p.user_id} />
                     {lateIds.includes(p.user_id) && <span className={styles.lateTag}>Nachrücker</span>}
                     {levelOf(p.user_id) !== null && <span className={styles.levelTag}>{formatLevel(levelOf(p.user_id)!)}</span>}
                   </span>
@@ -597,7 +598,7 @@ export function CourtGroupsEditor({
               <div className={styles.chips}>
                 {g.memberIds.map((id) => (
                   <span key={id} className={styles.chip}>
-                    {nameFor(id)}
+                    <PersonName name={nameFor(id)} userId={id} />
                     {lateIds.includes(id) && <span className={styles.lateTag}>N</span>}
                     {levelOf(id) !== null && <span className={styles.levelTag}>{formatLevel(levelOf(id)!)}</span>}
                     <button type="button" onClick={() => removeMember(g.key, id)} title="Entfernen">

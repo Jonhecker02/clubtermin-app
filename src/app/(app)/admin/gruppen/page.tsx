@@ -19,6 +19,7 @@ import { createClient } from "@/lib/supabase/client";
 import adminStyles from "@/components/admin/AdminList.module.css";
 import styles from "./page.module.css";
 import { useUnsavedChanges } from "@/lib/useUnsavedChanges";
+import { PersonName } from "@/components/PersonName";
 
 export default function AdminGruppenPage() {
   const router = useRouter();
@@ -213,7 +214,7 @@ export default function AdminGruppenPage() {
                       </span>
                     ) : (
                       <span key={m.id} className={styles.chip}>
-                        {m.name}
+                        <PersonName name={m.name} userId={m.id} />
                         <button
                           type="button"
                           className={styles.chipRemove}

@@ -32,6 +32,10 @@ export default function PrivacyPage() {
           <h2>Welche Daten wir verarbeiten</h2>
           <ul>
             <li>Vor- und Nachname (bei der Registrierung); es wird keine E-Mail-Adresse erhoben</li>
+            <li>
+              Geburtsdatum und Geschlecht (Herren/Damen) — sichtbar nur für Trainer und Admins, ausschließlich zur
+              Mannschaftsplanung (z. B. Altersklassen); nicht sichtbar für andere Spieler und nicht Teil von Exporten
+            </li>
             <li>Mannschafts- und Rollenzugehörigkeit</li>
             <li>Anmeldungen zu Trainings, Events und Spieltagen</li>
             <li>Nachrichten und Ankündigungen im Chat der App</li>

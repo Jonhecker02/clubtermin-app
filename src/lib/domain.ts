@@ -1,4 +1,4 @@
-import type { Group, RegistrationStatus, Termin, TerminType, SessionFormat } from "@/types/database";
+import type { Group, RegistrationStatus, Termin, TerminType, SessionFormat, Gender } from "@/types/database";
 
 // Keep in sync with cancel_registration()'s v_cutoff_hours in supabase/migrations/0001_init.sql
 export const CANCEL_CUTOFF_HOURS = 24;
@@ -566,4 +566,72 @@ export function livePhase(t: CourtGroupTiming, nowMs: number): 1 | 2 {
   const now = new Date(nowMs);
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
   return nowMinutes < courtGroupSwitchMinutes(t) ? 1 : 2;
+}
+
+// ---- Geburtsdatum -----------------------------------------------------
+
+// Whole years on a given day ("YYYY-MM-DD" -> 38).
+export function ageOf(birthISO: string, on: Date = new Date()): number {
+  const [y, m, d] = birthISO.split("-").map(Number);
+  let age = on.getFullYear() - y;
+  if (on.getMonth() + 1 < m || (on.getMonth() + 1 === m && on.getDate() < d)) age -= 1;
+  return age;
+}
+
+// "03.05.1988 · 38 J."
+export function birthLabel(birthISO: string): string {
+  const [y, m, d] = birthISO.split("-");
+  return `${d}.${m}.${y} · ${ageOf(birthISO)} J.`;
+}
+
+// Plausible date of birth typed or picked by a person.
+export function isPlausibleBirthDate(iso: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return false;
+  const date = new Date(`${iso}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return false;
+  const todayISO = new Date().toISOString().slice(0, 10);
+  return iso >= "1900-01-01" && iso <= todayISO;
+}
+
+// ---- Altersklassen ----------------------------------------------------
+// Team planning: "Herren 35" may field everyone born in the year that makes
+// them 35 or older by the season year (Jahrgang rule), so a 52-year-old counts
+// for H35, H40, H45 and H50. "Offen" has no age limit.
+
+export const AGE_CLASS_MINIMUMS = [0, 35, 40, 45, 50, 55, 60] as const;
+export type AgeClassMin = (typeof AGE_CLASS_MINIMUMS)[number];
+
+export function genderLabel(g: Gender): string {
+  return g === "m" ? "Herr" : "Dame";
+}
+
+export function ageClassLabel(gender: Gender, min: AgeClassMin): string {
+  return `${gender === "m" ? "Herren" : "Damen"} ${min === 0 ? "Offen" : min}`;
+}
+
+// Age by Jahrgang in a given season year (2026 - 1988 = 38).
+export function ageInYear(birthISO: string, year: number): number {
+  return year - Number(birthISO.slice(0, 4));
+}
+
+export function inAgeClass(birthISO: string | null | undefined, min: AgeClassMin, year: number): boolean {
+  if (min === 0) return true;
+  if (!birthISO) return false;
+  return ageInYear(birthISO, year) >= min;
+}
+
+// Exactly inside the band of this class (35-39 for H35), not just eligible.
+export function inAgeBand(birthISO: string | null | undefined, min: AgeClassMin, year: number): boolean {
+  if (!birthISO) return false;
+  const age = ageInYear(birthISO, year);
+  const idx = AGE_CLASS_MINIMUMS.indexOf(min);
+  const next = AGE_CLASS_MINIMUMS[idx + 1];
+  if (min === 0) return age < (AGE_CLASS_MINIMUMS[1] as number);
+  return age >= min && (next === undefined || age < next);
+}
+
+// "35–39" for H35, "60+" for the oldest class.
+export function ageBandLabel(min: AgeClassMin): string {
+  const next = AGE_CLASS_MINIMUMS[AGE_CLASS_MINIMUMS.indexOf(min) + 1];
+  return next === undefined ? `${min}+` : `${min}–${next - 1}`;
 }

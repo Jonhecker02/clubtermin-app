@@ -1,3 +1,42 @@
 .levelRow {
   max-width: 160px;
 }
+
+.detailsBox {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--color-border);
+}
+
+.detailsTitle {
+  font-size: 11.5px;
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+.genderRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.genderBtn {
+  height: 42px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-alt);
+  color: var(--color-ink-muted);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: var(--fw-bold);
+  cursor: pointer;
+}
+
+.genderBtnOn {
+  background: var(--tp-pink);
+  color: var(--tp-navy);
+}

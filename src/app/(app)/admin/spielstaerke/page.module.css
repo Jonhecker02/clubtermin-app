@@ -128,3 +128,19 @@
   width: 78px;
   flex-shrink: 0;
 }
+
+.classSummary {
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-alt);
+  font-size: 14px;
+  color: var(--color-ink);
+}
+
+.classNote {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-ink-muted);
+}

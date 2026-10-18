@@ -11,11 +11,13 @@ import { generatePassword, initials } from "@/lib/passwordGen";
 // for the privileged Admin API call.
 
 export async function POST(request: Request) {
-  const { name, group_id, role, trainer_group_ids } = (await request.json()) as {
+  const { name, group_id, role, trainer_group_ids, birth_date, gender } = (await request.json()) as {
     name?: string;
     group_id?: string | null;
     role?: "member" | "trainer" | "captain";
     trainer_group_ids?: string[];
+    birth_date?: string | null;
+    gender?: string | null;
   };
   // Trainer aren't tied to one team's roster (unlike Spieler/Kapitän): they
   // get any number of "Trainer von" groups instead (trainer_group_ids), so a
@@ -78,7 +80,13 @@ export async function POST(request: Request) {
 
   const { error: patchError } = await service
     .from("profiles")
-    .update({ status: "approved", group_id: group_id ?? null, role: role ?? "member" })
+    .update({
+      status: "approved",
+      group_id: group_id ?? null,
+      role: role ?? "member",
+      gender: gender === "m" || gender === "w" ? gender : null,
+      birth_date: birth_date && /^\d{4}-\d{2}-\d{2}$/.test(birth_date) && birth_date >= "1900-01-01" ? birth_date : null,
+    })
     .eq("id", created.user.id);
   if (patchError) {
     return NextResponse.json({ error: patchError.message }, { status: 500 });

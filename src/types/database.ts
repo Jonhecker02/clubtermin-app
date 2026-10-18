@@ -1,6 +1,7 @@
 export type UserRole = "owner" | "trainer" | "captain" | "member";
 export type UserStatus = "pending" | "approved" | "rejected";
 export type TerminType = "training" | "event" | "spieltag";
+export type Gender = "m" | "w";
 export type SessionFormat = "training_spiel" | "nur_spiel" | "nur_training";
 export type RegistrationStatus = "angemeldet" | "warteliste" | "ausstehend";
 
@@ -296,7 +297,9 @@ export interface Database {
       profiles: {
         Row: Profile;
         Insert: Profile;
-        Update: Partial<Profile>;
+        // birth_date / gender are deliberately not part of Profile (not readable through
+        // ordinary queries); it can still be written by the server routes.
+        Update: Partial<Profile> & { birth_date?: string | null; gender?: Gender | null };
         Relationships: [];
       };
       groups: {
@@ -395,6 +398,10 @@ export interface Database {
       rename_group: { Args: { p_group_id: string; p_name: string; p_short_code?: string | null }; Returns: void };
       remove_group_member: { Args: { p_user_id: string }; Returns: void };
       delete_group: { Args: { p_group_id: string }; Returns: void };
+      get_personal_details: { Args: Record<string, never>; Returns: { user_id: string; birth_date: string | null; gender: Gender | null }[] };
+      set_my_personal_details: { Args: { p_birth_date: string; p_gender: Gender }; Returns: void };
+      admin_set_personal_details: { Args: { p_user_id: string; p_birth_date: string | null; p_gender: Gender | null }; Returns: void };
+      get_my_personal_details: { Args: Record<string, never>; Returns: { birth_date: string | null; gender: Gender | null }[] };
       rate_limit_blocked: { Args: { p_key: string; p_limit: number; p_window_seconds: number }; Returns: boolean };
       rate_limit_record: { Args: { p_key: string }; Returns: void };
       set_trainer_groups: { Args: { p_user_id: string; p_group_ids: string[] }; Returns: void };

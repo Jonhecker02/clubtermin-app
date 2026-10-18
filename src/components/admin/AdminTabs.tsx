@@ -27,7 +27,8 @@ export function AdminTabs({ current }: AdminTabsProps) {
     ...(isTrainerOrOwner ? [{ id: "spielstaerke", label: "Spieler" }] : []),
     ...(isOwner ? [{ id: "rollen", label: "Rollen" }] : []),
     ...(isOwner ? [{ id: "accounts", label: "Accounts" }] : []),
-    ...(isOwner ? [{ id: "statistik", label: "Statistik" }] : []),
+    // Participation overview: owner and trainers.
+    ...(isTrainerOrOwner ? [{ id: "statistik", label: "Teilnahme" }] : []),
   ];
 
   return (

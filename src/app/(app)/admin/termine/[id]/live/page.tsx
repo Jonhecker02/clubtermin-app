@@ -31,15 +31,18 @@ import {
 } from "@/lib/domain";
 import adminStyles from "@/components/admin/AdminList.module.css";
 import styles from "./page.module.css";
+import { PersonName } from "@/components/PersonName";
 
 // One tappable player line. A top-level component (not defined inside the
 // page) so the list keeps its DOM when the page re-renders on the clock tick.
 function PlayerRow({
+  userId,
   name,
   level,
   summary,
   onOpen,
 }: {
+  userId: string;
   name: string;
   level: number | null;
   summary: NotesSummary | undefined;
@@ -49,7 +52,9 @@ function PlayerRow({
     <button type="button" className={styles.player} onClick={onOpen}>
       <span className={styles.avatar}>{initials(name)}</span>
       <span className={styles.playerText}>
-        <span className={styles.playerName}>{name}</span>
+        <span className={styles.playerName}>
+          <PersonName name={name} userId={userId} />
+        </span>
         {summary && <span className={styles.playerNote}>{summary.latest}</span>}
       </span>
       {level != null && <span className={styles.level}>{formatLevel(level)}</span>}
@@ -116,6 +121,7 @@ export default function LiveTerminPage() {
     return (
       <PlayerRow
         key={userId}
+        userId={userId}
         name={name}
         level={levels?.[userId] ?? null}
         summary={summary}

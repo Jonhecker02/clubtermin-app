@@ -7,6 +7,7 @@ import { UserPlus } from "lucide-react";
 import { IntroShell, introStyles as styles } from "@/components/layout/IntroShell";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { isPlausibleBirthDate } from "@/lib/domain";
 import { clearAllCaches } from "@/lib/queryPersist";
 
 export default function RegistrierenPage() {
@@ -15,6 +16,8 @@ export default function RegistrierenPage() {
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [birthDate, setBirthDate] = useState("");
+  const [gender, setGender] = useState<"m" | "w" | "">("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -26,6 +29,14 @@ export default function RegistrierenPage() {
       setError("Bitte gib Vor- und Nachname ein.");
       return;
     }
+    if (gender === "") {
+      setError("Bitte wähle Herr oder Dame.");
+      return;
+    }
+    if (!isPlausibleBirthDate(birthDate)) {
+      setError("Bitte gib dein Geburtsdatum an.");
+      return;
+    }
     if (password.length < 6) {
       setError("Das Passwort muss mindestens 6 Zeichen haben.");
       return;
@@ -34,7 +45,7 @@ export default function RegistrierenPage() {
     const res = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: `${firstName.trim()} ${lastName.trim()}`, password }),
+      body: JSON.stringify({ name: `${firstName.trim()} ${lastName.trim()}`, password, birth_date: birthDate, gender }),
     });
     const data = await res.json();
     setLoading(false);
@@ -66,6 +77,32 @@ export default function RegistrierenPage() {
       <form className={styles.card} onSubmit={submit}>
         <Input label="Vorname" placeholder="Max" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
         <Input label="Nachname" placeholder="Mustermann" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+        <div className={styles.genderField} role="radiogroup" aria-label="Geschlecht">
+          <span className={styles.genderLabel}>Ich spiele bei den</span>
+          <div className={styles.genderRow}>
+            {(["m", "w"] as const).map((g) => (
+              <button
+                key={g}
+                type="button"
+                role="radio"
+                aria-checked={gender === g}
+                className={`${styles.genderBtn} ${gender === g ? styles.genderBtnOn : ""}`}
+                onClick={() => setGender(g)}
+              >
+                {g === "m" ? "Herren" : "Damen"}
+              </button>
+            ))}
+          </div>
+        </div>
+        <Input
+          label="Geburtsdatum"
+          type="date"
+          value={birthDate}
+          onChange={(e) => setBirthDate(e.target.value)}
+          max={new Date().toISOString().slice(0, 10)}
+          autoComplete="bday"
+          helper="Geburtsdatum und Auswahl sind nur für Trainer und Admins sichtbar — sie helfen bei der Mannschaftsplanung (z. B. Herren 35)."
+        />
         <Input
           label="Passwort"
           type="password"

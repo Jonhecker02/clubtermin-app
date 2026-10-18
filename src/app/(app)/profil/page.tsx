@@ -25,6 +25,8 @@ import { clearAllCaches } from "@/lib/queryPersist";
 import { applyTheme, getStoredTheme, type ThemeChoice } from "@/lib/theme";
 import { Tabs } from "@/components/ui/Tabs";
 import { useUnsavedChanges } from "@/lib/useUnsavedChanges";
+import { useMyPersonalDetails } from "@/lib/queries/useMyPersonalDetails";
+import { isPlausibleBirthDate } from "@/lib/domain";
 
 const THEME_ITEMS = [
   { id: "auto", label: "Automatisch" },
@@ -44,6 +46,42 @@ export default function ProfilPage() {
   const { data: myRegs = [] } = useMyRegistrations(profile?.id);
   const { data: icalToken } = useIcalToken(!!profile);
   const push = usePush(profile?.id);
+  // Own date of birth / gender (team planning; only trainers and admins see them).
+  const { data: myDetails } = useMyPersonalDetails();
+  const [birthInput, setBirthInput] = useState<string | null>(null);
+  const [genderInput, setGenderInput] = useState<"m" | "w" | null | undefined>(undefined);
+  const [detailsError, setDetailsError] = useState("");
+  const [detailsSaved, setDetailsSaved] = useState(false);
+  const shownBirth = birthInput ?? myDetails?.birth_date ?? "";
+  const shownGender = genderInput === undefined ? (myDetails?.gender ?? null) : genderInput;
+  const detailsDirty =
+    (birthInput !== null && birthInput !== (myDetails?.birth_date ?? "")) ||
+    (genderInput !== undefined && genderInput !== (myDetails?.gender ?? null));
+  useUnsavedChanges(detailsDirty);
+
+  async function saveDetails() {
+    if (!isPlausibleBirthDate(shownBirth)) {
+      setDetailsError("Bitte gib ein gültiges Geburtsdatum an.");
+      return;
+    }
+    if (!shownGender) {
+      setDetailsError("Bitte wähle Herr oder Dame.");
+      return;
+    }
+    setDetailsError("");
+    const supabase = createClient();
+    const { error } = await supabase.rpc("set_my_personal_details", { p_birth_date: shownBirth, p_gender: shownGender });
+    if (error) {
+      setDetailsError("Speichern fehlgeschlagen.");
+      return;
+    }
+    setBirthInput(null);
+    setGenderInput(undefined);
+    setDetailsSaved(true);
+    setTimeout(() => setDetailsSaved(false), 2000);
+    await queryClient.invalidateQueries({ queryKey: ["myPersonalDetails"] });
+    await queryClient.invalidateQueries({ queryKey: ["personalDetails"] });
+  }
   // Read after mount: the saved choice lives in localStorage, which the server render cannot see.
   const [theme, setTheme] = useState<ThemeChoice>("auto");
   useEffect(() => {
@@ -280,6 +318,33 @@ export default function ProfilPage() {
             )}
           </div>
         )}
+
+        <div className={styles.icalBox}>
+          <div className={styles.sectionLabel} style={{ margin: 0 }}>
+            Meine Angaben
+          </div>
+          <Input
+            label="Geburtsdatum"
+            type="date"
+            value={shownBirth}
+            max={new Date().toISOString().slice(0, 10)}
+            onChange={(e) => setBirthInput(e.target.value)}
+          />
+          <Tabs
+            items={[
+              { id: "m", label: "Herren" },
+              { id: "w", label: "Damen" },
+            ]}
+            value={shownGender ?? ""}
+            onChange={(id) => setGenderInput(id as "m" | "w")}
+            size="sm"
+          />
+          <div className={styles.icalHint}>Nur Trainer und Admins sehen diese Angaben — sie helfen bei der Mannschaftsplanung.</div>
+          {detailsError && <div className={styles.icalHint} style={{ color: "var(--tp-danger)" }}>{detailsError}</div>}
+          <Button variant={detailsDirty ? "accent" : "outline"} full onClick={saveDetails} disabled={!detailsDirty}>
+            {detailsSaved ? "Gespeichert ✓" : "Angaben speichern"}
+          </Button>
+        </div>
 
         <div className={styles.icalBox}>
           <div className={styles.sectionLabel} style={{ margin: 0 }}>

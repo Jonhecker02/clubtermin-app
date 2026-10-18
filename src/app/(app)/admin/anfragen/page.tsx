@@ -14,6 +14,7 @@ import { createClient } from "@/lib/supabase/client";
 import { displayEmail, groupLabel } from "@/lib/domain";
 import adminStyles from "@/components/admin/AdminList.module.css";
 import styles from "./page.module.css";
+import { PersonName } from "@/components/PersonName";
 
 export default function AdminAnfragenPage() {
   const queryClient = useQueryClient();
@@ -58,7 +59,9 @@ export default function AdminAnfragenPage() {
           {requests.map((r) => (
             <div key={r.id} className={styles.card}>
               <div>
-                <div className={styles.name}>{r.name}</div>
+                <div className={styles.name}>
+                  <PersonName name={r.name} userId={r.id} />
+                </div>
                 {displayEmail(r.email) && <div className={styles.email}>{displayEmail(r.email)}</div>}
               </div>
               <Select

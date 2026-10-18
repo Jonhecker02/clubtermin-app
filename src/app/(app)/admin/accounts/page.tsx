@@ -16,10 +16,12 @@ import { useProfile } from "@/lib/queries/useProfile";
 import { useProfiles } from "@/lib/queries/useProfiles";
 import { useGroups } from "@/lib/queries/useGroups";
 import { useTrainerGroups } from "@/lib/queries/useTrainerGroups";
+import { usePersonalDetails } from "@/lib/queries/usePersonalDetails";
+import { PersonName } from "@/components/PersonName";
 import { queryKeys } from "@/lib/queries/keys";
 import { createClient } from "@/lib/supabase/client";
 import { displayEmail, groupLabel } from "@/lib/domain";
-import type { UserRole, UserStatus } from "@/types/database";
+import type { Gender, UserRole, UserStatus } from "@/types/database";
 import adminStyles from "@/components/admin/AdminList.module.css";
 import styles from "./page.module.css";
 import { useUnsavedChanges } from "@/lib/useUnsavedChanges";
@@ -44,6 +46,7 @@ export default function AdminAccountsPage() {
   const { data: profiles = [] } = useProfiles();
   const { data: groups = [] } = useGroups();
   const { data: trainerGroups = [] } = useTrainerGroups();
+  const { data: details = {} } = usePersonalDetails();
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editFirstName, setEditFirstName] = useState("");
@@ -52,6 +55,8 @@ export default function AdminAccountsPage() {
   const [editRotationExcluded, setEditRotationExcluded] = useState(false);
   const [editTrainerGroupIds, setEditTrainerGroupIds] = useState<string[]>([]);
   const [editBaseline, setEditBaseline] = useState("");
+  const [editBirth, setEditBirth] = useState("");
+  const [editGender, setEditGender] = useState("");
   const [editError, setEditError] = useState("");
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState("");
@@ -69,6 +74,8 @@ export default function AdminAccountsPage() {
   const [createGroupId, setCreateGroupId] = useState("");
   const [createRole, setCreateRole] = useState<UserRole>("member");
   const [createTrainerGroupIds, setCreateTrainerGroupIds] = useState<string[]>([]);
+  const [createBirth, setCreateBirth] = useState("");
+  const [createGender, setCreateGender] = useState("");
   const [createError, setCreateError] = useState("");
   const [createLoading, setCreateLoading] = useState(false);
   const [createdCredentials, setCreatedCredentials] = useState<{ name: string; password: string } | null>(null);
@@ -76,12 +83,12 @@ export default function AdminAccountsPage() {
 
   // An open edit/create form with values that differ from where it started.
   const editSnapshot = JSON.stringify([
-    editFirstName.trim(), editLastName.trim(), editGroupId, editRotationExcluded, [...editTrainerGroupIds].sort(),
+    editFirstName.trim(), editLastName.trim(), editGroupId, editRotationExcluded, [...editTrainerGroupIds].sort(), editBirth, editGender,
   ]);
   const createDirty =
     showCreate &&
     !createdCredentials &&
-    (createFirstName.trim() !== "" || createLastName.trim() !== "" || createGroupId !== "" || createRole !== "member" || createTrainerGroupIds.length > 0);
+    (createFirstName.trim() !== "" || createLastName.trim() !== "" || createGroupId !== "" || createRole !== "member" || createTrainerGroupIds.length > 0 || createBirth !== "" || createGender !== "");
   useUnsavedChanges((editingId !== null && editSnapshot !== editBaseline) || createDirty);
 
   const sorted = [...profiles].sort((a, b) => a.name.localeCompare(b.name));
@@ -102,6 +109,8 @@ export default function AdminAccountsPage() {
     setCreateGroupId("");
     setCreateRole("member");
     setCreateTrainerGroupIds([]);
+    setCreateBirth("");
+    setCreateGender("");
     setCreateError("");
     setCreatedCredentials(null);
     setCopied(false);
@@ -128,6 +137,8 @@ export default function AdminAccountsPage() {
         group_id: createRole === "trainer" ? null : createGroupId || null,
         role: createRole,
         trainer_group_ids: createRole === "trainer" ? createTrainerGroupIds : [],
+        birth_date: createBirth || null,
+        gender: createGender || null,
       }),
     });
     const data = await res.json();
@@ -158,8 +169,12 @@ export default function AdminAccountsPage() {
     setEditRotationExcluded(rotationExcluded);
     const initialTrainerGroups = trainerGroups.filter((t) => t.user_id === id).map((t) => t.group_id);
     setEditTrainerGroupIds(initialTrainerGroups);
+    const initialBirth = details[id]?.birth_date ?? "";
+    const initialGender = details[id]?.gender ?? "";
+    setEditBirth(initialBirth);
+    setEditGender(initialGender);
     setEditBaseline(
-      JSON.stringify([first ?? "", rest.join(" "), groupId ?? "", rotationExcluded, [...initialTrainerGroups].sort()]),
+      JSON.stringify([first ?? "", rest.join(" "), groupId ?? "", rotationExcluded, [...initialTrainerGroups].sort(), initialBirth, initialGender]),
     );
     setEditError("");
   }
@@ -180,12 +195,24 @@ export default function AdminAccountsPage() {
       return;
     }
     await supabase.rpc("admin_set_rotation_excluded", { p_user_id: editingId!, p_excluded: editRotationExcluded });
+    if (editBirth !== (details[editingId!]?.birth_date ?? "") || editGender !== (details[editingId!]?.gender ?? "")) {
+      const { error: detailsError } = await supabase.rpc("admin_set_personal_details", {
+        p_user_id: editingId!,
+        p_birth_date: editBirth || null,
+        p_gender: (editGender || null) as Gender | null,
+      });
+      if (detailsError) {
+        setEditError("Geburtsdatum / Geschlecht konnte nicht gespeichert werden.");
+        return;
+      }
+    }
     if (profiles.find((p) => p.id === editingId)?.role === "trainer") {
       await supabase.rpc("set_trainer_groups", { p_user_id: editingId!, p_group_ids: editTrainerGroupIds });
     }
     setEditingId(null);
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: queryKeys.trainerGroups }),
+      queryClient.invalidateQueries({ queryKey: ["personalDetails"] }),
       queryClient.invalidateQueries({ queryKey: queryKeys.profiles }),
       queryClient.invalidateQueries({ queryKey: ["registrations"] }),
     ]);
@@ -278,6 +305,18 @@ export default function AdminAccountsPage() {
                   value={createLastName}
                   onChange={(e) => setCreateLastName(e.target.value)}
                 />
+                <Input
+                  label="Geburtsdatum (optional)"
+                  type="date"
+                  value={createBirth}
+                  onChange={(e) => setCreateBirth(e.target.value)}
+                  max={new Date().toISOString().slice(0, 10)}
+                />
+                <Select label="Geschlecht (optional)" value={createGender} onChange={(e) => setCreateGender(e.target.value)}>
+                  <option value="">—</option>
+                  <option value="m">Herr</option>
+                  <option value="w">Dame</option>
+                </Select>
                 <Select label="Rolle" value={createRole} onChange={(e) => setCreateRole(e.target.value as UserRole)}>
                   <option value="member">Spieler</option>
                   <option value="captain">Kapitän</option>
@@ -326,7 +365,7 @@ export default function AdminAccountsPage() {
                     <div className={styles.headRow}>
                       <div className={styles.info}>
                         <div className={styles.nameRow}>
-                          <span className={styles.name}>{p.name}</span>
+                          <PersonName className={styles.name} name={p.name} userId={p.id} />
                           {isSelf && (
                             <Badge tone="outline" size="sm">
                               Du
@@ -454,6 +493,18 @@ export default function AdminAccountsPage() {
                   <div className={styles.editRow}>
                     <Input label="Vorname" value={editFirstName} onChange={(e) => setEditFirstName(e.target.value)} error={editError} />
                     <Input label="Nachname" value={editLastName} onChange={(e) => setEditLastName(e.target.value)} />
+                    <Input
+                      label="Geburtsdatum"
+                      type="date"
+                      value={editBirth}
+                      onChange={(e) => setEditBirth(e.target.value)}
+                      max={new Date().toISOString().slice(0, 10)}
+                    />
+                    <Select label="Geschlecht" value={editGender} onChange={(e) => setEditGender(e.target.value)}>
+                      <option value="">—</option>
+                      <option value="m">Herr</option>
+                      <option value="w">Dame</option>
+                    </Select>
                     <Select
                       label={p.role === "trainer" ? "Gruppe als Spieler (optional)" : "Gruppe"}
                       value={editGroupId}

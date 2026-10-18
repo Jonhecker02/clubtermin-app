@@ -51,6 +51,7 @@ import {
 import adminStyles from "@/components/admin/AdminList.module.css";
 import styles from "./page.module.css";
 import { triggerPlacement } from "@/lib/placement";
+import { PersonName } from "@/components/PersonName";
 
 export default function AdminParticipantsPage() {
   const params = useParams<{ id: string }>();
@@ -330,7 +331,9 @@ export default function AdminParticipantsPage() {
                     <button key={p.id} type="button" className={styles.addRow} onClick={() => addParticipant(p.id)}>
                       <div className={styles.avatar}>{initials(p.name)}</div>
                       <div className={styles.rowMain}>
-                        <div className={styles.rowName}>{p.name}</div>
+                        <div className={styles.rowName}>
+                          <PersonName name={p.name} userId={p.id} />
+                        </div>
                         {displayEmail(p.email) && <div className={styles.rowEmail}>{displayEmail(p.email)}</div>}
                       </div>
                     </button>
@@ -347,7 +350,7 @@ export default function AdminParticipantsPage() {
                     <div className={styles.avatar}>{initials(p.name)}</div>
                     <div className={styles.rowMain}>
                       <div className={styles.rowName}>
-                        {p.name}
+                        <PersonName name={p.name} userId={p.user_id} />
                         {isNachruecker(p.created_at, termin) && <span className={styles.lateTag}>Nachrücker</span>}
                       </div>
                       {displayEmail(p.email) && <div className={styles.rowEmail}>{displayEmail(p.email)}</div>}
@@ -382,7 +385,9 @@ export default function AdminParticipantsPage() {
                     <div key={p.id} className={styles.row}>
                       <div className={styles.avatar}>{initials(p.name)}</div>
                       <div className={styles.rowMain}>
-                        <div className={styles.rowName}>{p.name}</div>
+                        <div className={styles.rowName}>
+                          <PersonName name={p.name} userId={p.user_id} />
+                        </div>
                         {displayEmail(p.email) && <div className={styles.rowEmail}>{displayEmail(p.email)}</div>}
                       </div>
                     </div>
@@ -399,7 +404,9 @@ export default function AdminParticipantsPage() {
                     <div key={p.id} className={styles.waitlistRow}>
                       <div className={styles.pos}>{i + 1}</div>
                       <div className={styles.rowMain}>
-                        <div className={styles.rowName}>{p.name}</div>
+                        <div className={styles.rowName}>
+                          <PersonName name={p.name} userId={p.user_id} />
+                        </div>
                       </div>
                       <IconButton variant="ghost" size="sm" label="Entfernen" onClick={() => removeParticipant(p.user_id)}>
                         <X size={15} strokeWidth={2.4} />
@@ -448,7 +455,9 @@ export default function AdminParticipantsPage() {
                   {allocations.map((a) => (
                     <div key={a.id} className={styles.row}>
                       <div className={styles.rowMain}>
-                        <div className={styles.rowName}>{a.name}</div>
+                        <div className={styles.rowName}>
+                          <PersonName name={a.name} userId={a.user_id} />
+                        </div>
                         <div className={styles.rowEmail}>{allocationDetail(a)}</div>
                       </div>
                       <button type="button" onClick={() => toggleInclusion(a.id, !a.included)} title="Tauschen">
@@ -469,7 +478,9 @@ export default function AdminParticipantsPage() {
                 {allocations.map((a) => (
                   <div key={a.id} className={styles.row}>
                     <div className={styles.rowMain}>
-                      <div className={styles.rowName}>{a.name}</div>
+                      <div className={styles.rowName}>
+                        <PersonName name={a.name} userId={a.user_id} />
+                      </div>
                       <div className={styles.rowEmail}>{allocationDetail(a)}</div>
                     </div>
                     <Badge tone={a.included ? "soft" : "outline"} size="sm">
