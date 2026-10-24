@@ -32,7 +32,7 @@ export async function POST(request: Request) {
   const appUrl = new URL(request.url).origin;
   const payload = {
     ...pushText.announcement({ shortCode, content: announcement.content, announcementId: announcement.id }),
-    url: `${appUrl}/chat`,
+    url: `${appUrl}/ankuendigungen`,
   };
 
   let pushSent = 0;

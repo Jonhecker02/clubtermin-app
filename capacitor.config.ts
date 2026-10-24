@@ -10,7 +10,7 @@ const config: CapacitorConfig = {
   appName: "ClubTermine",
   webDir: "public",
   server: {
-    url: "https://clubtermine-app.vercel.app",
+    url: "https://www.clubtermine.online",
     cleartext: false,
   },
   ios: {

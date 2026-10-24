@@ -84,3 +84,29 @@
 .section p:last-child {
   margin-bottom: 0;
 }
+
+.top {
+  width: 100%;
+  max-width: 480px;
+  margin-bottom: 12px;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 44px;
+  padding: 0 8px 0 0;
+  border: none;
+  background: none;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--tp-pink);
+  cursor: pointer;
+}
+
+.section a {
+  color: var(--tp-pink-deep);
+  font-weight: 700;
+}

@@ -18,17 +18,18 @@ const REGISTER_WINDOW_SECONDS = 60 * 60;
 // no confirmation step) and login's "sign in on the cookie-bound server
 // client so the session lands via Set-Cookie" pattern.
 export async function POST(request: Request) {
-  const { name, password, birth_date, gender } = (await request.json()) as {
+  const { name, password, birth_date, gender, accepted_terms } = (await request.json()) as {
     name?: string;
     password?: string;
     birth_date?: string;
     gender?: string;
+    accepted_terms?: boolean;
   };
   // Date of birth is required at registration (team planning); plausible only.
   const todayISO = new Date().toISOString().slice(0, 10);
   const birthOk =
     typeof birth_date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(birth_date) && birth_date >= "1900-01-01" && birth_date <= todayISO;
-  if (!name?.trim() || !password || password.length < 6 || !birthOk || (gender !== "m" && gender !== "w")) {
+  if (!name?.trim() || !password || password.length < 6 || !birthOk || (gender !== "m" && gender !== "w") || accepted_terms !== true) {
     return NextResponse.json({ error: "invalid_input" }, { status: 400 });
   }
 
@@ -56,7 +57,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: createError?.message ?? "create_failed" }, { status: 500 });
   }
 
-  const { error: patchError } = await service.from("profiles").update({ status: "pending", birth_date, gender }).eq("id", created.user.id);
+  const { error: patchError } = await service.from("profiles").update({ status: "pending", birth_date, gender, terms_accepted_at: new Date().toISOString() }).eq("id", created.user.id);
   if (patchError) {
     return NextResponse.json({ error: patchError.message }, { status: 500 });
   }

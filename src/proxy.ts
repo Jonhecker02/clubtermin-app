@@ -2,7 +2,10 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "@/types/database";
 
-const PUBLIC_PATHS = ["/login", "/registrieren", "/privacy"];
+// Legal pages stay reachable for everybody — signed out, waiting for approval,
+// or signed in — because the App Store requires them to be openable at any time.
+const LEGAL_PATHS = ["/privacy", "/impressum", "/support"];
+const PUBLIC_PATHS = ["/login", "/registrieren", ...LEGAL_PATHS];
 // /api/cron/ has no browser session at all (called by pg_net from Postgres) —
 // it authenticates itself via the CRON_SECRET header instead, checked inside
 // the route handler. "/anleitung" is prefix-matched so both the player-only
@@ -57,6 +60,8 @@ export async function proxy(request: NextRequest) {
     .single();
 
   if (!profile) return response;
+
+  if (LEGAL_PATHS.includes(pathname)) return response;
 
   const target = resolveTarget(profile, pathname);
   if (target && target !== pathname) {

@@ -20,7 +20,7 @@ function invalidateUnlessFresh(queryClient: ReturnType<typeof useQueryClient>, q
   });
 }
 
-// Keeps every device in sync: any change to termine/registrations/profiles/groups/messages/announcements
+// Keeps every device in sync: any change to termine/registrations/profiles/groups/announcements
 // invalidates the relevant React Query caches so open screens refetch live.
 export function RealtimeProvider() {
   const queryClient = useQueryClient();
@@ -45,9 +45,6 @@ export function RealtimeProvider() {
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "groups" }, () => {
         invalidateUnlessFresh(queryClient, queryKeys.groups);
-      })
-      .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, () => {
-        invalidateUnlessFresh(queryClient, ["messages"]);
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "announcements" }, () => {
         invalidateUnlessFresh(queryClient, queryKeys.announcements);

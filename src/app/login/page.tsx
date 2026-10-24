@@ -95,6 +95,8 @@ export default function LoginPage() {
         <div className={styles.legal}>
           <a href="/anleitung">Anleitung</a>
           <a href="/privacy">Datenschutz</a>
+          <a href="/impressum">Impressum</a>
+          <a href="/support">Hilfe</a>
         </div>
       </div>
     </IntroShell>

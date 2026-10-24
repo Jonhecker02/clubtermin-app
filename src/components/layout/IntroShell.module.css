@@ -162,8 +162,9 @@
 
 .legal {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
-  gap: 18px;
+  gap: 6px 18px;
   margin-top: 14px;
   font-size: 12.5px;
 }
@@ -218,4 +219,27 @@
   background: var(--tp-pink);
   color: var(--tp-navy);
   box-shadow: none;
+}
+
+/* Registration: consent to the usage rules + privacy policy. */
+.consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--color-ink);
+}
+
+.consent input {
+  width: 20px;
+  height: 20px;
+  margin: 1px 0 0;
+  flex-shrink: 0;
+  accent-color: var(--tp-pink-deep);
+}
+
+.consent a {
+  color: var(--tp-pink-deep);
+  font-weight: var(--fw-bold);
 }

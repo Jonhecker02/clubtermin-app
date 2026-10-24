@@ -19,6 +19,7 @@ export default function RegistrierenPage() {
   const [birthDate, setBirthDate] = useState("");
   const [gender, setGender] = useState<"m" | "w" | "">("");
   const [password, setPassword] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -41,11 +42,15 @@ export default function RegistrierenPage() {
       setError("Das Passwort muss mindestens 6 Zeichen haben.");
       return;
     }
+    if (!acceptedTerms) {
+      setError("Bitte bestätige die Datenschutzerklärung.");
+      return;
+    }
     setLoading(true);
     const res = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: `${firstName.trim()} ${lastName.trim()}`, password, birth_date: birthDate, gender }),
+      body: JSON.stringify({ name: `${firstName.trim()} ${lastName.trim()}`, password, birth_date: birthDate, gender, accepted_terms: true }),
     });
     const data = await res.json();
     setLoading(false);
@@ -112,6 +117,13 @@ export default function RegistrierenPage() {
           autoComplete="new-password"
           enterKeyHint="go"
         />
+        <label className={styles.consent}>
+          <input type="checkbox" checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} />
+          <span>
+            Ich habe die <a href="/privacy">Datenschutzerklärung</a> gelesen und bin mit der Verarbeitung meiner
+            Daten für die Mannschaftsorganisation einverstanden.
+          </span>
+        </label>
         {error && <div className={styles.error}>{error}</div>}
         <Button variant="accent" size="lg" full type="submit" disabled={loading}>
           Registrieren

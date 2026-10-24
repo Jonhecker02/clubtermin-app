@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useRouter } from "@/lib/useGuardedRouter";
-import { Calendar, MessageCircle, User } from "lucide-react";
+import { Calendar, Megaphone, User } from "lucide-react";
 import { haptic } from "@/lib/haptics";
 import styles from "./BottomNav.module.css";
 
@@ -13,7 +13,7 @@ export function BottomNav() {
 
   // Warm the three tab screens so switching feels instant.
   useEffect(() => {
-    ["/termine", "/chat", "/profil"].forEach((path) => router.prefetch(path));
+    ["/termine", "/ankuendigungen", "/profil"].forEach((path) => router.prefetch(path));
   }, [router]);
 
   function go(path: string, active: boolean) {
@@ -22,7 +22,7 @@ export function BottomNav() {
   }
 
   const termineActive = pathname.startsWith("/termine") || pathname.startsWith("/admin");
-  const chatActive = pathname.startsWith("/chat");
+  const newsActive = pathname.startsWith("/ankuendigungen");
   const profilActive = pathname.startsWith("/profil");
 
   return (
@@ -37,11 +37,11 @@ export function BottomNav() {
       </button>
       <button
         type="button"
-        className={[styles.item, chatActive ? styles.itemActive : ""].join(" ")}
-        onClick={() => go("/chat", chatActive)}
+        className={[styles.item, newsActive ? styles.itemActive : ""].join(" ")}
+        onClick={() => go("/ankuendigungen", newsActive)}
       >
-        <MessageCircle size={22} strokeWidth={2} />
-        <span className={styles.label}>Chat</span>
+        <Megaphone size={22} strokeWidth={2} />
+        <span className={styles.label}>Ankündigungen</span>
       </button>
       <button
         type="button"

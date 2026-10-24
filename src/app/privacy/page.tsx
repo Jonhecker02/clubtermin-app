@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import styles from "./page.module.css";
+import { LegalPage, LegalSection } from "@/components/LegalPage";
+import { LEGAL } from "@/lib/legal";
 
 export const metadata: Metadata = {
   title: "Datenschutzerklärung — ClubTermine",
@@ -7,92 +8,96 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <div className={styles.page}>
-      <div className={styles.wordmark}>ClubTermine</div>
-      <div className={styles.tagline}>Datenschutz</div>
+    <LegalPage title="Datenschutzerklärung" updated={LEGAL.updated}>
+      <LegalSection title="Verantwortlicher">
+        <p>
+          {LEGAL.operatorName}
+          <br />
+          {LEGAL.street}
+          <br />
+          {LEGAL.city}
+          <br />
+          {LEGAL.country}
+          <br />
+          E-Mail: <a href={`mailto:${LEGAL.email}`}>{LEGAL.email}</a>
+        </p>
+      </LegalSection>
 
-      <div className={styles.card}>
-        <h1 className={styles.title}>Datenschutzerklärung</h1>
-        <p className={styles.updated}>Stand: 17. Oktober 2026</p>
+      <LegalSection title="Welche Daten wir verarbeiten">
+        <ul>
+          <li>Vor- und Nachname (bei der Registrierung); es wird keine E-Mail-Adresse erhoben</li>
+          <li>
+            Geburtsdatum und Geschlecht (Herren/Damen) — sichtbar nur für Trainer und Admins, ausschließlich zur
+            Mannschaftsplanung (z. B. Altersklassen); nicht sichtbar für andere Spieler und nicht Teil von Exporten
+          </li>
+          <li>Mannschafts- und Rollenzugehörigkeit</li>
+          <li>Anmeldungen zu Trainings, Events und Spieltagen sowie Notizen und Spielstärke, die Trainer dazu pflegen</li>
+          <li>Ankündigungen, die Trainer und Admins für ihre Mannschaft verfassen</li>
+          <li>Zeitpunkt, zu dem du der Datenschutzerklärung bei der Registrierung zugestimmt hast</li>
+          <li>Technische Kennungen für Push-Benachrichtigungen und Kalender-Abos (nur auf deinem Gerät nutzbar)</li>
+        </ul>
+      </LegalSection>
 
-        <div className={styles.section}>
-          <h2>Verantwortlicher</h2>
-          <p>
-            Jonas Hecker
-            <br />
-            The Padellers Essen GmbH
-            <br />
-            Schederhofstr. 59
-            <br />
-            45145 Essen
-          </p>
-        </div>
+      <LegalSection title="Zweck und Rechtsgrundlage">
+        <p>
+          Diese Daten werden ausschließlich zur Organisation des Trainings- und Spielbetriebs der Mannschaften genutzt,
+          die ClubTermine verwenden: Anmeldeverwaltung, Ankündigungen an die Mannschaft und Benachrichtigung über
+          neue Termine. Rechtsgrundlage ist die Durchführung des Nutzungsverhältnisses (Art. 6 Abs. 1 lit. b DSGVO) und
+          unser berechtigtes Interesse an einer geordneten Organisation (Art. 6 Abs. 1 lit. f DSGVO). Es findet keine Verarbeitung zu Werbezwecken statt, es gibt kein Tracking, und Daten werden
+          nicht an Dritte verkauft.
+        </p>
+      </LegalSection>
 
-        <div className={styles.section}>
-          <h2>Welche Daten wir verarbeiten</h2>
-          <ul>
-            <li>Vor- und Nachname (bei der Registrierung); es wird keine E-Mail-Adresse erhoben</li>
-            <li>
-              Geburtsdatum und Geschlecht (Herren/Damen) — sichtbar nur für Trainer und Admins, ausschließlich zur
-              Mannschaftsplanung (z. B. Altersklassen); nicht sichtbar für andere Spieler und nicht Teil von Exporten
-            </li>
-            <li>Mannschafts- und Rollenzugehörigkeit</li>
-            <li>Anmeldungen zu Trainings, Events und Spieltagen</li>
-            <li>Nachrichten und Ankündigungen im Chat der App</li>
-            <li>Technische Kennungen für Push-Benachrichtigungen und Kalender-Abos (nur auf deinem Gerät nutzbar)</li>
-          </ul>
-        </div>
+      <LegalSection title="Zahlungsdaten">
+        <p>
+          Die App zeigt bei Terminen ggf. einen Preis als Information an. Es findet kein Zahlungsvorgang innerhalb der
+          App statt, es werden keine Zahlungs- oder Bankdaten erhoben oder gespeichert.
+        </p>
+      </LegalSection>
 
-        <div className={styles.section}>
-          <h2>Zweck der Verarbeitung</h2>
-          <p>
-            Diese Daten werden ausschließlich zur Organisation des Trainings- und Spielbetriebs von The Padellers
-            genutzt: Anmeldeverwaltung, Kommunikation innerhalb der Mannschaft und Benachrichtigung über neue Termine.
-            Es findet keine Verarbeitung zu Werbezwecken statt und Daten werden nicht an Dritte verkauft.
-          </p>
-        </div>
+      <LegalSection title="Hosting und Empfänger">
+        <p>
+          Die App wird über Vercel (Hosting, Rechenzentrum Frankfurt) und Supabase (Datenbank, Authentifizierung,
+          Rechenzentrum Irland, EU) betrieben. Beide Anbieter verarbeiten Daten in unserem Auftrag gemäß Art. 28 DSGVO.
+          Schriftarten werden von unserem eigenen Server ausgeliefert — es werden keine Daten an Google übertragen.
+        </p>
+        <p>
+          Für Push-Benachrichtigungen werden ein Gerätebezeichner und der Text der Benachrichtigung an den
+          Push-Dienst deines Geräts übermittelt (Apple Push Notification Service bzw. der Push-Dienst deines Browsers).
+          Das geschieht nur, wenn du Benachrichtigungen aktiviert hast.
+        </p>
+        <p>
+          Damit die App schnell startet und auch bei schlechtem Netz funktioniert, speichert dein Gerät zuletzt
+          geladene Termine, Anmeldungen und Ankündigungen lokal zwischen. Beim Abmelden wird dieser Zwischenspeicher
+          gelöscht.
+        </p>
+      </LegalSection>
 
-        <div className={styles.section}>
-          <h2>Zahlungsdaten</h2>
-          <p>
-            Die App zeigt bei Terminen ggf. einen Preis als Information an. Es findet kein Zahlungsvorgang innerhalb
-            der App statt, es werden keine Zahlungs- oder Bankdaten erhoben oder gespeichert.
-          </p>
-        </div>
+      <LegalSection title="Speicherdauer und Löschung">
+        <p>
+          Wir speichern deine Daten, solange dein Konto besteht. Du kannst dein Konto jederzeit selbst in der App unter
+          „Profil → Konto löschen“ dauerhaft löschen; dabei werden dein Name, deine Anmeldungen, Notizen zu dir
+          und Geräte-Kennungen entfernt. Admins können Accounts auf Wunsch ebenfalls
+          löschen.
+        </p>
+      </LegalSection>
 
-        <div className={styles.section}>
-          <h2>Hosting und Auftragsverarbeitung</h2>
-          <p>
-            Die App wird über Vercel (Hosting, Rechenzentrum Frankfurt) und Supabase (Datenbank, Authentifizierung,
-            Rechenzentrum Irland, EU) betrieben. Beide Anbieter verarbeiten Daten in unserem Auftrag gemäß Art. 28
-            DSGVO. Schriftarten werden von unserem eigenen Server ausgeliefert — es werden keine Daten an Google
-            übertragen.
-          </p>
-          <p>
-            Damit die App schnell startet und auch bei schlechtem Netz funktioniert, speichert dein Gerät zuletzt
-            geladene Termine, Anmeldungen und Nachrichten lokal zwischen. Beim Abmelden wird dieser Zwischenspeicher
-            gelöscht.
-          </p>
-        </div>
+      <LegalSection title="Deine Rechte">
+        <p>
+          Du hast das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Datenübertragbarkeit
+          und Widerspruch. Name und Mannschaft kannst du teilweise selbst unter „Profil“ ändern; für alles Weitere
+          schreib an <a href={`mailto:${LEGAL.email}`}>{LEGAL.email}</a>. Außerdem kannst du dich bei der für dich
+          zuständigen Datenschutz-Aufsichtsbehörde beschweren.
+        </p>
+      </LegalSection>
 
-        <div className={styles.section}>
-          <h2>Zugriff und Löschung</h2>
-          <p>
-            Mitglieder können ihren Namen und ihre Mannschaftszugehörigkeit selbst in der App unter „Profil“
-            bearbeiten. Für Auskunft, Berichtigung oder vollständige Löschung deines Kontos wende dich an den oben
-            genannten Verantwortlichen oder einen Admin; Admins können Accounts auf Wunsch direkt in der App löschen.
-          </p>
-        </div>
-
-        <div className={styles.section}>
-          <h2>Push-Benachrichtigungen</h2>
-          <p>
-            Wenn du Push-Benachrichtigungen aktivierst, wird ein technischer Gerätebezeichner gespeichert, um dir
-            Benachrichtigungen zu neuen Terminen oder Ankündigungen zu senden. Du kannst dies jederzeit in deinem
-            Profil wieder deaktivieren.
-          </p>
-        </div>
-      </div>
-    </div>
+      <LegalSection title="Push-Benachrichtigungen">
+        <p>
+          Wenn du Push-Benachrichtigungen aktivierst, wird ein technischer Gerätebezeichner gespeichert, um dir
+          Benachrichtigungen zu neuen Terminen oder Ankündigungen zu senden. Du kannst dies jederzeit in deinem Profil
+          oder in den Geräte-Einstellungen wieder deaktivieren.
+        </p>
+      </LegalSection>
+    </LegalPage>
   );
 }

@@ -1,0 +1,79 @@
+.body {
+  padding: 16px 16px 12px;
+}
+
+.empty {
+  text-align: center;
+  padding: 32px 12px;
+  color: var(--color-ink-muted);
+  font-size: 14px;
+  margin: auto;
+}
+
+.composeCard {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.composeActions {
+  display: flex;
+  gap: 8px;
+}
+
+.announcementList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.announcementCard {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.announcementHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.announcementAuthor {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.announcementName {
+  font-size: 14px;
+  font-weight: var(--fw-bold);
+  color: var(--color-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.announcementContent {
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--color-ink);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.announcementTime {
+  font-size: 11.5px;
+  color: var(--color-ink-muted);
+}

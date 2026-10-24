@@ -301,7 +301,7 @@ export interface Database {
         Insert: Profile;
         // birth_date / gender are deliberately not part of Profile (not readable through
         // ordinary queries); it can still be written by the server routes.
-        Update: Partial<Profile> & { birth_date?: string | null; gender?: Gender | null };
+        Update: Partial<Profile> & { birth_date?: string | null; gender?: Gender | null; terms_accepted_at?: string | null };
         Relationships: [];
       };
       groups: {

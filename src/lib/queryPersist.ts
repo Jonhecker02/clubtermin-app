@@ -15,7 +15,6 @@ const PERSISTED_ROOTS = new Set([
   "termine",
   "registrations",
   "announcements",
-  "messages",
 ]);
 
 export function shouldPersistQuery(query: Query): boolean {

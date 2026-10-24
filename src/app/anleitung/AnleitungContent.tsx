@@ -5,7 +5,7 @@ import {
   Calendar,
   LayoutGrid,
   LogIn,
-  MessageCircle,
+  Megaphone,
   RotateCw,
   Settings,
   Smartphone,
@@ -215,7 +215,7 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
               <a href="#s-home">App &amp; Push</a>
               <a href="#s-termine">Termine</a>
               <a href="#s-rotation">Faire Rotation</a>
-              <a href="#s-chat">Chat</a>
+              <a href="#s-chat">Ankündigungen</a>
               <a href="#s-profil">Profil</a>
             </nav>
 
@@ -358,15 +358,9 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
             </section>
 
             <section className={styles.card} id="s-chat">
-              <Eyebrow icon={<MessageCircle size={20} strokeWidth={2} />} label="Kommunikation" />
-              <h2>Chat &amp; Ankündigungen</h2>
+              <Eyebrow icon={<Megaphone size={20} strokeWidth={2} />} label="Kommunikation" />
+              <h2>Ankündigungen</h2>
               <ul className={styles.featureList}>
-                <li>
-                  <span className={styles.dot} />
-                  <span>
-                    <b>Chat</b> — der Gruppenchat deines Teams, für alle offen.
-                  </span>
-                </li>
                 <li>
                   <span className={styles.dot} />
                   <span>
@@ -435,7 +429,7 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
             </p>
             <p className={styles.intro}>
               <b>Trainer</b> werden vom Clubmanager einer oder mehreren Gruppen zugeordnet („Trainer von“). In
-              Termine und Chat siehst du dann standardmäßig die Gruppen, die du trainierst — mit „Alle Gruppen“
+              Termine und Ankündigungen siehst du dann standardmäßig die Gruppen, die du trainierst — mit „Alle Gruppen“
               schaltest du auf alles um. Neue Termine und Ankündigungen deiner Gruppen bekommst du auch als Push.
             </p>
 
@@ -808,7 +802,7 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                       <td className={styles.yes}>✓</td>
                     </tr>
                     <tr>
-                      <td>Nachrichten/Ankündigungen löschen</td>
+                      <td>Ankündigungen löschen</td>
                       <td className={styles.no}>—</td>
                       <td className={styles.no}>—</td>
                       <td className={styles.no}>—</td>

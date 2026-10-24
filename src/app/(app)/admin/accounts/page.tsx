@@ -323,7 +323,7 @@ export default function AdminAccountsPage() {
             {createdCredentials ? (
               <>
                 <div className={styles.name}>Zugangsdaten für {createdCredentials.name}</div>
-                <div className={styles.hint}>Gib diese Daten direkt weiter (z. B. persönlich oder per Chat) — es wird keine E-Mail verschickt.</div>
+                <div className={styles.hint}>Gib diese Daten direkt weiter (z. B. persönlich oder per Nachricht) — es wird keine E-Mail verschickt.</div>
                 <div className={styles.passwordBox}>
                   <span className={styles.passwordValue}>{createdCredentials.password}</span>
                   <Button

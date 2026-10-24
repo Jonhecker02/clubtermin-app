@@ -28,6 +28,7 @@ import { useUnsavedChanges } from "@/lib/useUnsavedChanges";
 import { useMyPersonalDetails } from "@/lib/queries/useMyPersonalDetails";
 import { isPlausibleBirthDate } from "@/lib/domain";
 import { MyParticipationCard } from "@/components/MyParticipationCard";
+import { DeleteAccountButton } from "@/components/AccountSafetyCards";
 
 const THEME_ITEMS = [
   { id: "auto", label: "Automatisch" },
@@ -378,6 +379,13 @@ export default function ProfilPage() {
             Abmelden
           </Button>
         </div>
+
+        <div className={styles.legalLinks}>
+          <a href="/privacy">Datenschutz</a>
+          <a href="/impressum">Impressum</a>
+          <a href="/support">Hilfe &amp; Kontakt</a>
+        </div>
+        <DeleteAccountButton isOwner={profile?.role === "owner"} />
       </PageBody>
     </>
   );

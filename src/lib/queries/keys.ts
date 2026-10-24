@@ -16,6 +16,5 @@ export const queryKeys = {
   trainerStats: ["trainerStats"] as const,
   skillLevels: ["skillLevels"] as const,
   myAllocation: (terminId: string) => ["myAllocation", terminId] as const,
-  messages: (groupId: string) => ["messages", groupId] as const,
   announcements: ["announcements"] as const,
 };

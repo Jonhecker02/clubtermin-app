@@ -37,7 +37,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   );
   const router = useRouter();
 
-  // Deep-links a tapped native push notification to its termin/chat — the
+  // Deep-links a tapped native push notification to its termin/announcement — the
   // mirror of the web push service worker's notificationclick handler.
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
