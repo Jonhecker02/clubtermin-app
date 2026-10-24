@@ -75,8 +75,8 @@ export default function RegistrierenPage() {
       </div>
 
       <form className={styles.card} onSubmit={submit}>
-        <Input label="Vorname" placeholder="Max" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
-        <Input label="Nachname" placeholder="Mustermann" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+        <Input label="Vorname" placeholder="Max" value={firstName} onChange={(e) => setFirstName(e.target.value)} autoComplete="given-name" autoCapitalize="words" autoCorrect="off" enterKeyHint="next" />
+        <Input label="Nachname" placeholder="Mustermann" value={lastName} onChange={(e) => setLastName(e.target.value)} autoComplete="family-name" autoCapitalize="words" autoCorrect="off" enterKeyHint="next" />
         <div className={styles.genderField} role="radiogroup" aria-label="Geschlecht">
           <span className={styles.genderLabel}>Ich spiele bei den</span>
           <div className={styles.genderRow}>
@@ -109,6 +109,8 @@ export default function RegistrierenPage() {
           placeholder="Mind. 6 Zeichen"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          autoComplete="new-password"
+          enterKeyHint="go"
         />
         {error && <div className={styles.error}>{error}</div>}
         <Button variant="accent" size="lg" full type="submit" disabled={loading}>

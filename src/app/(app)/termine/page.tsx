@@ -167,6 +167,7 @@ export default function TerminePage() {
               onChange={(id) => setViewMode(id as "liste" | "kalender")}
               size="sm"
               onDark
+              scrollable
               style={{ width: "auto" }}
             />
           </div>

@@ -29,6 +29,9 @@ body {
 }
 
 html {
+  /* Stops iOS from inflating text when the phone is rotated. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
   background: var(--tp-grey-100);
 }
 

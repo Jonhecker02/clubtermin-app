@@ -53,7 +53,7 @@
 }
 
 .sm {
-  height: 28px;
+  height: 32px;
   font-size: 12px;
   padding: 0 10px;
 }
@@ -62,7 +62,7 @@
   height: 44px;
 }
 .track.sm {
-  height: 36px;
+  height: 40px;
 }
 
 /* Labels stay complete: tabs keep their natural width (growing to fill spare

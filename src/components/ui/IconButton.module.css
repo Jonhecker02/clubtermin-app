@@ -27,6 +27,13 @@
 .sm {
   width: 36px;
   height: 36px;
+  position: relative;
+}
+/* Visual size stays 36px; the tappable area grows to 44pt. */
+.sm::before {
+  content: "";
+  position: absolute;
+  inset: -4px;
 }
 .md {
   width: 44px;

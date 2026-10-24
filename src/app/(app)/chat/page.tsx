@@ -193,14 +193,14 @@ export default function ChatPage() {
     <>
       <AppHeader
         title="Chat"
-        right={<Tabs items={MODE_ITEMS} value={mode} onChange={(id) => setMode(id as typeof mode)} size="sm" onDark style={{ width: "auto" }} />}
+        right={<Tabs items={MODE_ITEMS} value={mode} onChange={(id) => setMode(id as typeof mode)} size="sm" onDark scrollable style={{ width: "auto" }} />}
       />
 
       {mode === "chat" ? (
         <>
           <div className={styles.body}>
             {isAdmin && groupTabs.length > 0 && (
-              <Tabs items={groupTabs} value={groupId ?? ""} onChange={setSelectedGroupId} size="sm" className={styles.groupTabs} />
+              <Tabs items={groupTabs} value={groupId ?? ""} onChange={setSelectedGroupId} size="sm" scrollable className={styles.groupTabs} />
             )}
 
             <div className={styles.messages}>
@@ -244,6 +244,8 @@ export default function ChatPage() {
               value={text}
               onChange={(e) => setText(e.target.value)}
               onKeyDown={handleKeyDown}
+              enterKeyHint="send"
+              autoComplete="off"
               disabled={!groupId}
             />
             <IconButton variant="accent" label="Senden" onClick={send} disabled={!text.trim() || sending || !groupId}>

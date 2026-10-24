@@ -6,6 +6,14 @@
   background: none;
   cursor: pointer;
   padding: 0;
+  position: relative;
+}
+
+/* Visible switch stays 22px tall; the tappable area reaches the 44pt minimum. */
+.wrap::before {
+  content: "";
+  position: absolute;
+  inset: -11px -6px;
 }
 
 .label {

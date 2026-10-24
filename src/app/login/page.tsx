@@ -69,8 +69,8 @@ export default function LoginPage() {
       </div>
 
       <form className={styles.card} onSubmit={handleSubmit}>
-        <Input label="Vorname" placeholder="Max" value={firstName} onChange={(e) => setFirstName(e.target.value)} autoComplete="given-name" />
-        <Input label="Nachname" placeholder="Mustermann" value={lastName} onChange={(e) => setLastName(e.target.value)} autoComplete="family-name" />
+        <Input label="Vorname" placeholder="Max" value={firstName} onChange={(e) => setFirstName(e.target.value)} autoComplete="given-name" autoCapitalize="words" autoCorrect="off" enterKeyHint="next" />
+        <Input label="Nachname" placeholder="Mustermann" value={lastName} onChange={(e) => setLastName(e.target.value)} autoComplete="family-name" autoCapitalize="words" autoCorrect="off" enterKeyHint="next" />
         <Input
           label="Passwort"
           type="password"
@@ -78,6 +78,7 @@ export default function LoginPage() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="current-password"
+          enterKeyHint="go"
         />
 
         {error && <div className={styles.error}>{error}</div>}
