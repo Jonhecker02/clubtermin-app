@@ -640,6 +640,29 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                 <li>
                   <span className={styles.dot} />
                   <span>
+                    <b>„Mal nachfragen“:</b> Ganz oben auf der Teilnahme-Seite stehen Stammspieler, die sich seit 3, 4,
+                    6 oder 8 Wochen für kein Training angemeldet haben, obwohl es welche gab — wer am längsten fehlt,
+                    zuerst. Wer nur auf der Warteliste stand, gilt als angemeldet und erscheint hier nicht. Ein Tipp
+                    auf „Notiz“ hält fest, was du erfahren hast. Der Clubmanager bekommt dieselbe Liste außerdem
+                    jeden Montag (ab 9 Uhr) als Push.
+                  </span>
+                </li>
+                <li>
+                  <span className={styles.dot} />
+                  <span>
+                    <b>Einspringer:</b> Wer nicht zur Mannschaft gehört, aber einspringt, wird im Termin unter
+                    „Teilnehmer hinzufügen“ einfach per Namen angelegt („Name“ als Einspringer hinzufügen). Er trägt
+                    eine rosa Markierung, bekommt sofort einen Platz (sofern frei) und taucht nicht in der fairen
+                    Rotation und den Altersklassen auf; seine Einsätze stehen unten auf der Teilnahme-Seite. Springt
+                    dieselbe Person wieder ein, einfach den gleichen Namen eingeben — der Einspringer wird
+                    wiederverwendet. Kommt jemand fest zur Mannschaft, legst du das Konto normal an und führst es unter
+                    Admin → Accounts (Reiter „Einspringer“, Clubmanager) mit dem Einspringer zusammen: Alle
+                    Anmeldungen, Notizen, Gruppenplätze und die Spielstärke wandern mit.
+                  </span>
+                </li>
+                <li>
+                  <span className={styles.dot} />
+                  <span>
                     <b>Altersklassen</b> (für die Mannschaftsmeldung): Oben auf „Altersklassen“ tippen, die Saison
                     wählen und dann Herren/Damen Offen, 35, 40, 45, 50, 55 oder 60. Jeder Reiter zeigt, wie viele
                     spielberechtigt sind (nach Jahrgang — wer in der Saison mindestens so alt wird; ältere zählen

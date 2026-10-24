@@ -1,6 +1,7 @@
 "use client";
 
 import { usePersonalDetails } from "@/lib/queries/usePersonalDetails";
+import { useProfiles } from "@/lib/queries/useProfiles";
 import { ageOf } from "@/lib/domain";
 import styles from "./PersonName.module.css";
 
@@ -10,11 +11,14 @@ import styles from "./PersonName.module.css";
 // (WhatsApp texts, images) uses plain names instead.
 export function PersonName({ name, userId, className }: { name: string; userId?: string | null; className?: string }) {
   const { data: details } = usePersonalDetails();
+  const { data: profiles } = useProfiles();
+  const isGuest = !!userId && !!profiles?.find((p) => p.id === userId)?.is_guest;
   const iso = userId && details ? details[userId]?.birth_date : undefined;
   return (
     <span className={className}>
       {name}
-      {details && userId && (
+      {isGuest && <span className={styles.guest}>Einspringer</span>}
+      {details && userId && !isGuest && (
         <span className={`${styles.birth} ${iso ? "" : styles.missing}`}>{iso ? `${ageOf(iso)} J.` : "Alter ?"}</span>
       )}
     </span>

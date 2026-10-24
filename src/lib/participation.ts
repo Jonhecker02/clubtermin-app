@@ -22,6 +22,8 @@ export interface PlayerParticipation {
   confirmedRate: number | null;
   registeredRate: number | null;
   lastConfirmed: string | null;
+  // Last termin they registered for (confirmed or waitlisted).
+  lastRegistered: string | null;
   // Newest first.
   history: { terminId: string; date: string; title: string; outcome: Outcome }[];
   tier: Tier;
@@ -72,11 +74,15 @@ export function computeParticipation(input: ParticipationInput): PlayerParticipa
     let confirmed = 0;
     let waitlist = 0;
     let lastConfirmed: string | null = null;
+    let lastRegistered: string | null = null;
 
     for (const t of past) {
       const open = t.register_groups.includes("all") || (p.group_id !== null && t.register_groups.includes(p.group_id));
-      if (!open || t.date < joined) continue;
       const status = statusByKey.get(`${t.id}:${p.id}`);
+      // A termin they actually registered for counts even if it was not open
+      // to their group (e.g. history merged in from an Einspringer account);
+      // otherwise only termine open to them and held after they joined.
+      if (status === undefined && (!open || t.date < joined)) continue;
       const outcome: Outcome = status === "angemeldet" ? "dabei" : status === "warteliste" || status === "ausstehend" ? "warteliste" : "nicht";
       if (outcome === "dabei") {
         confirmed++;
@@ -84,6 +90,7 @@ export function computeParticipation(input: ParticipationInput): PlayerParticipa
       } else if (outcome === "warteliste") {
         waitlist++;
       }
+      if (outcome !== "nicht" && lastRegistered === null) lastRegistered = t.date; // newest first
       history.push({ terminId: t.id, date: t.date, title: t.title, outcome });
     }
 
@@ -101,8 +108,50 @@ export function computeParticipation(input: ParticipationInput): PlayerParticipa
       confirmedRate,
       registeredRate: eligible > 0 ? registered / eligible : null,
       lastConfirmed,
+      lastRegistered,
       history,
       tier: tierOf(eligible, eligible > 0 ? registered / eligible : null),
     };
   });
+}
+
+// "Mal nachfragen": regular team members who have not registered for a single
+// training in the last `weeks` weeks although there were some. Willingness
+// counts — waitlisted registrations are registrations — so nobody is flagged
+// for bad luck. Needs at least 2 possible trainings in the window (no alarm in
+// the off-season) and an account older than the window.
+export interface CheckInCandidate {
+  userId: string;
+  name: string;
+  groupId: string | null;
+  possible: number;
+  lastRegistered: string | null;
+  lastConfirmed: string | null;
+}
+
+export function findCheckInCandidates(
+  rows: PlayerParticipation[],
+  joinedByUser: Map<string, string>,
+  weeks: number,
+  nowMs: number,
+): CheckInCandidate[] {
+  const cutoff = new Date(nowMs - weeks * 7 * 86400000).toISOString().slice(0, 10);
+  const out: CheckInCandidate[] = [];
+  for (const r of rows) {
+    const joined = joinedByUser.get(r.userId);
+    if (!joined || joined > cutoff) continue;
+    const recent = r.history.filter((h) => h.date >= cutoff);
+    if (recent.length < 2) continue;
+    if (recent.some((h) => h.outcome !== "nicht")) continue;
+    out.push({
+      userId: r.userId,
+      name: r.name,
+      groupId: r.groupId,
+      possible: recent.length,
+      lastRegistered: r.lastRegistered,
+      lastConfirmed: r.lastConfirmed,
+    });
+  }
+  // Longest silence first (never registered at the very top).
+  return out.sort((a, b) => (a.lastRegistered ?? "").localeCompare(b.lastRegistered ?? "") || a.name.localeCompare(b.name));
 }

@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "too_many_attempts" }, { status: 429 });
   }
 
-  const { data: profile } = await service.from("profiles").select("email").ilike("name", name.trim()).maybeSingle();
+  const { data: profile } = await service.from("profiles").select("email").ilike("name", name.trim()).eq("is_guest", false).maybeSingle();
   if (!profile) {
     await recordAttempt(service, limitKey);
     return NextResponse.json({ error: "invalid_credentials" }, { status: 401 });

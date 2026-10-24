@@ -4,6 +4,9 @@ import { createServiceRoleClient } from "@/lib/supabase/serviceRole";
 import { isApnsConfigured, sendApnsNotification, shouldPruneApnsToken, type ApnsPayload } from "@/lib/apns";
 import { makeLabelResolver } from "@/lib/pushLabel";
 import { pushText } from "@/lib/pushText";
+import { loadCheckInCandidates } from "@/lib/inactivityDigest";
+import { sendPushToUsers } from "@/lib/serverPush";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 // Hit every ~10min by a Supabase pg_cron job (see supabase/migrations/0001_init.sql
 // for the RPCs and README/chat instructions for the cron.schedule setup) —
@@ -198,7 +201,41 @@ export async function POST(request: Request) {
     }
   }
 
+  // Weekly, Monday from 09:00 Berlin time: tell the Clubmanager who has not
+  // registered for a while (the same list as the Teilnahme page). The log row
+  // makes sure it goes out once per week even though this job runs every 10
+  // minutes; SKIP_OWNER_PUSH=1 keeps local tests from pinging the real owner.
+  let digestSent = 0;
+  const berlin = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Berlin",
+    weekday: "short",
+    hour: "2-digit",
+    hour12: false,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const part = (type: string) => berlin.find((x) => x.type === type)?.value ?? "";
+  if (part("weekday") === "Mon" && Number(part("hour")) >= 9 && process.env.SKIP_OWNER_PUSH !== "1") {
+    const weekStart = `${part("year")}-${part("month")}-${part("day")}`;
+    const untyped = supabase as unknown as SupabaseClient;
+    const { error: claimError } = await untyped.from("owner_digest_log").insert({ kind: "inactive", week_start: weekStart });
+    if (!claimError) {
+      const candidates = await loadCheckInCandidates(supabase, 4);
+      if (candidates.length > 0) {
+        const { data: owners } = await supabase.from("profiles").select("id").eq("role", "owner");
+        const sent = await sendPushToUsers(
+          supabase,
+          (owners ?? []).map((o) => o.id),
+          { ...pushText.inactivePlayers({ names: candidates.map((c) => c.name), weeks: 4 }), url: "/admin/statistik" },
+        );
+        digestSent = sent.pushSent + sent.apnsSent;
+      }
+    }
+  }
+
   return NextResponse.json({
+    digestSent,
     processed: dueTermine?.length ?? 0,
     pushSent,
     apnsSent,

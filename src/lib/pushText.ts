@@ -141,4 +141,15 @@ export const pushText = {
       tag: `placement-${p.terminId}`,
     };
   },
+
+  // Weekly to the Clubmanager: regulars who have not registered for a while.
+  inactivePlayers(p: { names: string[]; weeks: number }): PushMessage {
+    const shown = p.names.slice(0, 4).join(", ");
+    const more = p.names.length > 4 ? ` und ${p.names.length - 4} weitere` : "";
+    return {
+      title: "🔎 Mal nachfragen",
+      body: `Seit ${p.weeks} Wochen nicht angemeldet: ${shown}${more}.`,
+      tag: "inactive-digest",
+    };
+  },
 };

@@ -29,7 +29,7 @@ export default function AdminRollenPage() {
   const { data: trainerGroups = [] } = useTrainerGroups();
 
   const members = profiles
-    .filter((p) => p.role !== "owner" && p.status === "approved")
+    .filter((p) => p.role !== "owner" && p.status === "approved" && !p.is_guest)
     .sort((a, b) => a.name.localeCompare(b.name));
 
   async function setRole(userId: string, role: "member" | "trainer" | "captain") {

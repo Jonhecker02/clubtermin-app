@@ -305,3 +305,113 @@ button.sumCard {
   font-weight: var(--fw-bold);
   color: var(--color-ink);
 }
+
+/* Mal nachfragen */
+.checkIn {
+  margin-bottom: 14px;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: inset 0 0 0 1.5px var(--tp-pink), var(--shadow-sm);
+}
+
+.checkInHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.checkInTitle {
+  font-family: var(--font-condensed);
+  font-weight: var(--fw-black);
+  font-size: 18px;
+  text-transform: uppercase;
+  color: var(--color-ink);
+}
+
+.checkInOk,
+.checkInSub {
+  margin-top: 8px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--color-ink-muted);
+}
+
+.checkInList {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.checkInRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 0;
+  border: none;
+  border-top: 1px solid var(--color-border);
+  background: none;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.checkInWho {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.checkInCta {
+  flex-shrink: 0;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--tp-pink);
+  color: var(--tp-navy);
+  font-size: 12px;
+  font-weight: var(--fw-bold);
+}
+
+.guests {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.guestsTitle {
+  font-family: var(--font-condensed);
+  font-weight: var(--fw-black);
+  font-size: 18px;
+  text-transform: uppercase;
+  color: var(--color-ink);
+}
+
+.guestsSub {
+  margin-top: 6px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--color-ink-muted);
+}
+
+.guestList {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+}
+
+.guestRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 9px 0;
+  border-top: 1px solid var(--color-border);
+}

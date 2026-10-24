@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Check, KeyRound, Pencil, Plus, StickyNote, Trash2 } from "lucide-react";
+import { Check, GitMerge, KeyRound, Pencil, Plus, StickyNote, Trash2 } from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { PageBody } from "@/components/layout/PageBody";
 import { IconButton } from "@/components/ui/IconButton";
@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Input, Select } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { AdminTabs } from "@/components/admin/AdminTabs";
+import { Tabs } from "@/components/ui/Tabs";
 import { PlayerNotesPanel } from "@/components/admin/PlayerNotesPanel";
 import { TrainerGroupsPicker } from "@/components/admin/TrainerGroupsPicker";
 import { useProfile } from "@/lib/queries/useProfile";
@@ -91,7 +92,51 @@ export default function AdminAccountsPage() {
     (createFirstName.trim() !== "" || createLastName.trim() !== "" || createGroupId !== "" || createRole !== "member" || createTrainerGroupIds.length > 0 || createBirth !== "" || createGender !== "");
   useUnsavedChanges((editingId !== null && editSnapshot !== editBaseline) || createDirty);
 
-  const sorted = [...profiles].sort((a, b) => a.name.localeCompare(b.name));
+  // "Einspringer" = guests added by name on a termin; they have no real login.
+  const [kindFilter, setKindFilter] = useState<"alle" | "mitglieder" | "einspringer">("alle");
+  const guestCount = profiles.filter((p) => p.is_guest).length;
+  // Once the last guest is gone the filter row disappears — fall back to "Alle".
+  const activeKind = guestCount === 0 ? "alle" : kindFilter;
+  const sorted = [...profiles]
+    .filter((p) => (activeKind === "alle" ? true : activeKind === "einspringer" ? p.is_guest : !p.is_guest))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  // Merging a guest into the real member account (history moves along).
+  const [mergingId, setMergingId] = useState<string | null>(null);
+  const [mergeTarget, setMergeTarget] = useState("");
+  const [merging, setMerging] = useState(false);
+  const [mergeMessage, setMergeMessage] = useState<{ id: string; text: string; error?: boolean } | null>(null);
+
+  async function mergeGuest(guestId: string) {
+    if (!mergeTarget) return;
+    setMerging(true);
+    const res = await fetch("/api/admin/merge-guest", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ guest_id: guestId, member_id: mergeTarget }),
+    });
+    const data = (await res.json()) as { registrations?: number; court_seats?: number; notes?: number; error?: string };
+    setMerging(false);
+    if (!res.ok) {
+      setMergeMessage({ id: guestId, text: "Zusammenführen fehlgeschlagen.", error: true });
+      return;
+    }
+    setMergingId(null);
+    setMergeTarget("");
+    setKindFilter("alle");
+    setMergeMessage({
+      id: "done",
+      text: `Zusammengeführt: ${data.registrations ?? 0} Anmeldungen, ${data.notes ?? 0} Notizen und ${data.court_seats ?? 0} Gruppenplätze sind jetzt beim Mitglied.`,
+    });
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.profiles }),
+      queryClient.invalidateQueries({ queryKey: ["registrations"] }),
+      queryClient.invalidateQueries({ queryKey: ["registrationHistory"] }),
+      queryClient.invalidateQueries({ queryKey: ["personalDetails"] }),
+      queryClient.invalidateQueries({ queryKey: ["playerNotes"] }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.skillLevels }),
+    ]);
+  }
 
   function trainerGroupNames(userId: string): string {
     return trainerGroups
@@ -351,6 +396,22 @@ export default function AdminAccountsPage() {
           </div>
         )}
 
+        {mergeMessage?.id === "done" && <div className={styles.hint}>{mergeMessage.text}</div>}
+
+        {guestCount > 0 && (
+          <Tabs
+            items={[
+              { id: "alle", label: "Alle" },
+              { id: "mitglieder", label: "Mitglieder" },
+              { id: "einspringer", label: `Einspringer (${guestCount})` },
+            ]}
+            value={activeKind}
+            onChange={(id) => setKindFilter(id as typeof kindFilter)}
+            size="sm"
+            style={{ marginBottom: 12 }}
+          />
+        )}
+
         <div className={adminStyles.list}>
           {sorted.map((p) => {
             const isEditing = editingId === p.id;
@@ -380,10 +441,13 @@ export default function AdminAccountsPage() {
                             : (groups.find((g) => g.id === p.group_id)?.name ?? "—")}
                         </div>
                       </div>
-                      <Badge tone={status.tone} size="sm">
-                        {status.label}
+                      <Badge tone={p.is_guest ? "soft" : status.tone} size="sm">
+                        {p.is_guest ? "Einspringer" : status.label}
                       </Badge>
                     </div>
+                    {mergeMessage?.id === p.id && (
+                      <div className={mergeMessage.error ? styles.error : styles.hint}>{mergeMessage.text}</div>
+                    )}
                     <div className={styles.actions}>
                       <IconButton
                         variant="soft"
@@ -401,7 +465,20 @@ export default function AdminAccountsPage() {
                       >
                         <StickyNote size={15} strokeWidth={2} />
                       </IconButton>
-                      {confirmResetId === p.id ? (
+                      {p.is_guest ? (
+                        <IconButton
+                          variant={mergingId === p.id ? "accent" : "soft"}
+                          size="sm"
+                          label="Mit Mitglied zusammenführen"
+                          onClick={() => {
+                            setMergingId(mergingId === p.id ? null : p.id);
+                            setMergeTarget("");
+                            setMergeMessage(null);
+                          }}
+                        >
+                          <GitMerge size={15} strokeWidth={2} />
+                        </IconButton>
+                      ) : confirmResetId === p.id ? (
                         <div className={styles.confirmRow}>
                           <span className={styles.confirmText}>Neues Passwort vergeben?</span>
                           <Button variant="accent" size="sm" onClick={() => resetPassword(p.id)} disabled={resetting}>
@@ -486,6 +563,34 @@ export default function AdminAccountsPage() {
                           </IconButton>
                         </div>
                       </>
+                    )}
+                    {mergingId === p.id && (
+                      <div className={styles.mergeBox}>
+                        <div className={styles.hint}>
+                          Hat sich <b>{p.name}</b> jetzt als festes Mitglied registriert? Wähle das neue Konto — alle
+                          Anmeldungen, Gruppenplätze und Notizen des Einspringers wandern dorthin, danach wird der
+                          Einspringer gelöscht. Das lässt sich nicht rückgängig machen.
+                        </div>
+                        <Select label="Zusammenführen mit" value={mergeTarget} onChange={(e) => setMergeTarget(e.target.value)}>
+                          <option value="">— Mitglied wählen —</option>
+                          {profiles
+                            .filter((m) => !m.is_guest && m.status === "approved")
+                            .sort((a, b) => a.name.localeCompare(b.name))
+                            .map((m) => (
+                              <option key={m.id} value={m.id}>
+                                {m.name}
+                              </option>
+                            ))}
+                        </Select>
+                        <div className={styles.editActions}>
+                          <Button variant="accent" size="sm" full onClick={() => mergeGuest(p.id)} disabled={!mergeTarget || merging}>
+                            {merging ? "Führe zusammen…" : "Jetzt zusammenführen"}
+                          </Button>
+                          <Button variant="outline" size="sm" full onClick={() => setMergingId(null)}>
+                            Abbrechen
+                          </Button>
+                        </div>
+                      </div>
                     )}
                     {notesOpenId === p.id && <PlayerNotesPanel userId={p.id} profiles={profiles} />}
                   </>

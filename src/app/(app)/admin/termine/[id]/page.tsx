@@ -136,6 +136,27 @@ export default function AdminParticipantsPage() {
     await queryClient.invalidateQueries({ queryKey: queryKeys.registrations(terminId) });
   }
 
+  // Somebody who is not on the team jumps in: type the name, they become an
+  // Einspringer (an existing one with the same name is reused).
+  const [creatingGuest, setCreatingGuest] = useState(false);
+  async function addGuest(name: string) {
+    setAddError("");
+    setCreatingGuest(true);
+    const res = await fetch("/api/admin/create-guest", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name }),
+    });
+    const data = (await res.json()) as { id?: string; error?: string };
+    setCreatingGuest(false);
+    if (!res.ok || !data.id) {
+      setAddError("Einspringer konnte nicht angelegt werden.");
+      return;
+    }
+    await queryClient.invalidateQueries({ queryKey: queryKeys.profiles });
+    await addParticipant(data.id);
+  }
+
   async function addParticipant(userId: string) {
     setAddError("");
     const supabase = createClient();
@@ -340,6 +361,15 @@ export default function AdminParticipantsPage() {
                   ))}
                   {addableProfiles.length === 0 && <div className={styles.empty}>Keine passenden Spieler gefunden.</div>}
                 </div>
+                {search.trim().length >= 2 && !profiles.some((p) => p.name.toLowerCase() === search.trim().toLowerCase()) && (
+                  <button type="button" className={styles.addGuest} onClick={() => addGuest(search.trim())} disabled={creatingGuest}>
+                    <Plus size={16} strokeWidth={2.6} />
+                    <span>
+                      <b>„{search.trim()}“</b> als Einspringer hinzufügen
+                      <span className={styles.addGuestHint}>Gehört nicht zur Mannschaft — wird beim nächsten Mal wiedergefunden.</span>
+                    </span>
+                  </button>
+                )}
               </div>
             )}
 

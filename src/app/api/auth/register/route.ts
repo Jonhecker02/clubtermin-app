@@ -40,7 +40,7 @@ export async function POST(request: Request) {
   }
   await recordAttempt(service, limitKey);
 
-  const { data: existing } = await service.from("profiles").select("id").ilike("name", trimmedName).maybeSingle();
+  const { data: existing } = await service.from("profiles").select("id").ilike("name", trimmedName).eq("is_guest", false).maybeSingle();
   if (existing) {
     return NextResponse.json({ error: "name_taken" }, { status: 409 });
   }

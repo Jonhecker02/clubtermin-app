@@ -54,7 +54,10 @@ export default function AdminSpielerPage() {
   const [klasse, setKlasse] = useState("m-0");
   const [selected, setSelected] = useState<SheetPlayer | null>(null);
 
-  const approved = useMemo(() => profiles.filter((p) => p.status === "approved"), [profiles]);
+  // Einspringer (guests) are listed on their own and kept out of the age-class
+  // planning, which is about the actual team members.
+  const approved = useMemo(() => profiles.filter((p) => p.status === "approved" && !p.is_guest), [profiles]);
+  const guests = useMemo(() => profiles.filter((p) => p.status === "approved" && p.is_guest), [profiles]);
 
   // Head count per age class for the chosen season (eligible = may play in it).
   const classCounts = useMemo(() => {
@@ -78,6 +81,9 @@ export default function AdminSpielerPage() {
 
   const rows = useMemo(() => {
     const q = search.trim().toLowerCase();
+    if (view === "liste" && groupFilter === "gast") {
+      return guests.filter((p) => q === "" || p.name.toLowerCase().includes(q)).sort((a, b) => a.name.localeCompare(b.name));
+    }
     const base = approved.filter((p) => q === "" || p.name.toLowerCase().includes(q));
     if (view === "klassen") {
       if (klasse === "fehlt") {
@@ -93,7 +99,7 @@ export default function AdminSpielerPage() {
     return base
       .filter((p) => groupFilter === "alle" || (groupFilter === "ohne" ? !p.group_id : p.group_id === groupFilter))
       .sort((a, b) => a.name.localeCompare(b.name));
-  }, [approved, search, groupFilter, view, klasse, season, details]);
+  }, [approved, guests, search, groupFilter, view, klasse, season, details]);
 
   const klassenItems = [
     ...(["m", "w"] as const).flatMap((g) =>
@@ -111,7 +117,8 @@ export default function AdminSpielerPage() {
   const filterItems = [
     { id: "alle", label: "Alle" },
     ...groups.map((g) => ({ id: g.id, label: g.short_code || g.name })),
-    ...(profiles.some((p) => p.status === "approved" && !p.group_id) ? [{ id: "ohne", label: "Ohne Gruppe" }] : []),
+    ...(approved.some((p) => !p.group_id) ? [{ id: "ohne", label: "Ohne Gruppe" }] : []),
+    ...(guests.length > 0 ? [{ id: "gast", label: `Einspringer (${guests.length})` }] : []),
   ];
 
   // Text being typed per player, so "2," isn't reformatted under the cursor;

@@ -16,6 +16,8 @@ export type Profile = {
   group_id: string | null;
   status: UserStatus | null;
   rotation_excluded: boolean;
+  // Einspringer: a profile without a real login (see 0027_guests_and_digest).
+  is_guest: boolean;
   created_at: string;
 };
 
@@ -398,6 +400,7 @@ export interface Database {
       rename_group: { Args: { p_group_id: string; p_name: string; p_short_code?: string | null }; Returns: void };
       remove_group_member: { Args: { p_user_id: string }; Returns: void };
       delete_group: { Args: { p_group_id: string }; Returns: void };
+      merge_guest_into_member: { Args: { p_guest_id: string; p_member_id: string }; Returns: { registrations: number; court_seats: number; notes: number } };
       get_personal_details: { Args: Record<string, never>; Returns: { user_id: string; birth_date: string | null; gender: Gender | null }[] };
       set_my_personal_details: { Args: { p_birth_date: string; p_gender: Gender }; Returns: void };
       admin_set_personal_details: { Args: { p_user_id: string; p_birth_date: string | null; p_gender: Gender | null }; Returns: void };

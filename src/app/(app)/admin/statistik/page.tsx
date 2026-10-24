@@ -14,7 +14,15 @@ import { useTermine } from "@/lib/queries/useTermine";
 import { useRegistrationHistory } from "@/lib/queries/useRegistrationHistory";
 import { useTrainerStats } from "@/lib/queries/useTrainerStats";
 import { useNow } from "@/lib/useNow";
-import { computeParticipation, TIER_LABELS, type Outcome, type PlayerParticipation, type Tier } from "@/lib/participation";
+import {
+  computeParticipation,
+  findCheckInCandidates,
+  TIER_LABELS,
+  type Outcome,
+  type PlayerParticipation,
+  type Tier,
+} from "@/lib/participation";
+import { PlayerSheet, type SheetPlayer } from "@/components/admin/PlayerSheet";
 import { dateLabel, groupLabel } from "@/lib/domain";
 import type { Termin } from "@/types/database";
 import adminStyles from "@/components/admin/AdminList.module.css";
@@ -190,6 +198,8 @@ export default function AdminTeilnahmePage() {
   const [tier, setTier] = useState<"alle" | Tier | "nie">("alle");
   const [sort, setSort] = useState<SortId>("quote_asc");
   const [search, setSearch] = useState("");
+  const [checkWeeks, setCheckWeeks] = useState("4");
+  const [selected, setSelected] = useState<SheetPlayer | null>(null);
 
   const sinceISO = new Date(now - Number(period) * 86400000).toISOString().slice(0, 10);
   const types: Termin["type"][] = kind === "training" ? ["training"] : ["training", "event", "spieltag"];
@@ -200,7 +210,7 @@ export default function AdminTeilnahmePage() {
   const players = useMemo(
     () =>
       profiles.filter((p) => {
-        if (p.status !== "approved" || !p.group_id) return false;
+        if (p.status !== "approved" || !p.group_id || p.is_guest) return false;
         if (isCaptain) return p.group_id === ownGroupId;
         return groupId === "alle" || p.group_id === groupId;
       }),
@@ -243,6 +253,35 @@ export default function AdminTeilnahmePage() {
     return sortRows(filtered, sort);
   }, [all, search, tier, sort]);
 
+  // "Mal nachfragen": no registration for N weeks although there were trainings.
+  const checkIns = useMemo(() => {
+    const long = computeParticipation({ termine, registrations: history, players, sinceISO: null, nowMs: now, types: ["training"] });
+    const joined = new Map(players.map((p) => [p.id, p.created_at.slice(0, 10)]));
+    return findCheckInCandidates(long, joined, Number(checkWeeks), now);
+  }, [termine, history, players, checkWeeks, now]);
+
+  // Einspringer: who jumped in how often in the chosen period.
+  const guestRows = useMemo(() => {
+    const guests = profiles.filter((p) => p.is_guest && p.status === "approved");
+    if (guests.length === 0) return [];
+    const termById = new Map(termine.map((t) => [t.id, t]));
+    return guests
+      .map((g) => {
+        let count = 0;
+        let last: string | null = null;
+        for (const r of history) {
+          if (r.user_id !== g.id || r.status !== "angemeldet") continue;
+          const t = termById.get(r.termin_id);
+          if (!t || t.date < sinceISO || !types.includes(t.type)) continue;
+          count++;
+          if (last === null || t.date > last) last = t.date;
+        }
+        return { id: g.id, name: g.name, count, last };
+      })
+      .sort((a, b) => b.count - a.count || (b.last ?? "").localeCompare(a.last ?? "") || a.name.localeCompare(b.name));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profiles, termine, history, sinceISO, kind]);
+
   const trainersByUser = useMemo(() => {
     const map = new Map<string, { trainer_name: string; session_count: number }[]>();
     for (const s of trainerStats) {
@@ -267,6 +306,60 @@ export default function AdminTeilnahmePage() {
       <AppHeader title="Teilnahme" />
       <PageBody>
         <AdminTabs current="statistik" />
+
+        <div className={styles.checkIn}>
+          <div className={styles.checkInHead}>
+            <span className={styles.checkInTitle}>Mal nachfragen ({checkIns.length})</span>
+            <Tabs
+              items={[
+                { id: "3", label: "3 Wo." },
+                { id: "4", label: "4 Wo." },
+                { id: "6", label: "6 Wo." },
+                { id: "8", label: "8 Wo." },
+              ]}
+              value={checkWeeks}
+              onChange={setCheckWeeks}
+              size="sm"
+              style={{ width: "auto" }}
+            />
+          </div>
+          {checkIns.length === 0 ? (
+            <div className={styles.checkInOk}>
+              Alles im grünen Bereich: Alle haben sich in den letzten {checkWeeks} Wochen mindestens einmal angemeldet.
+            </div>
+          ) : (
+            <>
+              <div className={styles.checkInSub}>
+                Seit {checkWeeks} Wochen nicht mehr angemeldet, obwohl es Trainings gab. Wer auf der Warteliste landete,
+                zählt als angemeldet und taucht hier nicht auf.
+              </div>
+              <ul className={styles.checkInList}>
+                {checkIns.map((c) => {
+                  const g = groups.find((x) => x.id === c.groupId);
+                  return (
+                    <li key={c.userId}>
+                      <button
+                        type="button"
+                        className={styles.checkInRow}
+                        onClick={() => setSelected({ id: c.userId, name: c.name, subtitle: g ? groupLabel(g) : undefined })}
+                      >
+                        <span className={styles.checkInWho}>
+                          <PersonName className={styles.name} name={c.name} userId={c.userId} />
+                          <span className={styles.meta}>
+                            {c.lastRegistered ? `zuletzt angemeldet ${dateLabel(c.lastRegistered)}` : "noch nie angemeldet"}
+                            {c.lastConfirmed ? ` · zuletzt dabei ${dateLabel(c.lastConfirmed)}` : ""}
+                            {` · ${c.possible} Trainings verpasst`}
+                          </span>
+                        </span>
+                        <span className={styles.checkInCta}>Notiz</span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
+          )}
+        </div>
 
         <div className={styles.summary}>
           <div className={styles.sumCard}>
@@ -350,6 +443,26 @@ export default function AdminTeilnahmePage() {
           {!isPending && rows.length === 0 && <div className={adminStyles.empty}>Keine Spieler für diese Auswahl.</div>}
         </div>
 
+        {guestRows.length > 0 && (
+          <div className={styles.guests}>
+            <div className={styles.guestsTitle}>Einspringer ({guestRows.length})</div>
+            <div className={styles.guestsSub}>
+              Nicht in der Mannschaft, aber schon eingesprungen — im gewählten Zeitraum. Wer fest zur Mannschaft kommt,
+              lässt sich unter Admin → Accounts mit dem neuen Konto zusammenführen.
+            </div>
+            <ul className={styles.guestList}>
+              {guestRows.map((g) => (
+                <li key={g.id} className={styles.guestRow}>
+                  <PersonName className={styles.name} name={g.name} userId={g.id} />
+                  <span className={styles.meta}>
+                    {g.count}× eingesprungen{g.last ? ` · zuletzt ${dateLabel(g.last)}` : ""}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <p className={styles.note}>
           <b>Bewertet wird die Bereitschaft:</b> wie oft sich jemand angemeldet hat. Wer sich angemeldet hat, aber
           wegen der Platzvergabe auf der Warteliste gelandet ist (gelb), zählt voll mit — das ist nicht seine Schuld.
@@ -359,6 +472,7 @@ export default function AdminTeilnahmePage() {
           30–59 %, selten: unter 30 % (mindestens 3 mögliche Termine).
         </p>
       </PageBody>
+      <PlayerSheet key={selected?.id ?? "none"} player={selected} onClose={() => setSelected(null)} />
     </>
   );
 }
