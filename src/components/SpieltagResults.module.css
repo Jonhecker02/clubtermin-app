@@ -1,0 +1,156 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.title {
+  font-size: 11px;
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+.total {
+  font-size: 13px;
+  font-weight: var(--fw-bold);
+  color: var(--color-ink);
+}
+
+.match {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg, 16px);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.matchHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.opponent {
+  font-weight: var(--fw-bold);
+  font-size: 15px;
+  color: var(--color-ink);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.vs {
+  font-weight: var(--fw-medium, 500);
+  font-size: 12px;
+  color: var(--color-ink-muted);
+}
+
+.score {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.scoreNum {
+  font-family: var(--font-display, var(--font-sans));
+  font-size: 20px;
+  color: var(--color-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.pill {
+  font-size: 10.5px;
+  font-weight: var(--fw-bold);
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--tp-grey-100);
+  color: var(--color-ink-muted);
+}
+
+.pill.win {
+  background: rgba(46, 160, 100, 0.16);
+  color: var(--tp-success);
+}
+
+.pill.loss {
+  background: rgba(220, 70, 70, 0.14);
+  color: var(--tp-danger);
+}
+
+.game {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border);
+}
+
+.gameNo {
+  font-size: 11px;
+  font-weight: var(--fw-bold);
+  color: var(--color-ink-muted);
+  width: 44px;
+  flex-shrink: 0;
+}
+
+.gameBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.ours {
+  font-size: 13.5px;
+  font-weight: var(--fw-semibold);
+  color: var(--color-ink);
+  overflow-wrap: anywhere;
+}
+
+.theirs {
+  font-size: 12px;
+  color: var(--color-ink-muted);
+  overflow-wrap: anywhere;
+}
+
+.gameScore {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: var(--fw-bold);
+  color: var(--color-ink);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--tp-grey-300);
+}
+
+.dot.win {
+  background: var(--tp-success);
+}
+
+.dot.loss {
+  background: var(--tp-danger);
+}
+
+.open {
+  font-weight: var(--fw-medium, 500);
+  color: var(--color-ink-muted);
+}

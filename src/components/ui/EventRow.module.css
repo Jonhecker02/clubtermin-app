@@ -33,6 +33,13 @@
   box-shadow: inset 4px 0 0 var(--tp-warning), var(--shadow-sm);
 }
 
+/* Turnier: soft transparent blue fill — registration happens outside the app. */
+.rowTurnier {
+  composes: row;
+  background: rgba(70, 130, 220, 0.14);
+  box-shadow: inset 4px 0 0 var(--tp-info, #4682dc), var(--shadow-sm);
+}
+
 /* Registration not open yet — same base but visibly muted. */
 .dimmed {
   opacity: 0.55;

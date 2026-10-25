@@ -34,6 +34,8 @@ import {
 import type { Group, Termin, TerminType } from "@/types/database";
 import styles from "./page.module.css";
 import { useNow } from "@/lib/useNow";
+import { useSpieltagData } from "@/lib/queries/useSpieltag";
+import { OUTCOME_LABEL, spieltagScore } from "@/lib/spieltag";
 import { MissingDetailsBanner } from "@/components/MissingDetailsBanner";
 
 const FILTER_ITEMS = [
@@ -41,6 +43,7 @@ const FILTER_ITEMS = [
   { id: "training", label: "Training" },
   { id: "event", label: "Event" },
   { id: "spieltag", label: "Spieltag" },
+  { id: "turnier", label: "Turnier" },
 ];
 
 const TIME_ITEMS = [
@@ -55,8 +58,22 @@ const VIEW_ITEMS = [
 
 const CAL_WEEKDAYS = ["MO", "DI", "MI", "DO", "FR", "SA", "SO"];
 
-function toRow(t: Termin, counts: Record<string, RegistrationCount>, groups: Group[]) {
+function toRow(
+  t: Termin,
+  counts: Record<string, RegistrationCount>,
+  groups: Group[],
+  scores: Map<string, ReturnType<typeof spieltagScore>>,
+) {
   const price = formatPrice(t.price);
+  // Turniere have no in-app registration (link instead); Spieltage show their
+  // result once one is entered; everything else shows the registration count.
+  const score = t.type === "spieltag" ? scores.get(t.id) : undefined;
+  const meta =
+    t.type === "turnier"
+      ? `Anmeldung per Link${price ? ` · ${price}` : ""}`
+      : score && score.total > 0
+        ? `${score.us} : ${score.them}${score.outcome ? ` · ${OUTCOME_LABEL[score.outcome]}` : ""}`
+        : `${registrationMeta(counts[t.id]?.confirmed ?? 0, counts[t.id]?.pending ?? 0, t.max_tn)}${price ? ` · ${price}` : ""}`;
   return {
     id: t.id,
     weekday: weekdayLabel(t.date),
@@ -64,7 +81,7 @@ function toRow(t: Termin, counts: Record<string, RegistrationCount>, groups: Gro
     title: withShortCode(t.title, groupShortCode(t.register_groups, groups)),
     subtitle: t.type === "training" ? t.trainer : t.location,
     time: hhmm(t.start_time),
-    meta: `${registrationMeta(counts[t.id]?.confirmed ?? 0, counts[t.id]?.pending ?? 0, t.max_tn)}${price ? ` · ${price}` : ""}`,
+    meta,
     type: t.type,
     notice: registrationOpensLabel(t),
     dimmed: !isRegistrationOpen(t),
@@ -82,6 +99,16 @@ export default function TerminePage() {
   const termine = useMemo(() => applyTrainerScope(allTermine), [applyTrainerScope, allTermine]);
   const { data: groups = [] } = useGroups();
   const { data: counts = {} } = useRegistrationCounts();
+  const { data: spieltag } = useSpieltagData();
+  const spieltagScores = useMemo(() => {
+    const map = new Map<string, ReturnType<typeof spieltagScore>>();
+    for (const terminId of new Set((spieltag?.matches ?? []).map((m) => m.termin_id))) {
+      const ms = (spieltag?.matches ?? []).filter((m) => m.termin_id === terminId);
+      const ids = new Set(ms.map((m) => m.id));
+      map.set(terminId, spieltagScore(ms, (spieltag?.games ?? []).filter((g) => ids.has(g.match_id))));
+    }
+    return map;
+  }, [spieltag]);
   const isAdmin = profile?.role === "owner" || profile?.role === "trainer" || profile?.role === "captain";
 
   const [filter, setFilter] = useState<"alle" | TerminType>("alle");
@@ -190,6 +217,7 @@ export default function TerminePage() {
           value={filter}
           onChange={(id) => setFilter(id as "alle" | TerminType)}
           size="sm"
+          scrollable
           className={styles.filterRow}
         />
 
@@ -208,7 +236,7 @@ export default function TerminePage() {
         {!isLoading && viewMode === "liste" && (
           <div className={styles.list}>
             {listFiltered.map((t) => {
-              const row = toRow(t, counts, groups);
+              const row = toRow(t, counts, groups, spieltagScores);
               return <EventRow key={t.id} {...row} onClick={() => openTermin(t.id)} />;
             })}
             {listFiltered.length === 0 && (
@@ -301,7 +329,7 @@ export default function TerminePage() {
 
             <div className={styles.list}>
               {calendarTermine.map((t) => {
-                const row = toRow(t, counts, groups);
+                const row = toRow(t, counts, groups, spieltagScores);
                 return <EventRow key={t.id} {...row} onClick={() => openTermin(t.id)} />;
               })}
               {calendarTermine.length === 0 && (

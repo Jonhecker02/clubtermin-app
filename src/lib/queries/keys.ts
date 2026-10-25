@@ -17,4 +17,5 @@ export const queryKeys = {
   skillLevels: ["skillLevels"] as const,
   myAllocation: (terminId: string) => ["myAllocation", terminId] as const,
   announcements: ["announcements"] as const,
+  spieltag: ["spieltag"] as const,
 };

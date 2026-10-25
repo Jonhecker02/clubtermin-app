@@ -1,0 +1,190 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.intro {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-ink-muted);
+}
+
+.total {
+  font-size: 13.5px;
+  font-weight: var(--fw-bold);
+  color: var(--color-ink);
+}
+
+.match,
+.addCard {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg, 16px);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.addTitle {
+  font-weight: var(--fw-bold);
+  font-size: 14px;
+  color: var(--color-ink);
+}
+
+.matchHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.opponent {
+  flex: 1;
+  min-width: 0;
+  font-weight: var(--fw-bold);
+  font-size: 15px;
+  color: var(--color-ink);
+  overflow-wrap: anywhere;
+}
+
+.vs {
+  font-size: 12px;
+  font-weight: var(--fw-medium, 500);
+  color: var(--color-ink-muted);
+}
+
+.score {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display, var(--font-sans));
+  font-size: 19px;
+  color: var(--color-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.renameRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.renameRow > :first-child {
+  flex: 1;
+}
+
+.pill {
+  font-family: var(--font-sans);
+  font-size: 10.5px;
+  font-weight: var(--fw-bold);
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--tp-grey-100);
+  color: var(--color-ink-muted);
+  white-space: nowrap;
+}
+
+.pill.win {
+  background: rgba(46, 160, 100, 0.16);
+  color: var(--tp-success);
+}
+
+.pill.loss {
+  background: rgba(220, 70, 70, 0.14);
+  color: var(--tp-danger);
+}
+
+.game {
+  border-top: 1px solid var(--color-border);
+  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.gameHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gameTitle {
+  font-size: 12px;
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+.pairGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.setsBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fieldLabel {
+  font-size: 12px;
+  font-weight: var(--fw-bold);
+  color: var(--color-ink-muted);
+}
+
+.setRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.setNo {
+  width: 96px;
+  font-size: 13px;
+  color: var(--color-ink);
+}
+
+.setInput {
+  width: 64px;
+  height: 44px;
+  text-align: center;
+  font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: var(--fw-bold);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink);
+  background: var(--color-bg);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md, 12px);
+}
+
+.setInput:focus {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 1px;
+}
+
+.colon {
+  font-weight: var(--fw-bold);
+  color: var(--color-ink-muted);
+}
+
+.matchActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.error {
+  font-size: 13px;
+  color: var(--tp-danger);
+}

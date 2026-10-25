@@ -22,6 +22,7 @@ const TYPE_ROW_CLASS: Record<TerminType, string> = {
   training: "row",
   event: "rowEvent",
   spieltag: "rowSpieltag",
+  turnier: "rowTurnier",
 };
 
 export function EventRow({

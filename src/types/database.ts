@@ -1,6 +1,6 @@
 export type UserRole = "owner" | "trainer" | "captain" | "member";
 export type UserStatus = "pending" | "approved" | "rejected";
-export type TerminType = "training" | "event" | "spieltag";
+export type TerminType = "training" | "event" | "spieltag" | "turnier";
 export type Gender = "m" | "w";
 export type SessionFormat = "training_spiel" | "nur_spiel" | "nur_training";
 export type RegistrationStatus = "angemeldet" | "warteliste" | "ausstehend";
@@ -57,6 +57,9 @@ export type Termin = {
   court_groups_switch_time: string | null;
   session_format: SessionFormat;
   court_groups_show_members: boolean;
+  // Turniere: registration happens outside the app, via this link + hint.
+  external_url: string | null;
+  external_hint: string | null;
   allocation_proposed_at: string | null;
   allocation_run_at: string | null;
   created_by: string | null;
@@ -90,6 +93,28 @@ export type PlayerNote = {
   user_id: string;
   author_id: string | null;
   note: string;
+  created_at: string;
+};
+
+// One Begegnung of a Spieltag (one opponent team) ...
+export type SpieltagMatch = {
+  id: string;
+  termin_id: string;
+  opponent: string;
+  position: number;
+  created_at: string;
+};
+
+// ... and one Spiel (e.g. a doubles) within it. sets = [[ours, theirs], ...].
+export type SpieltagGame = {
+  id: string;
+  match_id: string;
+  position: number;
+  our_player_1: string | null;
+  our_player_2: string | null;
+  opp_player_1: string;
+  opp_player_2: string;
+  sets: [number, number][];
   created_at: string;
 };
 
@@ -288,7 +313,7 @@ type TerminInsert = Pick<
 > &
   // Optional — only ever set later, via the Trainingsgruppen editor, never
   // at creation, so it can't be a required field here like the rest.
-  Partial<Pick<Termin, "court_groups_switch_time" | "session_format" | "court_groups_show_members">>;
+  Partial<Pick<Termin, "court_groups_switch_time" | "session_format" | "court_groups_show_members" | "external_url" | "external_hint">>;
 
 export interface Database {
   __InternalSupabase: {
@@ -364,6 +389,19 @@ export interface Database {
         Row: PlayerNote;
         Insert: never;
         Update: never;
+        Relationships: [];
+      };
+      spieltag_matches: {
+        Row: SpieltagMatch;
+        Insert: Pick<SpieltagMatch, "termin_id" | "opponent"> & Partial<Pick<SpieltagMatch, "position">>;
+        Update: Partial<Pick<SpieltagMatch, "opponent" | "position">>;
+        Relationships: [];
+      };
+      spieltag_games: {
+        Row: SpieltagGame;
+        Insert: Pick<SpieltagGame, "match_id"> &
+          Partial<Pick<SpieltagGame, "position" | "our_player_1" | "our_player_2" | "opp_player_1" | "opp_player_2" | "sets">>;
+        Update: Partial<Pick<SpieltagGame, "position" | "our_player_1" | "our_player_2" | "opp_player_1" | "opp_player_2" | "sets">>;
         Relationships: [];
       };
       trainer_groups: {

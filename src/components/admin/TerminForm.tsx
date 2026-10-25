@@ -17,6 +17,7 @@ const TYPE_ITEMS = [
   { id: "training", label: "Training" },
   { id: "event", label: "Event" },
   { id: "spieltag", label: "Spieltag" },
+  { id: "turnier", label: "Turnier" },
 ];
 
 const SESSION_FORMAT_OPTIONS: { id: SessionFormat; label: string; hint: string }[] = [
@@ -58,6 +59,8 @@ export interface TerminFormValues {
   registration_opens_hidden: boolean;
   registration_closes_date: string | null;
   registration_closes_time: string | null;
+  external_url: string | null;
+  external_hint: string | null;
 }
 
 interface TerminFormProps {
@@ -81,6 +84,9 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
   const [endTime, setEndTime] = useState(initial ? hhmm(initial.end_time) : "");
   const [location, setLocation] = useState(initial?.location ?? "The Padellers Essen");
   const [description, setDescription] = useState(initial?.description ?? "");
+  // Turniere: registration happens outside the app — a link plus a hint on how to sign up.
+  const [externalUrl, setExternalUrl] = useState(initial?.external_url ?? "");
+  const [externalHint, setExternalHint] = useState(initial?.external_hint ?? "");
   // Picked as tiles for the club's seven courts; stored as text like
   // "Court 1–3" (every display site just prints termin.courts).
   const [courts, setCourts] = useState<number[]>(() => parseCourts(initial?.courts));
@@ -132,6 +138,7 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
   const snapshot = JSON.stringify([
     type, title, trainerId, date, startTime, endTime, location, description, courts, sessionFormat, maxTn, price,
     visMode, visGroups, regMode, regGroups, notifyCreate, reminderEnabled, regOpenMode, regOpensAt, regOpensHidden, regClosesAt,
+    externalUrl, externalHint,
   ]);
   const [baseline] = useState(snapshot);
   useUnsavedChanges(snapshot !== baseline && !saving);
@@ -139,7 +146,8 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
   // Trainings always happen on booked courts (required); events may use some
   // (optional); Spieltage (often away matches) have none to name.
   const needsCourts = type === "training";
-  const showCourts = type !== "spieltag";
+  const isTurnier = type === "turnier";
+  const showCourts = type !== "spieltag" && !isTurnier;
 
   // Fair rotation only ever applies to a TRAINING tied to exactly one
   // specific team — with "alle Gruppen" or several groups selected there's
@@ -170,33 +178,40 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
   }
 
   async function submit() {
-    if (!title.trim() || !date || !startTime || !endTime || !maxTn || (needsCourts && courts.length === 0)) {
+    if (!title.trim() || !date || !startTime || !endTime || (!isTurnier && !maxTn) || (needsCourts && courts.length === 0)) {
       setError("Bitte fülle alle Pflichtfelder aus.");
       return;
+    }
+    if (isTurnier) {
+      const link = externalUrl.trim();
+      if (!/^https?:\/\/\S+\.\S+$/i.test(link)) {
+        setError("Bitte gib einen gültigen Anmelde-Link an (beginnt mit https://).");
+        return;
+      }
     }
     if (visMode === "ausgewaehlt" && visGroups.length === 0) {
       setAnmeldungOpen(true);
       setError("Bitte wähle mindestens eine Gruppe für die Sichtbarkeit.");
       return;
     }
-    if (regMode === "ausgewaehlt" && regGroups.length === 0) {
+    if (!isTurnier && regMode === "ausgewaehlt" && regGroups.length === 0) {
       setAnmeldungOpen(true);
       setError("Bitte wähle mindestens eine Gruppe für die Anmeldung.");
       return;
     }
-    if (regOpenMode === "geplant" && !regOpensAt) {
+    if (!isTurnier && regOpenMode === "geplant" && !regOpensAt) {
       setAnmeldungOpen(true);
       setError("Bitte wähle Datum und Uhrzeit für die Anmeldeöffnung.");
       return;
     }
-    if (rotationActive && !regClosesAt) {
+    if (!isTurnier && rotationActive && !regClosesAt) {
       setAnmeldungOpen(true);
       setError("Bitte wähle einen Anmeldeschluss für die faire Rotation.");
       return;
     }
 
-    const [regOpensDate, regOpensTime] = regOpenMode === "geplant" ? regOpensAt.split("T") : [null, null];
-    const [regClosesDate, regClosesTime] = rotationActive && regClosesAt ? regClosesAt.split("T") : [null, null];
+    const [regOpensDate, regOpensTime] = !isTurnier && regOpenMode === "geplant" ? regOpensAt.split("T") : [null, null];
+    const [regClosesDate, regClosesTime] = !isTurnier && rotationActive && regClosesAt ? regClosesAt.split("T") : [null, null];
 
     const selectedTrainer = trainerOptions.find((p) => p.id === trainerId);
 
@@ -217,17 +232,19 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
       start_time: startTime,
       end_time: endTime,
       description: description.trim(),
-      max_tn: parseInt(maxTn, 10) || 1,
+      max_tn: isTurnier ? 1 : parseInt(maxTn, 10) || 1,
       price: price.trim() ? Number(price) : null,
       visible_groups: visMode === "alle" ? ["all"] : visGroups,
-      register_groups: regMode === "alle" ? ["all"] : regGroups,
+      register_groups: isTurnier ? (visMode === "alle" ? ["all"] : visGroups) : regMode === "alle" ? ["all"] : regGroups,
       notify_create: notifyCreate,
-      reminder_enabled: reminderEnabled,
+      reminder_enabled: isTurnier ? false : reminderEnabled,
       registration_opens_date: regOpensDate,
       registration_opens_time: regOpensTime,
-      registration_opens_hidden: regOpenMode === "geplant" ? regOpensHidden : false,
+      registration_opens_hidden: !isTurnier && regOpenMode === "geplant" ? regOpensHidden : false,
       registration_closes_date: regClosesDate,
       registration_closes_time: regClosesTime,
+      external_url: isTurnier ? externalUrl.trim() : null,
+      external_hint: isTurnier ? externalHint.trim() || null : null,
     });
     setSaving(false);
     if (result) setError(result);
@@ -241,13 +258,17 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
       .join(", ");
 
   // One line for the collapsed "Anmeldung" card.
-  const anmeldungSummary = [
+  const anmeldungSummary = isTurnier
+    ? visMode === "alle"
+      ? "Sichtbar für alle Gruppen"
+      : `Sichtbar für ${groupNames(visGroups) || "…"}`
+    : [
     regMode === "alle" ? "Für alle Gruppen" : groupNames(regGroups) || "Gruppen wählen",
     regOpenMode === "sofort" ? "sofort offen" : regOpensAt ? `offen ab ${dateLabel(regOpensAt.split("T")[0])} ${regOpensAt.split("T")[1]}` : "geplant",
     rotationActive && regClosesAt ? `Schluss ${dateLabel(regClosesAt.split("T")[0])} ${regClosesAt.split("T")[1]}` : null,
   ]
-    .filter(Boolean)
-    .join(" · ");
+        .filter(Boolean)
+        .join(" · ");
 
   const moreSummary = [
     location.trim() || null,
@@ -271,66 +292,90 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
         </div>
       </FormSection>
 
-      <FormSection title="Ablauf & Plätze">
-        {type === "training" && (
-          <div className={styles.fieldGroup}>
-            <span className={styles.fieldGroupLabel}>Ablauf</span>
-            <div className={styles.choiceList} role="radiogroup" aria-label="Ablauf">
-              {SESSION_FORMAT_OPTIONS.map((o) => (
-                <button
-                  key={o.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={sessionFormat === o.id}
-                  className={`${styles.choice} ${sessionFormat === o.id ? styles.choiceOn : ""}`}
-                  onClick={() => setSessionFormat(o.id)}
-                >
-                  <span className={styles.choiceDot} aria-hidden="true" />
-                  <span className={styles.choiceText}>
-                    <span className={styles.choiceLabel}>{o.label}</span>
-                    <span className={styles.choiceHint}>{o.hint}</span>
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-        <Select label="Trainer / Verantwortlicher" value={trainerId} onChange={(e) => setTrainerId(e.target.value)}>
-          <option value="">— kein Trainer ausgewählt —</option>
-          {trainerOptions.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
-          ))}
-        </Select>
-        {showCourts && <CourtPicker value={courts} onChange={setCourts} optional={!needsCourts} />}
-        <div className={styles.fieldGroup}>
+      {isTurnier && (
+        <FormSection title="Anmeldung über Link">
           <Input
-            label="Max. TN"
-            type="number"
-            value={maxTn}
-            onChange={(e) => {
-              setMaxTnTouched(true);
-              setMaxTnManual(e.target.value);
-            }}
-            helper={showCourts && courts.length > 0 ? `Standard: 4 pro Court — ${courts.length} ${courts.length === 1 ? "Court" : "Courts"} = ${courtSeats}. Frei änderbar.` : undefined}
+            label="Anmelde-Link"
+            type="url"
+            inputMode="url"
+            autoCapitalize="none"
+            autoCorrect="off"
+            placeholder="https://…"
+            value={externalUrl}
+            onChange={(e) => setExternalUrl(e.target.value)}
+            helper="Hier melden sich die Spieler an — die Anmeldung läuft nicht über die App."
           />
-          {showCourts && courts.length > 0 && maxTn !== String(courtSeats) && (
-            <button
-              type="button"
-              className={styles.suggestion}
-              onClick={() => {
-                setMaxTnTouched(false);
-              }}
-            >
-              Zurück auf {courtSeats} (4 pro Court)
-            </button>
+          <Textarea
+            label="Hinweis zur Anmeldung"
+            placeholder="z. B. Anmeldung bis 1. Dezember über den Link, Startgeld vor Ort. Bitte Partner angeben."
+            value={externalHint}
+            onChange={(e) => setExternalHint(e.target.value)}
+          />
+        </FormSection>
+      )}
+
+      {!isTurnier && (
+        <FormSection title="Ablauf & Plätze">
+          {type === "training" && (
+            <div className={styles.fieldGroup}>
+              <span className={styles.fieldGroupLabel}>Ablauf</span>
+              <div className={styles.choiceList} role="radiogroup" aria-label="Ablauf">
+                {SESSION_FORMAT_OPTIONS.map((o) => (
+                  <button
+                    key={o.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={sessionFormat === o.id}
+                    className={`${styles.choice} ${sessionFormat === o.id ? styles.choiceOn : ""}`}
+                    onClick={() => setSessionFormat(o.id)}
+                  >
+                    <span className={styles.choiceDot} aria-hidden="true" />
+                    <span className={styles.choiceText}>
+                      <span className={styles.choiceLabel}>{o.label}</span>
+                      <span className={styles.choiceHint}>{o.hint}</span>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
           )}
-        </div>
-      </FormSection>
+          <Select label="Trainer / Verantwortlicher" value={trainerId} onChange={(e) => setTrainerId(e.target.value)}>
+            <option value="">— kein Trainer ausgewählt —</option>
+            {trainerOptions.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </Select>
+          {showCourts && <CourtPicker value={courts} onChange={setCourts} optional={!needsCourts} />}
+          <div className={styles.fieldGroup}>
+            <Input
+              label="Max. TN"
+              type="number"
+              value={maxTn}
+              onChange={(e) => {
+                setMaxTnTouched(true);
+                setMaxTnManual(e.target.value);
+              }}
+              helper={showCourts && courts.length > 0 ? `Standard: 4 pro Court — ${courts.length} ${courts.length === 1 ? "Court" : "Courts"} = ${courtSeats}. Frei änderbar.` : undefined}
+            />
+            {showCourts && courts.length > 0 && maxTn !== String(courtSeats) && (
+              <button
+                type="button"
+                className={styles.suggestion}
+                onClick={() => {
+                  setMaxTnTouched(false);
+                }}
+              >
+                Zurück auf {courtSeats} (4 pro Court)
+              </button>
+            )}
+          </div>
+        </FormSection>
+      )}
 
       <FormSection
-        title="Anmeldung"
+        title={isTurnier ? "Sichtbarkeit" : "Anmeldung"}
         collapsible
         open={anmeldungOpen}
         onToggle={setAnmeldungOpen}
@@ -351,68 +396,72 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
           )}
         </div>
 
-        <div className={styles.fieldGroup}>
-          <span className={styles.fieldGroupLabel}>Anmeldung offen für</span>
-          <Tabs items={GROUP_MODE_ITEMS} value={regMode} onChange={(id) => setRegMode(id as typeof regMode)} size="sm" />
-          {regMode === "ausgewaehlt" && (
-            <div className={styles.checkboxList}>
-              {groups.map((g) => (
-                <label key={g.id} className={styles.checkboxLabel}>
-                  <input type="checkbox" checked={regGroups.includes(g.id)} onChange={() => toggle(regGroups, g.id, setRegGroups)} />
-                  {groupLabel(g)}
-                </label>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {rotationActive && (
+        {!isTurnier && (
+          <>
           <div className={styles.fieldGroup}>
-            <span className={styles.fieldGroupLabel}>Anmeldeschluss (faire Rotation)</span>
-            <Input
-              label="Anmeldeschluss"
-              type="datetime-local"
-              value={regClosesAt}
-              onChange={(e) => {
-                setRegClosesTouched(true);
-                setRegClosesAt(e.target.value);
-              }}
-              helper={`Standard: Samstag vor dem Training, 22:00 Uhr — bei Bedarf änderbar. ${groupLabel(rotationGroup!)} hat faire Rotation: bis dahin sind Anmeldungen ausstehend, danach werden die Plätze fair verteilt.`}
-            />
-            {date && regClosesAt !== suggestedRegistrationCloses(date) && (
-              <button
-                type="button"
-                className={styles.suggestion}
-                onClick={() => {
-                  setRegClosesTouched(false);
-                  setRegClosesAt("");
-                }}
-              >
-                Zurück auf Standard: Samstag davor, 22:00 Uhr
-              </button>
+            <span className={styles.fieldGroupLabel}>Anmeldung offen für</span>
+            <Tabs items={GROUP_MODE_ITEMS} value={regMode} onChange={(id) => setRegMode(id as typeof regMode)} size="sm" />
+            {regMode === "ausgewaehlt" && (
+              <div className={styles.checkboxList}>
+                {groups.map((g) => (
+                  <label key={g.id} className={styles.checkboxLabel}>
+                    <input type="checkbox" checked={regGroups.includes(g.id)} onChange={() => toggle(regGroups, g.id, setRegGroups)} />
+                    {groupLabel(g)}
+                  </label>
+                ))}
+              </div>
             )}
           </div>
-        )}
 
-        <div className={styles.fieldGroup}>
-          <span className={styles.fieldGroupLabel}>Anmeldung öffnet</span>
-          <Tabs items={REG_OPEN_ITEMS} value={regOpenMode} onChange={(id) => setRegOpenMode(id as typeof regOpenMode)} size="sm" />
-          {regOpenMode === "geplant" && (
-            <>
+          {rotationActive && (
+            <div className={styles.fieldGroup}>
+              <span className={styles.fieldGroupLabel}>Anmeldeschluss (faire Rotation)</span>
               <Input
-                label="Anmeldung ab"
+                label="Anmeldeschluss"
                 type="datetime-local"
-                value={regOpensAt}
-                onChange={(e) => setRegOpensAt(e.target.value)}
-                helper="Mitglieder können sich erst ab diesem Zeitpunkt anmelden und werden benachrichtigt, sobald es soweit ist."
+                value={regClosesAt}
+                onChange={(e) => {
+                  setRegClosesTouched(true);
+                  setRegClosesAt(e.target.value);
+                }}
+                helper={`Standard: Samstag vor dem Training, 22:00 Uhr — bei Bedarf änderbar. ${groupLabel(rotationGroup!)} hat faire Rotation: bis dahin sind Anmeldungen ausstehend, danach werden die Plätze fair verteilt.`}
               />
-              <label className={styles.checkboxLabel}>
-                <input type="checkbox" checked={regOpensHidden} onChange={(e) => setRegOpensHidden(e.target.checked)} />
-                Öffnungszeitpunkt vor Mitgliedern verbergen
-              </label>
-            </>
+              {date && regClosesAt !== suggestedRegistrationCloses(date) && (
+                <button
+                  type="button"
+                  className={styles.suggestion}
+                  onClick={() => {
+                    setRegClosesTouched(false);
+                    setRegClosesAt("");
+                  }}
+                >
+                  Zurück auf Standard: Samstag davor, 22:00 Uhr
+                </button>
+              )}
+            </div>
           )}
-        </div>
+
+          <div className={styles.fieldGroup}>
+            <span className={styles.fieldGroupLabel}>Anmeldung öffnet</span>
+            <Tabs items={REG_OPEN_ITEMS} value={regOpenMode} onChange={(id) => setRegOpenMode(id as typeof regOpenMode)} size="sm" />
+            {regOpenMode === "geplant" && (
+              <>
+                <Input
+                  label="Anmeldung ab"
+                  type="datetime-local"
+                  value={regOpensAt}
+                  onChange={(e) => setRegOpensAt(e.target.value)}
+                  helper="Mitglieder können sich erst ab diesem Zeitpunkt anmelden und werden benachrichtigt, sobald es soweit ist."
+                />
+                <label className={styles.checkboxLabel}>
+                  <input type="checkbox" checked={regOpensHidden} onChange={(e) => setRegOpensHidden(e.target.checked)} />
+                  Öffnungszeitpunkt vor Mitgliedern verbergen
+                </label>
+              </>
+            )}
+          </div>
+          </>
+        )}
       </FormSection>
 
       <FormSection title="Weitere Angaben" collapsible open={moreOpen} onToggle={setMoreOpen} summary={moreSummary}>
@@ -440,10 +489,12 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
             <input type="checkbox" checked={notifyCreate} onChange={(e) => setNotifyCreate(e.target.checked)} />
             Push-Benachrichtigung beim Erstellen an Teilnehmer senden
           </label>
-          <label className={styles.checkboxLabel}>
-            <input type="checkbox" checked={reminderEnabled} onChange={(e) => setReminderEnabled(e.target.checked)} />
-            Erinnerung 2 Std. vorher per Push senden
-          </label>
+          {!isTurnier && (
+            <label className={styles.checkboxLabel}>
+              <input type="checkbox" checked={reminderEnabled} onChange={(e) => setReminderEnabled(e.target.checked)} />
+              Erinnerung 2 Std. vorher per Push senden
+            </label>
+          )}
         </div>
       </FormSection>
 

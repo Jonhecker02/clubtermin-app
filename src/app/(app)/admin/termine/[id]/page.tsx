@@ -52,6 +52,7 @@ import adminStyles from "@/components/admin/AdminList.module.css";
 import styles from "./page.module.css";
 import { triggerPlacement } from "@/lib/placement";
 import { PersonName } from "@/components/PersonName";
+import { SpieltagResultsEditor } from "@/components/admin/SpieltagResultsEditor";
 
 export default function AdminParticipantsPage() {
   const params = useParams<{ id: string }>();
@@ -85,7 +86,7 @@ export default function AdminParticipantsPage() {
   const [copied, setCopied] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [confirmError, setConfirmError] = useState("");
-  const [tab, setTab] = useState<"teilnehmer" | "zuteilung" | "gruppen" | null>(null);
+  const [tab, setTab] = useState<"teilnehmer" | "zuteilung" | "gruppen" | "ergebnisse" | null>(null);
   const exportRef = useRef<HTMLDivElement>(null);
 
   async function toggleInclusion(allocationId: string, included: boolean) {
@@ -254,6 +255,7 @@ export default function AdminParticipantsPage() {
     ...(showCourtGroups
       ? [{ id: "gruppen", label: `${format === "nur_spiel" ? "Courts" : "Gruppen"}${needsPlacement ? " •" : ""}` }]
       : []),
+    ...(termin.type === "spieltag" ? [{ id: "ergebnisse", label: "Ergebnisse" }] : []),
   ];
   // Opens straight on the allocation when a proposal is waiting for approval.
   const wanted = tab ?? (proposalReady ? "zuteilung" : "teilnehmer");
@@ -317,13 +319,27 @@ export default function AdminParticipantsPage() {
           <Tabs
             items={tabItems}
             value={activeTab}
-            onChange={(id) => setTab(id as "teilnehmer" | "zuteilung" | "gruppen")}
+            onChange={(id) => setTab(id as "teilnehmer" | "zuteilung" | "gruppen" | "ergebnisse")}
             size="sm"
             style={{ marginBottom: 14 }}
           />
         )}
 
-        {activeTab === "teilnehmer" && (
+        {termin.type === "turnier" && (
+          <div className={styles.summaryCard}>
+            <div className={styles.sectionLabel}>Anmeldung außerhalb der App</div>
+            <div className={styles.summaryDetails}>
+              {termin.external_hint || "Kein Hinweis hinterlegt."}
+            </div>
+            {termin.external_url && (
+              <Button variant="outline" size="sm" full onClick={() => window.open(termin.external_url ?? "", "_blank", "noopener,noreferrer")}>
+                Anmelde-Link öffnen
+              </Button>
+            )}
+          </div>
+        )}
+
+        {activeTab === "teilnehmer" && termin.type !== "turnier" && (
           <>
             <div className={styles.sectionHeadRow}>
               <div className={styles.sectionLabel}>
@@ -521,6 +537,14 @@ export default function AdminParticipantsPage() {
               </div>
             )}
           </>
+        )}
+
+        {activeTab === "ergebnisse" && termin.type === "spieltag" && (
+          <SpieltagResultsEditor
+            terminId={termin.id}
+            participantIds={participants.map((p) => p.user_id)}
+            teamGroupIds={termin.register_groups}
+          />
         )}
 
         {activeTab === "gruppen" && showCourtGroups && (

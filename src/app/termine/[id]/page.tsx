@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { useRouter } from "@/lib/useGuardedRouter";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Calendar, Clock, Euro, MapPin, Users } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, ExternalLink, Euro, MapPin, Users } from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { IconButton } from "@/components/ui/IconButton";
 import { Badge } from "@/components/ui/Badge";
@@ -47,6 +47,7 @@ import {
 } from "@/lib/domain";
 import { pushWhen } from "@/lib/pushText";
 import { RealtimeProvider } from "@/lib/realtime/RealtimeProvider";
+import { SpieltagResults } from "@/components/SpieltagResults";
 import styles from "./page.module.css";
 import { haptic } from "@/lib/haptics";
 import { triggerPlacement } from "@/lib/placement";
@@ -156,6 +157,78 @@ export default function TerminDetailPage() {
   }
 
   const badge = badgeInfo(termin.type);
+
+  // Turniere (e.g. GPS): no registration in the app — just the facts, the hint
+  // on how to sign up and the link.
+  if (termin.type === "turnier") {
+    const tournamentTitle = withShortCode(termin.title, groupShortCode(termin.register_groups, groups));
+    return (
+      <div className={styles.wrap}>
+        <RealtimeProvider />
+        <AppHeader
+          title={tournamentTitle}
+          back={
+            <IconButton variant="navy" label="Zurück" onClick={() => router.push("/termine")}>
+              <ArrowLeft size={16} color="var(--tp-cream)" strokeWidth={2.5} />
+            </IconButton>
+          }
+          right={
+            profile && ["owner", "trainer", "captain"].includes(profile.role) ? (
+              <Switch checked={false} onChange={() => router.push(`/admin/termine/${terminId}`)} label="Admin" onDark />
+            ) : undefined
+          }
+        />
+        <div className={styles.content}>
+          <div className={styles.badgeRow}>
+            <Badge tone={badge.tone}>{badge.label}</Badge>
+          </div>
+          <div className={styles.title}>{tournamentTitle}</div>
+          {termin.description && <div className={styles.description}>{termin.description}</div>}
+
+          <div className={styles.infoCard}>
+            <div className={styles.infoRow}>
+              <Calendar size={19} color="var(--tp-pink-deep)" strokeWidth={2} />
+              <span>{fullDateLabel(termin.date)}</span>
+            </div>
+            <div className={styles.infoRow}>
+              <Clock size={19} color="var(--tp-pink-deep)" strokeWidth={2} />
+              <span>
+                {hhmm(termin.start_time)}–{hhmm(termin.end_time)} Uhr
+              </span>
+            </div>
+            <div className={styles.infoRow}>
+              <MapPin size={19} color="var(--tp-pink-deep)" strokeWidth={2} />
+              <span>{termin.location}</span>
+            </div>
+            {termin.price != null && (
+              <div className={styles.infoRow}>
+                <Euro size={19} color="var(--tp-pink-deep)" strokeWidth={2} />
+                <span>{formatPrice(termin.price)}</span>
+              </div>
+            )}
+          </div>
+
+          <div className={styles.infoCard}>
+            <div className={styles.sectionLabel}>So meldest du dich an</div>
+            <div className={styles.infoRow}>
+              <span>
+                {termin.external_hint || "Die Anmeldung läuft nicht über die App, sondern über den Link unten."}
+              </span>
+            </div>
+          </div>
+
+          {termin.external_url && (
+            <Button variant="accent" size="lg" full onClick={() => window.open(termin.external_url ?? "", "_blank", "noopener,noreferrer")}>
+              <ExternalLink size={17} strokeWidth={2.3} style={{ marginRight: 6 }} />
+              Zur Anmeldung
+            </Button>
+          )}
+          <div className={styles.metaLine}>Sichtbar für: {groupsLabel(termin.visible_groups, groups)}</div>
+        </div>
+      </div>
+    );
+  }
+
   const userId = profile?.id;
   const inParticipants = !!userId && participants.some((p) => p.user_id === userId);
   const wlIdx = userId ? waitlist.findIndex((p) => p.user_id === userId) : -1;
@@ -343,6 +416,8 @@ export default function TerminDetailPage() {
             )}
           </div>
         )}
+
+        {termin.type === "spieltag" && <SpieltagResults terminId={terminId} />}
 
         <div className={styles.metaLine}>
           Sichtbar für: {groupsLabel(termin.visible_groups, groups)}

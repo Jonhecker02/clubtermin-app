@@ -270,7 +270,7 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                 <li>
                   <span className={styles.dot} />
                   <span>
-                    <b>Filter</b> — Alle · Training · Event · Spieltag und Kommend · Vergangen.
+                    <b>Filter</b> — Alle · Training · Event · Spieltag · Turnier und Kommend · Vergangen.
                   </span>
                 </li>
                 <li>
@@ -280,6 +280,21 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                     siehst du danach „ausstehend“: Die Plätze werden nach dem Anmeldeschluss fair verteilt
                     (siehe nächster Abschnitt). Bei Events und Spieltagen bekommst du direkt einen Platz —
                     ist er voll, landest du auf der <b>Warteliste</b> und rückst bei Absagen nach.
+                  </span>
+                </li>
+                <li>
+                  <span className={styles.dot} />
+                  <span>
+                    <b>Turniere</b> (z. B. GPS) — hier meldest du dich <b>nicht in der App</b> an. Im Termin steht, wie
+                    die Anmeldung läuft, und der Button „Zur Anmeldung“ öffnet den Link des Veranstalters.
+                  </span>
+                </li>
+                <li>
+                  <span className={styles.dot} />
+                  <span>
+                    <b>Spieltag-Ergebnisse</b> — hat der Clubmanager die Ergebnisse eingetragen, siehst du im Spieltag
+                    jede Begegnung (gegen wen) mit den einzelnen Spielen: wer mit wem gespielt hat und wie die Sätze
+                    ausgingen. In der Terminliste steht bei vergangenen Spieltagen direkt das Gesamtergebnis.
                   </span>
                 </li>
               </ul>
@@ -486,7 +501,7 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
               <div className={styles.fieldGrid}>
                 <div className={styles.field}>
                   <div className={styles.k}>Typ</div>
-                  <div className={styles.v}>Training · Event · Spieltag</div>
+                  <div className={styles.v}>Training · Event · Spieltag · Turnier</div>
                 </div>
                 <div className={styles.field}>
                   <div className={styles.k}>Titel, Trainer, Beschreibung</div>
@@ -500,6 +515,13 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                   <div className={styles.k}>Courts</div>
                   <div className={styles.v}>
                     Die sieben Courts antippen, auf denen ihr spielt (bei Events optional)
+                  </div>
+                </div>
+                <div className={styles.field}>
+                  <div className={styles.k}>Turnier</div>
+                  <div className={styles.v}>
+                    Statt Anmeldung in der App: Anmelde-Link (Pflicht) und Hinweis, wie man sich anmeldet. Es gibt keine
+                    Plätze, Warteliste oder Courts.
                   </div>
                 </div>
                 <div className={styles.field}>
@@ -639,6 +661,17 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                     zuerst. Wer nur auf der Warteliste stand, gilt als angemeldet und erscheint hier nicht. Ein Tipp
                     auf „Notiz“ hält fest, was du erfahren hast. Der Clubmanager bekommt dieselbe Liste außerdem
                     jeden Montag (ab 9 Uhr) als Push.
+                  </span>
+                </li>
+                <li>
+                  <span className={styles.dot} />
+                  <span>
+                    <b>Spieltag-Ergebnisse:</b> Im Spieltag den Reiter „Ergebnisse“ öffnen. Pro gegnerischer Mannschaft
+                    legst du eine <b>Begegnung</b> an (z. B. gegen 4PADEL) und wählst, wie viele Spiele sie hat (z. B. 3
+                    Doppel). In jedem Spiel wählst du unsere zwei Spieler, trägst optional die Gegner ein und die Sätze
+                    (z. B. 6:3, 4:6, 10:8). Gespeichert wird pro Spiel; Sieg oder Niederlage und der Stand der
+                    Begegnung (2 : 1) werden automatisch berechnet. An einem Spieltag kannst du beliebig viele
+                    Begegnungen anlegen. Spieler sehen die Ergebnisse in der Termin-Ansicht.
                   </span>
                 </li>
                 <li>
