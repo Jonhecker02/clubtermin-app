@@ -1,3 +1,4 @@
+import { GPS_LABEL } from "@/lib/gps";
 import type { Group, RegistrationStatus, Termin, TerminType, SessionFormat, Gender } from "@/types/database";
 
 // Keep in sync with cancel_registration()'s v_cutoff_hours in supabase/migrations/0001_init.sql
@@ -317,7 +318,7 @@ export function initials(name: string): string {
 export function badgeInfo(type: TerminType): { tone: "navy" | "pink" | "outline"; label: string } {
   if (type === "training") return { tone: "navy", label: "Training" };
   if (type === "event") return { tone: "pink", label: "Event" };
-  if (type === "turnier") return { tone: "pink", label: "Turnier" };
+  if (type === "turnier") return { tone: "pink", label: GPS_LABEL };
   return { tone: "outline", label: "Spieltag" };
 }
 

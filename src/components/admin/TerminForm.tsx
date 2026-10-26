@@ -10,6 +10,7 @@ import { useGroups } from "@/lib/queries/useGroups";
 import { useProfiles } from "@/lib/queries/useProfiles";
 import { dateLabel, formatCourts, groupLabel, hhmm, parseCourts, sessionFormatOf, suggestedRegistrationCloses } from "@/lib/domain";
 import { CourtPicker } from "./CourtPicker";
+import { GPS_DEFAULT_DESCRIPTION, GPS_DEFAULT_HINT, GPS_LABEL } from "@/lib/gps";
 import type { SessionFormat, Termin, TerminType } from "@/types/database";
 import styles from "./AdminList.module.css";
 
@@ -17,7 +18,7 @@ const TYPE_ITEMS = [
   { id: "training", label: "Training" },
   { id: "event", label: "Event" },
   { id: "spieltag", label: "Spieltag" },
-  { id: "turnier", label: "Turnier" },
+  { id: "turnier", label: GPS_LABEL },
 ];
 
 const SESSION_FORMAT_OPTIONS: { id: SessionFormat; label: string; hint: string }[] = [
@@ -177,6 +178,15 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
     setRegGroups(next);
   }
 
+  // Choosing GPS on a new termin fills in the standard texts (still editable).
+  function handleTypeChange(next: TerminType) {
+    setType(next);
+    if (next === "turnier" && !initial) {
+      if (!externalHint.trim()) setExternalHint(GPS_DEFAULT_HINT);
+      if (!description.trim()) setDescription(GPS_DEFAULT_DESCRIPTION);
+    }
+  }
+
   async function submit() {
     if (!title.trim() || !date || !startTime || !endTime || (!isTurnier && !maxTn) || (needsCourts && courts.length === 0)) {
       setError("Bitte fülle alle Pflichtfelder aus.");
@@ -281,7 +291,7 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
 
   return (
     <div className={styles.form}>
-      <Tabs items={TYPE_ITEMS} value={type} onChange={(id) => setType(id as TerminType)} />
+      <Tabs items={TYPE_ITEMS} value={type} onChange={(id) => handleTypeChange(id as TerminType)} />
 
       <FormSection title="Grunddaten">
         <Input label="Titel" placeholder="z. B. Trainingsgruppe A" value={title} onChange={(e) => setTitle(e.target.value)} />

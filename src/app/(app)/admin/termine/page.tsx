@@ -4,7 +4,7 @@ import { Suspense, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "@/lib/useGuardedRouter";
-import { Plus } from "lucide-react";
+import { FileUp, Plus } from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { PageBody } from "@/components/layout/PageBody";
 import { IconButton } from "@/components/ui/IconButton";
@@ -153,9 +153,14 @@ export default function AdminTerminePage() {
 
         <div className={styles.countRow}>
           <span className={styles.count}>{filtered.length} Termine</span>
-          <IconButton variant="accent" label="Neuer Termin" onClick={() => router.push("/admin/termine/neu")}>
-            <Plus size={20} strokeWidth={2.5} />
-          </IconButton>
+          <div style={{ display: "flex", gap: 8 }}>
+            <IconButton variant="soft" label="GPS-Turniere importieren" onClick={() => router.push("/admin/termine/gps-import")}>
+              <FileUp size={18} strokeWidth={2.2} />
+            </IconButton>
+            <IconButton variant="accent" label="Neuer Termin" onClick={() => router.push("/admin/termine/neu")}>
+              <Plus size={20} strokeWidth={2.5} />
+            </IconButton>
+          </div>
         </div>
 
         {isLoading && <SkeletonEventList />}

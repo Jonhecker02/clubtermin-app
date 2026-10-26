@@ -270,7 +270,7 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                 <li>
                   <span className={styles.dot} />
                   <span>
-                    <b>Filter</b> — Alle · Training · Event · Spieltag · Turnier und Kommend · Vergangen.
+                    <b>Filter</b> — Alle · Training · Event · Spieltag · GPS und Kommend · Vergangen.
                   </span>
                 </li>
                 <li>
@@ -285,7 +285,7 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                 <li>
                   <span className={styles.dot} />
                   <span>
-                    <b>Turniere</b> (z. B. GPS) — hier meldest du dich <b>nicht in der App</b> an. Im Termin steht, wie
+                    <b>GPS</b> (German Padel Series, Turniere bei The Padellers Essen) — hier meldest du dich <b>nicht in der App</b> an, sondern über das DPV-Portal. Im Termin steht, wie
                     die Anmeldung läuft, und der Button „Zur Anmeldung“ öffnet den Link des Veranstalters.
                   </span>
                 </li>
@@ -501,7 +501,7 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
               <div className={styles.fieldGrid}>
                 <div className={styles.field}>
                   <div className={styles.k}>Typ</div>
-                  <div className={styles.v}>Training · Event · Spieltag · Turnier</div>
+                  <div className={styles.v}>Training · Event · Spieltag · GPS</div>
                 </div>
                 <div className={styles.field}>
                   <div className={styles.k}>Titel, Trainer, Beschreibung</div>
@@ -518,7 +518,7 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                   </div>
                 </div>
                 <div className={styles.field}>
-                  <div className={styles.k}>Turnier</div>
+                  <div className={styles.k}>GPS</div>
                   <div className={styles.v}>
                     Statt Anmeldung in der App: Anmelde-Link (Pflicht) und Hinweis, wie man sich anmeldet. Es gibt keine
                     Plätze, Warteliste oder Courts.
@@ -661,6 +661,16 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                     zuerst. Wer nur auf der Warteliste stand, gilt als angemeldet und erscheint hier nicht. Ein Tipp
                     auf „Notiz“ hält fest, was du erfahren hast. Der Clubmanager bekommt dieselbe Liste außerdem
                     jeden Montag (ab 9 Uhr) als Push.
+                  </span>
+                </li>
+                <li>
+                  <span className={styles.dot} />
+                  <span>
+                    <b>GPS-Turniere per Monatsplan anlegen:</b> In der Terminliste auf das Upload-Symbol neben dem Plus
+                    tippen und den Monatsplan (PDF oder Foto) auswählen. Alle Turniere werden erkannt, der Anmelde-Link
+                    kommt aus dem QR-Code auf dem Plan. In der Vorschau kannst du Zeilen abwählen oder korrigieren; Termine,
+                    die es schon gibt, sind abgewählt. Hinweis, Beschreibung und Dauer (die Pläne nennen nur den Start)
+                    gelten für alle importierten Termine und lassen sich später pro Termin ändern.
                   </span>
                 </li>
                 <li>

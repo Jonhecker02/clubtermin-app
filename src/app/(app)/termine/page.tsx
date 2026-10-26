@@ -43,7 +43,7 @@ const FILTER_ITEMS = [
   { id: "training", label: "Training" },
   { id: "event", label: "Event" },
   { id: "spieltag", label: "Spieltag" },
-  { id: "turnier", label: "Turnier" },
+  { id: "turnier", label: "GPS" },
 ];
 
 const TIME_ITEMS = [
