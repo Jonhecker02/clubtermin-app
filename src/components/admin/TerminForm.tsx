@@ -10,7 +10,7 @@ import { useGroups } from "@/lib/queries/useGroups";
 import { useProfiles } from "@/lib/queries/useProfiles";
 import { dateLabel, formatCourts, groupLabel, hhmm, parseCourts, sessionFormatOf, suggestedRegistrationCloses } from "@/lib/domain";
 import { CourtPicker } from "./CourtPicker";
-import { GPS_DEFAULT_DESCRIPTION, GPS_DEFAULT_HINT, GPS_LABEL } from "@/lib/gps";
+import { GPS_DEFAULT_DESCRIPTION, GPS_DEFAULT_HINT, GPS_DEFAULT_LINK, GPS_LABEL } from "@/lib/gps";
 import type { SessionFormat, Termin, TerminType } from "@/types/database";
 import styles from "./AdminList.module.css";
 
@@ -182,6 +182,7 @@ export function TerminForm({ initial, submitLabel, onSubmit }: TerminFormProps) 
   function handleTypeChange(next: TerminType) {
     setType(next);
     if (next === "turnier" && !initial) {
+      if (!externalUrl.trim()) setExternalUrl(GPS_DEFAULT_LINK);
       if (!externalHint.trim()) setExternalHint(GPS_DEFAULT_HINT);
       if (!description.trim()) setDescription(GPS_DEFAULT_DESCRIPTION);
     }

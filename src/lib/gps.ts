@@ -5,6 +5,8 @@ export const GPS_LABEL = "GPS";
 export const GPS_DEFAULT_HINT = "Ggf. schon voll. Anmeldung über das DPV-Portal. Lizenz je nach Klasse erforderlich.";
 export const GPS_DEFAULT_DESCRIPTION =
   "Turniere der offiziellen German Padel Series – hier nur Termine, die bei The Padellers Essen stattfinden.";
+// The DPV portal page of the club (the QR code on the monthly schedule points here).
+export const GPS_DEFAULT_LINK = "https://portal.dpv-padel.de/venues/6f01ce86-917e-496f-9419-c5f583a930a9?tab=calendar";
 export const GPS_DEFAULT_LOCATION = "The Padellers Essen";
 // Flyers only print the start; tournaments run for several hours.
 export const GPS_DEFAULT_DURATION_HOURS = 5;

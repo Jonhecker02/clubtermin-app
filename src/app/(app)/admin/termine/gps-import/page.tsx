@@ -20,6 +20,7 @@ import {
   GPS_DEFAULT_DESCRIPTION,
   GPS_DEFAULT_DURATION_HOURS,
   GPS_DEFAULT_HINT,
+  GPS_DEFAULT_LINK,
   GPS_DEFAULT_LOCATION,
   addHours,
   inferYear,
@@ -85,7 +86,8 @@ export default function GpsImportPage() {
       setBusy("QR-Code wird gesucht …");
       const qr = await decodeQr(flyer.imageData);
       const code = qr && isValidLink(qr) ? qr : "";
-      setLink(code);
+      // No (readable) QR code: fall back to the club's standard link.
+      setLink(code || GPS_DEFAULT_LINK);
       setLinkFromQr(!!code);
 
       const entries = flyer.entries;
@@ -229,8 +231,10 @@ export default function GpsImportPage() {
                 {linkFromQr
                   ? "Aus dem QR-Code gelesen ✓"
                   : isValidLink(link)
-                    ? "Von dir eingetragen."
-                    : "Im Bild wurde kein QR-Code gefunden. Bitte den Link von Hand eintragen."}
+                    ? link === GPS_DEFAULT_LINK
+                      ? "Standard-Link (im PDF wurde kein QR-Code gefunden)."
+                      : "Von dir eingetragen."
+                    : "Bitte einen gültigen Link eintragen."}
               </div>
             </div>
 
