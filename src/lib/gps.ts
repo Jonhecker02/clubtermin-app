@@ -66,3 +66,69 @@ export function normalizeTime(raw: string): string | null {
 export function isValidLink(link: string): boolean {
   return /^https?:\/\/\S+\.\S+$/i.test(link.trim());
 }
+
+// ---- Reading the club's schedule PDF without any AI -----------------------
+// The PDF stores weekday, date and title as real text, laid out as one row per
+// tournament. Rows are found by their date ("01.11."), the weekday sits just
+// above it, the title to its right. (The start times are drawn as shapes, not
+// text — they are read separately.)
+
+export interface TextBit {
+  str: string;
+  x: number;
+  y: number; // PDF coordinates: grows upward
+}
+
+export interface GpsTextRow {
+  weekday: string;
+  day: number;
+  month: number;
+  title: string;
+  // Vertical middle of the row in PDF coordinates.
+  y: number;
+}
+
+const WEEKDAY_RE = /^(MO|DI|MI|DO|FR|SA|SO)$/;
+const DATE_RE = /^(\d{1,2})\.(\d{1,2})\.$/;
+
+export function rowsFromTextBits(bits: TextBit[]): { rows: GpsTextRow[]; pitch: number } {
+  const clean = bits.map((b) => ({ ...b, str: b.str.trim() })).filter((b) => b.str !== "");
+  const dates = clean.filter((b) => DATE_RE.test(b.str)).sort((a, b) => b.y - a.y);
+  if (dates.length === 0) return { rows: [], pitch: 0 };
+
+  const gaps = dates.slice(1).map((d, i) => dates[i].y - d.y).filter((g) => g > 1);
+  const pitch = gaps.length > 0 ? [...gaps].sort((a, b) => a - b)[Math.floor(gaps.length / 2)] : 40;
+
+  const rows: GpsTextRow[] = [];
+  for (const date of dates) {
+    const [, d, m] = date.str.match(DATE_RE)!;
+    // Weekday: same column, directly above the date.
+    const weekday = clean
+      .filter((b) => WEEKDAY_RE.test(b.str) && Math.abs(b.x - date.x) < 12 && b.y > date.y && b.y - date.y < pitch * 0.8)
+      .sort((a, b) => a.y - b.y)[0];
+    const middle = weekday ? (weekday.y + date.y) / 2 : date.y + pitch * 0.2;
+    // Title: everything to the right of the date on this row.
+    const title = clean
+      .filter((b) => b.x > date.x + 25 && Math.abs(b.y - middle) < pitch * 0.45 && !DATE_RE.test(b.str) && !WEEKDAY_RE.test(b.str))
+      .sort((a, b) => a.x - b.x)
+      .map((b) => b.str)
+      .join(" ")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (!title) continue;
+    rows.push({ weekday: weekday?.str ?? "", day: Number(d), month: Number(m), title, y: middle });
+  }
+  return { rows, pitch };
+}
+
+// "1800" / "10:00" / "1 1:00" / "930" -> "HH:MM", or null when it is not a time.
+export function timeFromOcr(raw: string): string | null {
+  const digits = raw.replace(/\D/g, "");
+  if (digits.length !== 3 && digits.length !== 4) return null;
+  const hours = digits.length === 3 ? digits.slice(0, 1) : digits.slice(0, 2);
+  const minutes = digits.slice(-2);
+  const h = Number(hours);
+  const m = Number(minutes);
+  if (h > 23 || m > 59) return null;
+  return `${pad(h)}:${pad(m)}`;
+}

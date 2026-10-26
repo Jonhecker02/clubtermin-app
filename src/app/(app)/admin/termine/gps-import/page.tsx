@@ -26,7 +26,6 @@ import {
   isValidLink,
   isoDate,
   normalizeTime,
-  type GpsEntry,
 } from "@/lib/gps";
 import adminStyles from "@/components/admin/AdminList.module.css";
 import styles from "./page.module.css";
@@ -40,17 +39,11 @@ interface Row {
   duplicate: boolean;
   // The printed weekday does not fit the date — worth a look.
   check: boolean;
+  // The start time could not be read; 10:00 is only a placeholder.
+  timeMissing: boolean;
 }
 
 const DURATION_OPTIONS = [3, 4, 5, 6, 8];
-
-const ERROR_TEXT: Record<string, string> = {
-  not_configured: "Die automatische Erkennung ist noch nicht eingerichtet (API-Schlüssel fehlt). Du kannst die Termine unten von Hand anlegen.",
-  rate_limited: "Zu viele Importe in kurzer Zeit. Bitte versuche es später noch einmal.",
-  unreadable: "Das Bild konnte nicht gelesen werden. Ein schärferes Foto oder das PDF hilft.",
-  refused: "Die Erkennung hat dieses Bild abgelehnt.",
-  busy: "Die Erkennung ist gerade ausgelastet. Bitte versuche es gleich noch einmal.",
-};
 
 let rowCounter = 0;
 const nextId = () => `row-${++rowCounter}`;
@@ -89,37 +82,29 @@ export default function GpsImportPage() {
       setBusy("Datei wird geöffnet …");
       const flyer = await loadFlyer(file);
 
-      setBusy("QR-Code und Termine werden erkannt …");
-      const [qr, response] = await Promise.all([
-        decodeQr(flyer.imageData),
-        fetch("/api/admin/gps-import", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ image: flyer.jpegBase64, media_type: "image/jpeg" }),
-        }),
-      ]);
-
+      setBusy("QR-Code wird gesucht …");
+      const qr = await decodeQr(flyer.imageData);
       const code = qr && isValidLink(qr) ? qr : "";
       setLink(code);
       setLinkFromQr(!!code);
 
-      if (!response.ok) {
-        const data = (await response.json().catch(() => ({}))) as { error?: string };
-        setError(ERROR_TEXT[data.error ?? ""] ?? "Die Erkennung hat nicht geklappt. Bitte versuche es noch einmal.");
+      const entries = flyer.entries;
+      if (!entries) {
+        setError("Dieser Plan konnte nicht gelesen werden. Es wird das PDF des Monatsplans erwartet. Du kannst die Termine unten von Hand anlegen (Plus).");
         setRows([]);
         return;
       }
-      const { entries } = (await response.json()) as { entries: GpsEntry[] };
       const built = entries.map((e): Row => {
         const { year, matched } = inferYear(e);
-        const base = { date: isoDate(year, e.month, e.day), time: normalizeTime(e.time) ?? "10:00", title: e.title.trim() };
+        const time = normalizeTime(e.time);
+        const base = { date: isoDate(year, e.month, e.day), time: time ?? "10:00", title: e.title.trim() };
         const duplicate = isDuplicate(base);
-        return { id: nextId(), include: !duplicate, ...base, duplicate, check: !matched };
+        return { id: nextId(), include: !duplicate, ...base, duplicate, check: !matched, timeMissing: time === null };
       });
       setRows(built);
       if (built.length === 0) setError("Auf dem Bild wurden keine Termine erkannt.");
     } catch {
-      setError("Die Datei konnte nicht gelesen werden. Bitte versuche ein PDF oder ein Foto (JPG/PNG).");
+      setError("Die Datei konnte nicht geöffnet werden. Bitte wähle das PDF des Monatsplans.");
     } finally {
       setBusy("");
       if (fileInput.current) fileInput.current.value = "";
@@ -131,14 +116,14 @@ export default function GpsImportPage() {
       (list ?? []).map((r) => {
         if (r.id !== id) return r;
         const next = { ...r, ...change };
-        return { ...next, duplicate: isDuplicate(next), check: change.date ? false : r.check };
+        return { ...next, duplicate: isDuplicate(next), check: change.date ? false : r.check, timeMissing: change.time ? false : r.timeMissing };
       }),
     );
   }
 
   function addRow() {
     const id = nextId();
-    setRows((list) => [...(list ?? []), { id, include: true, date: "", time: "10:00", title: "GPS ", duplicate: false, check: false }]);
+    setRows((list) => [...(list ?? []), { id, include: true, date: "", time: "10:00", title: "GPS ", duplicate: false, check: false, timeMissing: false }]);
     setEditingId(id);
   }
 
@@ -202,14 +187,14 @@ export default function GpsImportPage() {
         </div>
 
         <div className={styles.intro}>
-          Lade den Monatsplan (PDF oder Foto) hoch. Alle Turniere werden erkannt, der Anmelde-Link kommt aus dem QR-Code.
+          Lade das PDF des Monatsplans hoch. Alle Turniere werden erkannt, der Anmelde-Link kommt aus dem QR-Code.
           Du siehst vorher eine Vorschau.
         </div>
 
         <input
           ref={fileInput}
           type="file"
-          accept="application/pdf,image/*"
+          accept="application/pdf"
           className={styles.hiddenInput}
           onChange={(e) => {
             const file = e.target.files?.[0];
@@ -218,7 +203,7 @@ export default function GpsImportPage() {
         />
         <Button variant={rows ? "outline" : "accent"} size="lg" full disabled={!!busy || saving} onClick={() => fileInput.current?.click()}>
           <FileUp size={18} strokeWidth={2.2} style={{ marginRight: 8 }} />
-          {rows ? "Andere Datei wählen" : "PDF oder Foto auswählen"}
+          {rows ? "Andere Datei wählen" : "PDF auswählen"}
         </Button>
 
         {busy && <div className={styles.busy}>{busy}</div>}
@@ -276,6 +261,7 @@ export default function GpsImportPage() {
                       </div>
                       {r.duplicate && <div className={styles.warnNote}>Gibt es schon in der App</div>}
                       {r.check && !r.duplicate && <div className={styles.warnNote}>Bitte prüfen: Wochentag passt nicht zum Datum</div>}
+                      {r.timeMissing && <div className={styles.warnNote}>Bitte prüfen: Uhrzeit wurde nicht erkannt</div>}
                     </div>
                     <IconButton
                       variant="ghost"

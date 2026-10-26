@@ -667,10 +667,11 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
                   <span className={styles.dot} />
                   <span>
                     <b>GPS-Turniere per Monatsplan anlegen:</b> In der Terminliste auf das Upload-Symbol neben dem Plus
-                    tippen und den Monatsplan (PDF oder Foto) auswählen. Alle Turniere werden erkannt, der Anmelde-Link
-                    kommt aus dem QR-Code auf dem Plan. In der Vorschau kannst du Zeilen abwählen oder korrigieren; Termine,
-                    die es schon gibt, sind abgewählt. Hinweis, Beschreibung und Dauer (die Pläne nennen nur den Start)
-                    gelten für alle importierten Termine und lassen sich später pro Termin ändern.
+                    tippen und das PDF des Monatsplans auswählen. Alle Turniere (Datum, Titel, Uhrzeit) werden direkt aus
+                    dem PDF gelesen, der Anmelde-Link kommt aus dem QR-Code auf dem Plan — alles in der App, ohne
+                    Daten zu verschicken. In der Vorschau kannst du Zeilen abwählen oder korrigieren; Termine, die es
+                    schon gibt, sind abgewählt. Hinweis, Beschreibung und Dauer (der Plan nennt nur den Start) gelten
+                    für alle importierten Termine und lassen sich später pro Termin ändern.
                   </span>
                 </li>
                 <li>

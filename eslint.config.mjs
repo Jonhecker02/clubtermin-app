@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Third-party files we serve as they are (service worker, pdf.js / OCR assets).
+    "public/**",
   ]),
 ]);
 
