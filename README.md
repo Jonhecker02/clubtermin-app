@@ -5,6 +5,8 @@ Next.js (App Router) + Supabase (Auth, Postgres, Realtime) Umsetzung des Design-
 
 ## Setup
 
+Gerätewechsel / neuer Rechner: siehe [`DEVELOPMENT.md`](./DEVELOPMENT.md).
+
 1. Supabase-Projekt einrichten: Schritt-für-Schritt-Anleitung in [`SUPABASE_SETUP.md`](./SUPABASE_SETUP.md).
 2. `.env.local` mit den Supabase-Keys befüllen (siehe `.env.example`).
 3. `npm install`
