@@ -33,7 +33,7 @@ Ohne Vercel-CLI: `.env.example` nach `.env.local` kopieren und die Werte aus Sup
 ```bash
 npm install
 npx cap sync ios
-open ios/App/App.xcworkspace   # falls vorhanden, sonst App.xcodeproj
+open ios/App/App.xcodeproj
 ```
 
 - Die App lädt die Oberfläche live von `server.url` in `capacitor.config.ts`
