@@ -49,7 +49,7 @@ export default function AdminSpielerPage() {
   // "liste" = by group; "klassen" = by age class (team planning).
   const [view, setView] = useState<"liste" | "klassen">("liste");
   const seasonNow = new Date().getFullYear();
-  const [season, setSeason] = useState(seasonNow);
+  const season = seasonNow;
   // "m-0" = Herren Offen, "w-35" = Damen 35, "fehlt" = details missing
   const [klasse, setKlasse] = useState("m-0");
   const [selected, setSelected] = useState<SheetPlayer | null>(null);
@@ -180,16 +180,6 @@ export default function AdminSpielerPage() {
         )}
         {view === "klassen" && (
           <>
-            <Tabs
-              items={[
-                { id: String(seasonNow), label: `Saison ${seasonNow}` },
-                { id: String(seasonNow + 1), label: `Saison ${seasonNow + 1}` },
-              ]}
-              value={String(season)}
-              onChange={(id) => setSeason(Number(id))}
-              size="sm"
-              style={{ marginBottom: 10 }}
-            />
             <Tabs items={klassenItems} value={klasse} onChange={setKlasse} size="sm" scrollable style={{ marginBottom: 12 }} />
             {klasse !== "fehlt" && activeCount && (
               <div className={styles.classSummary}>
