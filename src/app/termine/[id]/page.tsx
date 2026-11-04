@@ -59,6 +59,9 @@ export default function TerminDetailPage() {
   const queryClient = useQueryClient();
 
   const { data: profile } = useProfile();
+  // Who may see a termin and who may register is admin information; players
+  // just see the termin (or don't).
+  const isStaff = !!profile && ["owner", "trainer", "captain"].includes(profile.role);
   const { data: termine = [] } = useTermine();
   const { data: groups = [] } = useGroups();
   const { data: registrations = [], isLoading: registrationsLoading } = useRegistrationsForTermin(terminId);
@@ -223,7 +226,7 @@ export default function TerminDetailPage() {
               Zur Anmeldung
             </Button>
           )}
-          <div className={styles.metaLine}>Sichtbar für: {groupsLabel(termin.visible_groups, groups)}</div>
+          {isStaff && <div className={styles.metaLine}>Sichtbar für: {groupsLabel(termin.visible_groups, groups)}</div>}
         </div>
       </div>
     );
@@ -419,11 +422,13 @@ export default function TerminDetailPage() {
 
         {termin.type === "spieltag" && <SpieltagResults terminId={terminId} />}
 
-        <div className={styles.metaLine}>
-          Sichtbar für: {groupsLabel(termin.visible_groups, groups)}
-          <br />
-          Anmeldung offen für: {groupsLabel(termin.register_groups, groups)}
-        </div>
+        {isStaff && (
+          <div className={styles.metaLine}>
+            Sichtbar für: {groupsLabel(termin.visible_groups, groups)}
+            <br />
+            Anmeldung offen für: {groupsLabel(termin.register_groups, groups)}
+          </div>
+        )}
 
         <div className={styles.sectionHead}>
           <span className={styles.sectionLabel}>Teilnehmer</span>

@@ -26,7 +26,7 @@
 }
 
 .person {
-  flex: 1;
+  flex: 1 1 0;
   min-width: 0;
   display: flex;
   align-items: center;
@@ -126,7 +126,7 @@
 
 .levelInput {
   width: 78px;
-  flex-shrink: 0;
+  flex: 0 0 78px;
 }
 
 .classSummary {

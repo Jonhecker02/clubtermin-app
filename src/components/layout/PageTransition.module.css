@@ -3,15 +3,15 @@
 }
 
 .fade {
-  animation: fadeIn 220ms var(--ease-out) both;
+  animation: fadeIn 120ms var(--ease-out) both;
 }
 
 .forward {
-  animation: slideInRight 360ms var(--ease-out) both;
+  animation: slideInRight 240ms var(--ease-out) both;
 }
 
 .back {
-  animation: slideInLeft 320ms var(--ease-out) both;
+  animation: slideInLeft 200ms var(--ease-out) both;
 }
 
 @keyframes fadeIn {

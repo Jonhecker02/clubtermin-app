@@ -2,6 +2,12 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+/* :where() keeps this at zero specificity, so a width set through className
+   (e.g. a narrow number field in a row) always wins, whatever the order the
+   stylesheets load in. */
+:where(.field) {
   width: 100%;
 }
 
