@@ -101,7 +101,7 @@ function HomeScreenSection({ idPrefix }: { idPrefix: string }) {
           <video
             className={styles.howtoVideo}
             src="/videos/android-installieren.mp4"
-            poster="/videos/android-installieren-poster.jpg"
+            poster="/videos/android-installieren-titel.jpg"
             controls
             playsInline
             preload="metadata"
