@@ -54,13 +54,11 @@ function HomeScreenSection({ idPrefix }: { idPrefix: string }) {
   return (
     <section className={styles.card} id={`${idPrefix}-home`}>
       <Eyebrow icon={<Smartphone size={20} strokeWidth={2} />} label="Empfohlen" />
-      <h2>Zum Home-Bildschirm hinzufügen &amp; Benachrichtigungen</h2>
+      <h2>App installieren &amp; Benachrichtigungen</h2>
       <p className={styles.lede}>
-        Damit startet ClubTermine wie eine echte App direkt von deinem Homescreen — ohne Browser-Leiste
-        drumherum. So bekommst du auch <b>Benachrichtigungen</b>, z. B. wenn die Zuteilung feststeht oder
-        du von der Warteliste nachrückst. Auf dem iPhone geht das <b>nur</b>, wenn die App auf dem
-        Home-Bildschirm liegt. Auf Android klappt es auch direkt im Chrome-Browser, mit der installierten
-        App ist es aber zuverlässiger.
+        Auf dem iPhone lädst du ClubTermine als App aus dem <b>App Store</b>. So bekommst du auch{" "}
+        <b>Benachrichtigungen</b>, z. B. wenn die Zuteilung feststeht oder du von der Warteliste
+        nachrückst. Auf Android nutzt du ClubTermine im Chrome-Browser und legst es auf den Startbildschirm.
       </p>
       <div className={styles.platformToggle} role="tablist" aria-label="Plattform wählen">
         <button
@@ -70,7 +68,7 @@ function HomeScreenSection({ idPrefix }: { idPrefix: string }) {
           className={`${styles.platformToggleBtn} ${platform === "ios" ? styles.platformToggleBtnActive : ""}`}
           onClick={() => setPlatform("ios")}
         >
-          iPhone (Safari)
+          iPhone (App Store)
         </button>
         <button
           type="button"
@@ -86,20 +84,15 @@ function HomeScreenSection({ idPrefix }: { idPrefix: string }) {
         <Steps
           items={[
             <>
-              Öffne ClubTermine in <b>Safari</b> (auf dem iPhone geht das nur in Safari, nicht in Chrome oder
-              Instagram).
-            </>,
-            <>Tippe unten auf das Teilen-Symbol (Quadrat mit Pfeil nach oben).</>,
-            <>
-              Scrolle im Menü nach unten und wähle <code>Zum Home-Bildschirm</code>.
+              Öffne den <b>App Store</b> und suche nach <b>„ClubTermine“</b>.
             </>,
             <>
-              Tippe oben rechts auf <b>„Hinzufügen“</b>.
+              Tippe auf <b>„Laden“</b> und öffne die App.
             </>,
+            <>Melde dich mit deinem Vor- und Nachnamen und deinem Passwort an.</>,
             <>
-              Öffne ClubTermine jetzt <b>vom Home-Bildschirm</b> (nicht aus Safari), gehe unten auf{" "}
-              <b>Profil</b> und tippe auf <b>„Push-Benachrichtigungen aktivieren“</b>. Erlaube die
-              Mitteilungen.
+              Gehe unten auf <b>Profil</b> und tippe auf <b>„Push-Benachrichtigungen aktivieren“</b>. Erlaube
+              die Mitteilungen.
             </>,
           ]}
         />
@@ -206,8 +199,8 @@ export function AnleitungContent({ audience }: AnleitungContentProps) {
             <p className={styles.intro}>
               ClubTermine ist die App deines Clubs für Trainings, Events und Spieltage: Hier meldest du dich an,
               siehst deine Termine und bekommst Bescheid, wenn etwas ansteht. Diese Seite erklärt alles, was du
-              dafür brauchst. <b>Am besten fügst du die App zuerst zu deinem Home-Bildschirm hinzu</b>{" "}
-              (Abschnitt 2), dann fühlt sie sich wie eine echte App an und du bekommst Benachrichtigungen.
+              dafür brauchst. <b>Am besten lädst du zuerst die App aus dem App Store</b>{" "}
+              (Abschnitt 2), dann bekommst du auch Benachrichtigungen.
             </p>
 
             <nav className={styles.jumpnav} aria-label="Abschnitte">

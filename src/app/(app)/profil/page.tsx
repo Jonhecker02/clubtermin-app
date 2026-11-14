@@ -302,8 +302,8 @@ export default function ProfilPage() {
           <div className={styles.icalBox}>
             {push.iosNeedsInstall ? (
               <div className={styles.icalHint}>
-                Für Push-Benachrichtigungen auf dem iPhone: diese Seite zuerst über &bdquo;Teilen&ldquo; →
-                &bdquo;Zum Home-Bildschirm&ldquo; hinzufügen und von dort aus öffnen.
+                Für Push-Benachrichtigungen auf dem iPhone: ClubTermine aus dem App Store laden und dort
+                anmelden.
               </div>
             ) : push.supported ? (
               <>
