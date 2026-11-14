@@ -1,4 +1,4 @@
-# Übergabe-Notizen (Stand 2026-11-14)
+# Übergabe-Notizen (Stand 2026-11-14, nach Einreichung)
 
 Als Erstes lesen, wenn man auf einem Gerät weiterarbeitet. Setup: `DEVELOPMENT.md`.
 
@@ -26,3 +26,10 @@ iOS-App zeigt beim Kaltstart ein 404 (Web im Browser ist ok).
 - Neu: schnellere Admin-Tabs, Spieler-Layout repariert, "Sichtbar für" nur für Admins, Saison-Reiter entfernt, `ci_scripts/ci_post_clone.sh` für Xcode Cloud.
 - Offen: Vercel hat die Commits von Claude (Autor `Claude <noreply@anthropic.com>`) nicht deployt. Ab jetzt committet Claude unter dem GitHub-Namen des Besitzers (mit Hinweis im Chat).
 - Demo-Zugang für Apple: `appstore/REVIEW_ACCESS.local.txt` und `.env.local` liegen nur auf Mac 1.
+
+## Einreichung (2026-11-14)
+- Version 1.0 (Build 1) ist bei Apple zur Prüfung eingereicht (Veröffentlichung: manuell nach Freigabe).
+- Arbeit läuft ab jetzt auf Mac 2 (`~/Documents/clubtermin-app`); Mac 1 ist überflüssig. `.env.local` dort mit Vercel-Pull + 3 Supabase-Werten befüllt.
+- Während der Prüfung: Demo-Konten "Apple Review" / "Apple Review Trainer" (Gruppe APPREVIEW) NICHT löschen, Login und Demo-Termine nicht kaputt machen.
+- Demo-Termine liegen 3/5/10 Tage ab 2026-11-14 in der Zukunft; bei Rückfrage "keine Termine": Skript mit `--remove` und neu laufen lassen.
+- Danach: App manuell veröffentlichen, Anleitungslink erst dann an das Team schicken (Text verweist auf den App Store). Ideen danach: Liquid-Glass-Look per CSS, Performance.
