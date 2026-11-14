@@ -93,7 +93,7 @@ Zu erwarten ist eine Freigabe ab **4 Jahren**. Apple berechnet sie aus den Antwo
 
 ## Screenshots
 
-Pflicht: iPhone **6,9 Zoll** (1320 × 2868 px, z. B. iPhone 16/17 Pro Max im Simulator). Apple skaliert für kleinere Geräte. 3–5 Stück empfohlen, mit dem Demo-Zugang „Apple Review“ aufnehmen:
+Pflicht (Stand Nov. 2026, so fragt App Store Connect): iPhone mit Dynamic Island, **6,1"/6,3"** – Größen 1206 × 2622 px (z. B. iPhone 16/17 Pro im Simulator) oder 1179 × 2556 px. Apple skaliert für andere Geräte. 3–5 Stück empfohlen, mit dem Demo-Zugang „Apple Review“ aufnehmen:
 
 1. Terminliste (Training mit Anmeldestand)
 2. Termindetail mit Anmelden-Button und Teilnehmerliste
