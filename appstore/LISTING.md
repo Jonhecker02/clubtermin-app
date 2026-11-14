@@ -8,7 +8,7 @@ Alle Texte sind Deutsch (Primärsprache der App: Deutsch). Zeichenlimits sind ei
 |---|---|---|
 | App-Name | `ClubTermine` | 30 |
 | Alternative, falls vergeben | `ClubTermine – Team & Training` | 30 |
-| Untertitel | `Training, Spieltage, Courts` | 30 |
+| Untertitel | `Training, Spieltage, Events` | 30 |
 
 > Ob „ClubTermine“ frei ist, zeigt App Store Connect beim Anlegen der App sofort. Ist der Name vergeben, die Alternative nehmen.
 
@@ -70,7 +70,7 @@ Erste Version von ClubTermine.
 |---|---|
 | Kategorie primär | Sport |
 | Kategorie sekundär | Produktivität |
-| Copyright | `2026 [NAME DES BETREIBERS]` |
+| Copyright | `2026 Jonas Eliah Hecker` |
 | Support-URL | `https://www.clubtermine.online/support` |
 | Marketing-URL (optional) | `https://www.clubtermine.online/anleitung` |
 | Datenschutz-URL | `https://www.clubtermine.online/privacy` |
