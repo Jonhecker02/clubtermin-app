@@ -131,7 +131,7 @@ export default function AdminGruppenPage() {
                   <div className={styles.headRow}>
                     <div className={styles.nameCol}>
                       <span className={styles.groupName}>
-                        {g.short_code && <span className={styles.shortCode}>{g.short_code} - </span>}
+                        {g.short_code && g.short_code.trim().toLowerCase() !== g.name.trim().toLowerCase() && <span className={styles.shortCode}>{g.short_code} - </span>}
                         {g.name}
                       </span>
                       <span className={styles.groupCode}>{g.code}</span>

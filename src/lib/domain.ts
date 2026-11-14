@@ -323,7 +323,9 @@ export function badgeInfo(type: TerminType): { tone: "navy" | "pink" | "outline"
 }
 
 export function groupLabel(g: Pick<Group, "name" | "short_code">): string {
-  return g.short_code ? `${g.short_code} - ${g.name}` : g.name;
+  // A short code identical to the name would read "D00 - D00".
+  if (!g.short_code || g.short_code.trim().toLowerCase() === g.name.trim().toLowerCase()) return g.name;
+  return `${g.short_code} - ${g.name}`;
 }
 
 export function groupsLabel(ids: string[], groups: Pick<Group, "id" | "name" | "short_code">[]): string {

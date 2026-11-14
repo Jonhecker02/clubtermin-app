@@ -472,3 +472,14 @@ button.sumCard {
   margin: 0;
   padding: 0 16px 14px;
 }
+
+.foldsBottom {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.foldsBottom .fold {
+  margin-bottom: 0;
+}

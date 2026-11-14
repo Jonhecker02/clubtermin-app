@@ -440,6 +440,7 @@ export default function AdminTeilnahmePage() {
           {!isPending && rows.length === 0 && <div className={adminStyles.empty}>Keine Spieler für diese Auswahl.</div>}
         </div>
 
+        <div className={styles.foldsBottom}>
         {guestRows.length > 0 && (
           <div className={styles.fold}>
             <button type="button" className={styles.foldHead} onClick={() => setGuestsOpen((v) => !v)} aria-expanded={guestsOpen}>
@@ -478,6 +479,7 @@ export default function AdminTeilnahmePage() {
               gelegentlich: 30–59 %, selten: unter 30 % (mindestens 3 mögliche Termine).
             </p>
           )}
+        </div>
         </div>
       </PageBody>
       <PlayerSheet key={selected?.id ?? "none"} player={selected} onClose={() => setSelected(null)} />
