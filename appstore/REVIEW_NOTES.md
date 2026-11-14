@@ -6,8 +6,8 @@ Einzutragen in App Store Connect → Version → **App Review Information**.
 
 Die Zugangsdaten stehen in `appstore/REVIEW_ACCESS.local.txt` (wird nicht committet). Dort Name und Passwort kopieren:
 
-- „Anmeldename“ = `Apple Review` (Spieler)
-- Zweiter Zugang `Apple Review Trainer` (zeigt zusätzlich den Admin-Bereich) → in das Notizfeld
+- Spieler: Vorname `Apple`, Nachname `Review`
+- Zweiter Zugang (zeigt zusätzlich den Admin-Bereich): Vorname `Apple`, Nachname `Review Trainer` → in das Notizfeld
 
 ## Kontakt
 
@@ -21,9 +21,9 @@ Thank you for reviewing ClubTermine.
 ClubTermine is a private organisation app for sports teams (padel/tennis clubs): players register for trainings and match days, and trainers manage courts and groups.
 
 HOW TO SIGN IN
-The app signs in with first + last name and a password (no email). Use the demo account from the fields above:
-  Player:  name "Apple Review"  – see password field
-  Trainer: name "Apple Review Trainer" – same password (shows the admin area)
+The app signs in with first name + last name and a password (no email). Use the demo account from the fields above:
+  Player:  first name "Apple", last name "Review" – see password field
+  Trainer: first name "Apple", last name "Review Trainer" – same password (shows the admin area)
 New self-registrations must be approved by a club manager, so please use the demo accounts. The demo team ("App-Review Demo") is isolated from all real teams.
 
 NATIVE FUNCTIONALITY (guideline 4.2)
