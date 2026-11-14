@@ -1,4 +1,4 @@
-# Übergabe-Notizen (Stand 2026-11-04)
+# Übergabe-Notizen (Stand 2026-11-14)
 
 Als Erstes lesen, wenn man auf einem Gerät weiterarbeitet. Setup: `DEVELOPMENT.md`.
 
@@ -19,3 +19,10 @@ iOS-App zeigt beim Kaltstart ein 404 (Web im Browser ist ok).
 ## Hinweise
 - Altes Projekt lag auf Mac 1 unter `~/Downloads/the-padellers-app`.
 - Xcode-Projekt öffnen: `ios/App/App.xcodeproj` (kein Workspace, SwiftPM).
+
+## Stand 2026-11-14
+- Das 404-Problem war eine veraltete generierte `capacitor.config.json` auf Mac 1; auf Mac 2 läuft die App.
+- Build 1.0 (1) ist in App Store Connect / TestFlight. Store-Eintrag und Einreichung stehen noch aus (`appstore/RELEASE_GUIDE.md`).
+- Neu: schnellere Admin-Tabs, Spieler-Layout repariert, "Sichtbar für" nur für Admins, Saison-Reiter entfernt, `ci_scripts/ci_post_clone.sh` für Xcode Cloud.
+- Offen: Vercel hat die Commits von Claude (Autor `Claude <noreply@anthropic.com>`) nicht deployt. Ab jetzt committet Claude unter dem GitHub-Namen des Besitzers (mit Hinweis im Chat).
+- Demo-Zugang für Apple: `appstore/REVIEW_ACCESS.local.txt` und `.env.local` liegen nur auf Mac 1.
