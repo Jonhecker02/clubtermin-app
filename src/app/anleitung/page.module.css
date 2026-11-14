@@ -263,3 +263,14 @@
   color: var(--color-ink);
   margin: 22px 0 6px;
 }
+
+.howtoVideo {
+  display: block;
+  width: 100%;
+  max-width: 300px;
+  aspect-ratio: 9 / 16;
+  margin: 16px auto 0;
+  border-radius: 18px;
+  background: #14223f;
+  box-shadow: 0 6px 22px rgba(20, 34, 63, 0.18);
+}

@@ -121,6 +121,6 @@ function resolveTarget(
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|robots.txt|sw.js|offline.html|icons/|splash/|apple-icon.*|icon.*).*)",
+    "/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|robots.txt|sw.js|offline.html|icons/|splash/|videos/|apple-icon.*|icon.*).*)",
   ],
 };

@@ -97,25 +97,36 @@ function HomeScreenSection({ idPrefix }: { idPrefix: string }) {
           ]}
         />
       ) : (
-        <Steps
-          items={[
-            <>
-              Öffne ClubTermine in <b>Chrome</b>.
-            </>,
-            <>
-              Tippe oben rechts auf das <b>Drei-Punkte-Menü</b>.
-            </>,
-            <>
-              Wähle <code>App installieren</code> bzw. <code>Zum Startbildschirm hinzufügen</code>.
-            </>,
-            <>Bestätige den Dialog.</>,
-            <>
-              Öffne ClubTermine (am besten über das neue Symbol), gehe unten auf <b>Profil</b> und tippe auf{" "}
-              <b>„Push-Benachrichtigungen aktivieren“</b>. Erlaube die Benachrichtigungen, wenn Android
-              fragt.
-            </>,
-          ]}
-        />
+        <>
+          <video
+            className={styles.howtoVideo}
+            src="/videos/android-installieren.mp4"
+            poster="/videos/android-installieren-poster.jpg"
+            controls
+            playsInline
+            preload="metadata"
+            aria-label="Video: ClubTermine auf Android installieren"
+          />
+          <Steps
+            items={[
+              <>
+                Öffne ClubTermine in <b>Chrome</b>.
+              </>,
+              <>
+                Tippe oben rechts auf das <b>Drei-Punkte-Menü</b>.
+              </>,
+              <>
+                Wähle <code>App installieren</code> bzw. <code>Zum Startbildschirm hinzufügen</code>.
+              </>,
+              <>Bestätige den Dialog.</>,
+              <>
+                Öffne ClubTermine (am besten über das neue Symbol), gehe unten auf <b>Profil</b> und tippe auf{" "}
+                <b>„Push-Benachrichtigungen aktivieren“</b>. Erlaube die Benachrichtigungen, wenn Android
+                fragt.
+              </>,
+            ]}
+          />
+        </>
       )}
       <Callout mark="Kommt nichts an?">
         {platform === "ios" ? (
