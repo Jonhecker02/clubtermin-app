@@ -17,7 +17,7 @@ iOS-App zeigt beim Kaltstart ein 404 (Web im Browser ist ok).
 - Falls weiter 404: genauen Text der Fehlerseite + Xcode-Konsole prüfen.
 
 ## Hinweise
-- Altes Projekt lag auf Mac 1 unter `~/Downloads/the-padellers-app`.
+- Mac 1: Projektordner ist jetzt `~/Documents/clubtermine-app` (früher `~/Downloads/the-padellers-app`). iCloud-Sync für Dokumente ist aus.
 - Xcode-Projekt öffnen: `ios/App/App.xcodeproj` (kein Workspace, SwiftPM).
 
 ## Stand 2026-11-14

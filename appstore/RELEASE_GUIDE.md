@@ -28,7 +28,7 @@ Was im Code vorbereitet ist, steht unten unter „Schon erledigt“. Hier steht,
 ## Schritt 3 – Projekt in Xcode öffnen und signieren
 
 ```bash
-cd /Users/adrianvonderdecken/Downloads/the-padellers-app
+cd ~/Documents/clubtermine-app   # dein Projektordner
 open ios/App/App.xcodeproj
 ```
 
