@@ -1,10 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { PageBody } from "@/components/layout/PageBody";
 import { Input, Select } from "@/components/ui/Input";
-import { Tabs } from "@/components/ui/Tabs";
 import { AdminTabs } from "@/components/admin/AdminTabs";
 import { PersonName } from "@/components/PersonName";
 import { useProfile } from "@/lib/queries/useProfile";
@@ -20,7 +20,6 @@ import {
   TIER_LABELS,
   type Outcome,
   type PlayerParticipation,
-  type Tier,
 } from "@/lib/participation";
 import { PlayerSheet, type SheetPlayer } from "@/components/admin/PlayerSheet";
 import { dateLabel, groupLabel } from "@/lib/domain";
@@ -140,16 +139,12 @@ function PlayerCard({
               <span className={styles.barWait} style={{ width: `${waitPct}%` }} />
             </div>
             <div className={styles.cardBottom}>
-              <span className={styles.facts}>
-                {row.confirmed}× dabei
-                {row.waitlist > 0 ? ` · ${row.waitlist}× angemeldet ohne Platz` : ""}
-              </span>
+              <div className={styles.dots} aria-hidden="true">
+                {dots.map((h) => (
+                  <span key={h.terminId} className={`${styles.dot} ${styles[`dot_${h.outcome}`]}`} />
+                ))}
+              </div>
               <span className={`${styles.tier} ${styles[`tier_${row.tier}`]}`}>{TIER_LABELS[row.tier]}</span>
-            </div>
-            <div className={styles.dots} aria-hidden="true">
-              {dots.map((h) => (
-                <span key={h.terminId} className={`${styles.dot} ${styles[`dot_${h.outcome}`]}`} />
-              ))}
             </div>
           </>
         )}
@@ -157,6 +152,10 @@ function PlayerCard({
 
       {open && total > 0 && (
         <div className={styles.detail}>
+          <div className={styles.detailNote}>
+            {row.confirmed}× dabei
+            {row.waitlist > 0 ? ` · ${row.waitlist}× angemeldet ohne Platz` : ""}
+          </div>
           <div className={styles.detailTitle}>Verlauf (neueste zuerst)</div>
           <ul className={styles.history}>
             {row.history.slice(0, 15).map((h) => (
@@ -195,7 +194,10 @@ export default function AdminTeilnahmePage() {
   const [period, setPeriod] = useState("90");
   const [kind, setKind] = useState<"training" | "alle">("training");
   const [groupId, setGroupId] = useState("alle");
-  const [tier, setTier] = useState<"alle" | Tier | "nie">("alle");
+  const [tier, setTier] = useState<"alle" | "selten" | "nie">("alle");
+  const [checkOpen, setCheckOpen] = useState(false);
+  const [guestsOpen, setGuestsOpen] = useState(false);
+  const [noteOpen, setNoteOpen] = useState(false);
   const [sort, setSort] = useState<SortId>("quote_asc");
   const [search, setSearch] = useState("");
   const [checkWeeks, setCheckWeeks] = useState("4");
@@ -292,103 +294,71 @@ export default function AdminTeilnahmePage() {
     return map;
   }, [trainerStats]);
 
-  const tierItems = [
-    { id: "alle", label: `Alle (${counts.alle})` },
-    { id: "selten", label: `Selten angemeldet (${counts.selten})` },
-    { id: "mittel", label: `Gelegentlich (${counts.mittel})` },
-    { id: "stamm", label: `Stamm (${counts.stamm})` },
-    { id: "neu", label: `Neu (${counts.neu})` },
-    { id: "nie", label: `Nie angemeldet (${counts.nie})` },
-  ];
-
   return (
     <>
       <AppHeader title="Teilnahme" />
       <PageBody>
         <AdminTabs current="statistik" />
 
-        <div className={styles.checkIn}>
-          <div className={styles.checkInHead}>
-            <span className={styles.checkInTitle}>Mal nachfragen ({checkIns.length})</span>
-            <Tabs
-              items={[
-                { id: "3", label: "3 Wo." },
-                { id: "4", label: "4 Wo." },
-                { id: "6", label: "6 Wo." },
-                { id: "8", label: "8 Wo." },
-              ]}
-              value={checkWeeks}
-              onChange={setCheckWeeks}
-              size="sm"
-              style={{ width: "auto" }}
-            />
-          </div>
-          {checkIns.length === 0 ? (
-            <div className={styles.checkInOk}>
-              Alles im grünen Bereich: Alle haben sich in den letzten {checkWeeks} Wochen mindestens einmal angemeldet.
-            </div>
-          ) : (
-            <>
-              <div className={styles.checkInSub}>
-                Seit {checkWeeks} Wochen nicht mehr angemeldet, obwohl es Trainings gab. Wer auf der Warteliste landete,
-                zählt als angemeldet und taucht hier nicht auf.
-              </div>
-              <ul className={styles.checkInList}>
-                {checkIns.map((c) => {
-                  const g = groups.find((x) => x.id === c.groupId);
-                  return (
-                    <li key={c.userId}>
-                      <button
-                        type="button"
-                        className={styles.checkInRow}
-                        onClick={() => setSelected({ id: c.userId, name: c.name, subtitle: g ? groupLabel(g) : undefined })}
-                      >
-                        <span className={styles.checkInWho}>
-                          <PersonName className={styles.name} name={c.name} userId={c.userId} />
-                          <span className={styles.meta}>
-                            {c.lastRegistered ? `zuletzt angemeldet ${dateLabel(c.lastRegistered)}` : "noch nie angemeldet"}
-                            {c.lastConfirmed ? ` · zuletzt dabei ${dateLabel(c.lastConfirmed)}` : ""}
-                            {` · ${c.possible} Trainings verpasst`}
+        <div className={styles.fold}>
+          <button type="button" className={styles.foldHead} onClick={() => setCheckOpen((v) => !v)} aria-expanded={checkOpen}>
+            <span className={`${styles.foldTitle} ${checkIns.length > 0 ? styles.foldAlert : ""}`}>
+              Mal nachfragen ({checkIns.length})
+            </span>
+            <ChevronDown size={18} strokeWidth={2.4} className={`${styles.chev} ${checkOpen ? styles.chevOpen : ""}`} />
+          </button>
+          {checkOpen && (
+            <div className={styles.foldBody}>
+              <Select label="Zeitraum ohne Anmeldung" value={checkWeeks} onChange={(e) => setCheckWeeks(e.target.value)}>
+                {["3", "4", "6", "8"].map((w) => (
+                  <option key={w} value={w}>
+                    {w} Wochen
+                  </option>
+                ))}
+              </Select>
+              {checkIns.length === 0 ? (
+                <div className={styles.checkInOk}>Alle haben sich in den letzten {checkWeeks} Wochen mindestens einmal angemeldet.</div>
+              ) : (
+                <ul className={styles.checkInList}>
+                  {checkIns.map((c) => {
+                    const g = groups.find((x) => x.id === c.groupId);
+                    return (
+                      <li key={c.userId}>
+                        <button
+                          type="button"
+                          className={styles.checkInRow}
+                          onClick={() => setSelected({ id: c.userId, name: c.name, subtitle: g ? groupLabel(g) : undefined })}
+                        >
+                          <span className={styles.checkInWho}>
+                            <PersonName className={styles.name} name={c.name} userId={c.userId} />
+                            <span className={styles.meta}>
+                              {c.lastRegistered ? `zuletzt angemeldet ${dateLabel(c.lastRegistered)}` : "noch nie angemeldet"}
+                              {` · ${c.possible} Trainings verpasst`}
+                            </span>
                           </span>
-                        </span>
-                        <span className={styles.checkInCta}>Notiz</span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            </>
+                          <span className={styles.checkInCta}>Notiz</span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
           )}
         </div>
 
-        <div className={styles.summary}>
-          <div className={styles.sumCard}>
-            <span className={styles.sumNum}>{termineCount}</span>
-            <span className={styles.sumLabel}>Termine</span>
-          </div>
-          <div className={styles.sumCard}>
-            <span className={styles.sumNum}>{percent(average)}</span>
-            <span className={styles.sumLabel}>Ø angemeldet</span>
-          </div>
-          <button type="button" className={`${styles.sumCard} ${styles.sumAlert}`} onClick={() => setTier("selten")}>
-            <span className={styles.sumNum}>{counts.selten}</span>
-            <span className={styles.sumLabel}>Selten angemeldet</span>
-          </button>
-        </div>
-
-        <Tabs items={PERIODS} value={period} onChange={setPeriod} size="sm" style={{ marginBottom: 10 }} />
-        <Tabs
-          items={[
-            { id: "training", label: "Nur Trainings" },
-            { id: "alle", label: "Alle Termine" },
-          ]}
-          value={kind}
-          onChange={(id) => setKind(id as "training" | "alle")}
-          size="sm"
-          style={{ marginBottom: 12 }}
-        />
-
         <div className={styles.filters}>
+          <Select label="Zeitraum" value={period} onChange={(e) => setPeriod(e.target.value)}>
+            {PERIODS.map((x) => (
+              <option key={x.id} value={x.id}>
+                {x.label}
+              </option>
+            ))}
+          </Select>
+          <Select label="Termine" value={kind} onChange={(e) => setKind(e.target.value as "training" | "alle")}>
+            <option value="training">Nur Trainings</option>
+            <option value="alle">Alle Termine</option>
+          </Select>
           {isCaptain ? (
             <div className={styles.teamBox}>
               <span className={styles.teamLabel}>Deine Mannschaft</span>
@@ -409,21 +379,48 @@ export default function AdminTeilnahmePage() {
               ))}
             </Select>
           )}
-          <Select label="Sortieren nach" value={sort} onChange={(e) => setSort(e.target.value as SortId)}>
-            {SORTS.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.label}
+          <Select label="Sortieren" value={sort} onChange={(e) => setSort(e.target.value as SortId)}>
+            {SORTS.map((x) => (
+              <option key={x.id} value={x.id}>
+                {x.label}
               </option>
             ))}
           </Select>
         </div>
 
+        <div className={styles.summary}>
+          <div className={styles.sumCard}>
+            <span className={styles.sumNum}>{percent(average)}</span>
+            <span className={styles.sumLabel}>Ø angemeldet</span>
+          </div>
+          <button
+            type="button"
+            className={`${styles.sumCard} ${styles.sumAlert} ${tier === "selten" ? styles.sumActive : ""}`}
+            onClick={() => setTier(tier === "selten" ? "alle" : "selten")}
+            aria-pressed={tier === "selten"}
+          >
+            <span className={styles.sumNum}>{counts.selten}</span>
+            <span className={styles.sumLabel}>Selten angemeldet</span>
+          </button>
+          <button
+            type="button"
+            className={`${styles.sumCard} ${styles.sumAlert} ${tier === "nie" ? styles.sumActive : ""}`}
+            onClick={() => setTier(tier === "nie" ? "alle" : "nie")}
+            aria-pressed={tier === "nie"}
+          >
+            <span className={styles.sumNum}>{counts.nie}</span>
+            <span className={styles.sumLabel}>Nie angemeldet</span>
+          </button>
+        </div>
+
         <Input placeholder="Spieler suchen…" value={search} onChange={(e) => setSearch(e.target.value)} className={styles.search} />
-        <Tabs items={tierItems} value={tier} onChange={(id) => setTier(id as typeof tier)} size="sm" scrollable style={{ marginBottom: 12 }} />
 
         <div className={styles.legend}>
+          <span>
+            {rows.length} Spieler · {termineCount} Termine
+          </span>
           <span><span className={`${styles.dot} ${styles.dot_dabei}`} /> dabei</span>
-          <span><span className={`${styles.dot} ${styles.dot_warteliste}`} /> angemeldet, kein Platz</span>
+          <span><span className={`${styles.dot} ${styles.dot_warteliste}`} /> kein Platz</span>
           <span><span className={`${styles.dot} ${styles.dot_nicht}`} /> nicht angemeldet</span>
         </div>
 
@@ -444,33 +441,44 @@ export default function AdminTeilnahmePage() {
         </div>
 
         {guestRows.length > 0 && (
-          <div className={styles.guests}>
-            <div className={styles.guestsTitle}>Einspringer ({guestRows.length})</div>
-            <div className={styles.guestsSub}>
-              Nicht in der Mannschaft, aber schon eingesprungen — im gewählten Zeitraum. Wer fest zur Mannschaft kommt,
-              lässt sich unter Admin → Accounts mit dem neuen Konto zusammenführen.
-            </div>
-            <ul className={styles.guestList}>
-              {guestRows.map((g) => (
-                <li key={g.id} className={styles.guestRow}>
-                  <PersonName className={styles.name} name={g.name} userId={g.id} />
-                  <span className={styles.meta}>
-                    {g.count}× eingesprungen{g.last ? ` · zuletzt ${dateLabel(g.last)}` : ""}
-                  </span>
-                </li>
-              ))}
-            </ul>
+          <div className={styles.fold}>
+            <button type="button" className={styles.foldHead} onClick={() => setGuestsOpen((v) => !v)} aria-expanded={guestsOpen}>
+              <span className={styles.foldTitle}>Einspringer ({guestRows.length})</span>
+              <ChevronDown size={18} strokeWidth={2.4} className={`${styles.chev} ${guestsOpen ? styles.chevOpen : ""}`} />
+            </button>
+            {guestsOpen && (
+              <div className={styles.foldBody}>
+                <ul className={styles.guestList}>
+                  {guestRows.map((g) => (
+                    <li key={g.id} className={styles.guestRow}>
+                      <PersonName className={styles.name} name={g.name} userId={g.id} />
+                      <span className={styles.meta}>
+                        {g.count}× eingesprungen{g.last ? ` · zuletzt ${dateLabel(g.last)}` : ""}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         )}
 
-        <p className={styles.note}>
-          <b>Bewertet wird die Bereitschaft:</b> wie oft sich jemand angemeldet hat. Wer sich angemeldet hat, aber
-          wegen der Platzvergabe auf der Warteliste gelandet ist (gelb), zählt voll mit — das ist nicht seine Schuld.
-          „Dabei“ (grün) heißt: ein bestätigter Platz, nicht, ob die Person wirklich da war. Gezählt werden nur
-          Termine, für die der Spieler zugelassen war und die nach seinem Beitritt stattfanden. Abmeldungen werden
-          nicht gespeichert und erscheinen als „nicht angemeldet“. Stammspieler: ab 60 % angemeldet, gelegentlich:
-          30–59 %, selten: unter 30 % (mindestens 3 mögliche Termine).
-        </p>
+        <div className={styles.fold}>
+          <button type="button" className={styles.foldHead} onClick={() => setNoteOpen((v) => !v)} aria-expanded={noteOpen}>
+            <span className={styles.foldTitle}>So wird gerechnet</span>
+            <ChevronDown size={18} strokeWidth={2.4} className={`${styles.chev} ${noteOpen ? styles.chevOpen : ""}`} />
+          </button>
+          {noteOpen && (
+            <p className={styles.note}>
+              <b>Bewertet wird die Bereitschaft:</b> wie oft sich jemand angemeldet hat. Wer sich angemeldet hat, aber
+              wegen der Platzvergabe auf der Warteliste gelandet ist (gelb), zählt voll mit — das ist nicht seine
+              Schuld. „Dabei“ (grün) heißt: ein bestätigter Platz, nicht, ob die Person wirklich da war. Gezählt werden
+              nur Termine, für die der Spieler zugelassen war und die nach seinem Beitritt stattfanden. Abmeldungen
+              werden nicht gespeichert und erscheinen als „nicht angemeldet“. Stammspieler: ab 60 % angemeldet,
+              gelegentlich: 30–59 %, selten: unter 30 % (mindestens 3 mögliche Termine).
+            </p>
+          )}
+        </div>
       </PageBody>
       <PlayerSheet key={selected?.id ?? "none"} player={selected} onClose={() => setSelected(null)} />
     </>

@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { NotebookPen } from "lucide-react";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { PageBody } from "@/components/layout/PageBody";
-import { Input } from "@/components/ui/Input";
+import { Input, Select } from "@/components/ui/Input";
 import { Tabs } from "@/components/ui/Tabs";
 import { AdminTabs } from "@/components/admin/AdminTabs";
 import { PlayerSheet, type SheetPlayer } from "@/components/admin/PlayerSheet";
@@ -180,7 +180,13 @@ export default function AdminSpielerPage() {
         )}
         {view === "klassen" && (
           <>
-            <Tabs items={klassenItems} value={klasse} onChange={setKlasse} size="sm" scrollable style={{ marginBottom: 12 }} />
+            <Select label="Altersklasse" value={klasse} onChange={(e) => setKlasse(e.target.value)} className={styles.search}>
+              {klassenItems.map((k) => (
+                <option key={k.id} value={k.id}>
+                  {k.label}
+                </option>
+              ))}
+            </Select>
             {klasse !== "fehlt" && activeCount && (
               <div className={styles.classSummary}>
                 <b>{activeCount.eligible}</b> spielberechtigt
